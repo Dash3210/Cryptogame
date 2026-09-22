@@ -55,7 +55,7 @@ export const LeaderboardScreen = () => {
                             pressed && { opacity: 0.75, transform: [{ scale: 0.96 }] }
                         ]}
                     >
-                        <Text style={[styles.backButtonText, { color: colors.textSecondary }]}>â€¹</Text>
+                        <Text style={[styles.backButtonText, { color: colors.textSecondary }]}>‹</Text>
                     </Pressable>
                     <Text style={[styles.title, { color: colors.text }]}>Leaderboard</Text>
                 </View>
@@ -105,7 +105,7 @@ export const LeaderboardScreen = () => {
                         <View style={[styles.playGamesCard, { backgroundColor: colors.surface, borderColor: playGamesUser.isAuthenticated ? colors.success : colors.border }]}>
                             <View style={styles.playGamesHeader}>
                                 <View style={styles.playGamesBadge}>
-                                    <Text style={[styles.playGamesIcon, { color: colors.primary }]}>â—ˆ</Text>
+                                    <Text style={[styles.playGamesIcon, { color: colors.primary }]}>◈</Text>
                                     <View style={{ flex: 1 }}>
                                         <Text style={[styles.playGamesTitle, { color: colors.text }]}>Google Play Games</Text>
                                         <Text style={[styles.playGamesSubtitle, { color: playGamesUser.isAuthenticated ? colors.success : colors.textMuted }]}>

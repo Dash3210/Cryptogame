@@ -27,7 +27,7 @@ const HowToPlayModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ v
                             pressed && { opacity: 0.5 }
                         ]}
                     >
-                        <Text style={[htpStyles.closeBtnText, { color: colors.text }]}>â€¹</Text>
+                        <Text style={[htpStyles.closeBtnText, { color: colors.text }]}>‹</Text>
                     </Pressable>
                     <Text style={[htpStyles.headerTitle, { color: colors.text }]}>How to Play</Text>
                 </View>
@@ -41,7 +41,7 @@ const HowToPlayModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ v
                         </Text>
                         <View style={[htpStyles.exampleBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                             <Text style={[htpStyles.exampleCipher, { color: colors.error }]}>X KWRT VIB</Text>
-                            <Text style={[htpStyles.exampleArrow, { color: colors.text }]}>â¬‡</Text>
+                            <Text style={[htpStyles.exampleArrow, { color: colors.text }]}>⬇</Text>
                             <Text style={[htpStyles.exampleSolved, { color: colors.success }]}>I LOVE YOU</Text>
                         </View>
                     </View>
@@ -201,14 +201,14 @@ export const SettingsScreen = () => {
                         pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
                     ]}
                 >
-                    <Text style={{ fontSize: 24, color: colors.primary }}>â–¤</Text>
+                    <Text style={{ fontSize: 24, color: colors.primary }}>▤</Text>
                     <View style={{ flex: 1 }}>
                         <Text style={[styles.howToPlayTitle, { color: colors.primary }]}>How to Play & Pro Tips</Text>
                         <Text style={[styles.howToPlaySub, { color: colors.textSecondary }]}>
                             Rules, cryptanalysis tips & scoring guide
                         </Text>
                     </View>
-                    <Text style={[styles.howToPlayArrow, { color: colors.primary }]}>â€º</Text>
+                    <Text style={[styles.howToPlayArrow, { color: colors.primary }]}>›</Text>
                 </Pressable>
 
                 {/* Difficulty */}
@@ -280,7 +280,7 @@ export const SettingsScreen = () => {
                                         { color: colors.text },
                                         isActive && { color: colors.primary, fontWeight: '800' }
                                     ]}>
-                                        {THEME_NAMES[tKey].name} {!isOwned && 'â–£'}
+                                        {THEME_NAMES[tKey].name} {!isOwned && '▣'}
                                     </Text>
                                 </Pressable>
                             );
@@ -431,7 +431,7 @@ export const SettingsScreen = () => {
                         <Text style={[styles.resetBtnText, { color: colors.error }]}>Reset All Game Progress</Text>
                     </Pressable>
 
-                    <Text style={[styles.versionText, { color: colors.textMuted }]}>BrainCipher v1.0.0 â€¢ Production Build</Text>
+                    <Text style={[styles.versionText, { color: colors.textMuted }]}>BrainCipher v1.0.0 • Production Build</Text>
                 </View>
             </ScrollView>
 

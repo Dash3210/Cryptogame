@@ -125,7 +125,7 @@ export const StoreScreen = () => {
 
                     <View style={styles.headerRight}>
                         <View style={[styles.coinBadge, { backgroundColor: colors.goldBg, borderColor: colors.gold }]}>
-                            <Text style={{ fontSize: 15, color: colors.gold }}>â—Ž</Text>
+                            <Text style={{ fontSize: 15, color: colors.gold }}>◎</Text>
                             <Text tabular style={[styles.coinVal, { color: colors.gold }]}>{coins}</Text>
                         </View>
 
@@ -222,7 +222,7 @@ export const StoreScreen = () => {
 
                                     {isOwned ? (
                                         <View style={[styles.ownedBadge, { backgroundColor: colors.successBg }]}>
-                                            <Text style={[styles.ownedText, { color: colors.success }]}>âœ“ In Library</Text>
+                                            <Text style={[styles.ownedText, { color: colors.success }]}>✓ In Library</Text>
                                         </View>
                                     ) : (
                                         <View style={styles.buyBtnRow}>

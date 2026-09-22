@@ -64,7 +64,7 @@ export const DailyChallengeScreen = () => {
                     ]}
                     hitSlop={8}
                 >
-                    <Text style={[styles.backIcon, { color: colors.textSecondary }]}>â€¹</Text>
+                    <Text style={[styles.backIcon, { color: colors.textSecondary }]}>‹</Text>
                 </Pressable>
                 <Text style={[styles.title, { color: colors.text }]}>Daily Cipher</Text>
             </View>
@@ -76,7 +76,7 @@ export const DailyChallengeScreen = () => {
                         <View>
                             <Text style={[styles.streakLabel, { color: colors.textMuted }]}>CURRENT STREAK</Text>
                             <View style={styles.streakNumRow}>
-                                <Text style={[styles.flameIcon, { color: colors.gold }]}>â–²</Text>
+                                <Text style={[styles.flameIcon, { color: colors.gold }]}>▲</Text>
                                 <Text style={[styles.streakVal, { color: colors.gold }]}>{stats.currentStreak}</Text>
                                 <Text style={[styles.streakUnit, { color: colors.textSecondary }]}>Days</Text>
                             </View>
@@ -135,7 +135,7 @@ export const DailyChallengeScreen = () => {
                                         }
                                     ]}
                                 >
-                                    {day.isCompleted ? 'âœ“' : day.dayNum}
+                                    {day.isCompleted ? '✓' : day.dayNum}
                                 </Text>
                             </View>
                         ))}
@@ -145,7 +145,7 @@ export const DailyChallengeScreen = () => {
                 {/* Today's Mission Card */}
                 <View style={[styles.missionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                     <View style={[styles.iconBox, { backgroundColor: colors.primaryBg }]}>
-                        <Text style={{ fontSize: 30, color: colors.primary }}>âŠž</Text>
+                        <Text style={{ fontSize: 30, color: colors.primary }}>⊞</Text>
                     </View>
 
                     <Text style={[styles.missionTitle, { color: colors.text }]}>Today's Cryptogram</Text>
@@ -155,11 +155,11 @@ export const DailyChallengeScreen = () => {
 
                     <View style={styles.rewardsRow}>
                         <View style={[styles.rewardBadge, { backgroundColor: colors.surfaceHighlight }]}>
-                            <Text style={[styles.rewardIcon, { color: colors.gold }]}>â—Ž</Text>
+                            <Text style={[styles.rewardIcon, { color: colors.gold }]}>◎</Text>
                             <Text style={[styles.rewardText, { color: colors.text }]}>Up to 60 Coins</Text>
                         </View>
                         <View style={[styles.rewardBadge, { backgroundColor: colors.surfaceHighlight }]}>
-                            <Text style={[styles.rewardIcon, { color: colors.gold }]}>â–²</Text>
+                            <Text style={[styles.rewardIcon, { color: colors.gold }]}>▲</Text>
                             <Text style={[styles.rewardText, { color: colors.text }]}>+1 Streak</Text>
                         </View>
                     </View>
@@ -176,7 +176,7 @@ export const DailyChallengeScreen = () => {
                         ]}
                     >
                         <Text style={styles.playBtnText}>
-                            {isTodaySolved ? 'Replay (practice, no rewards)' : 'Decipher Today\'s Quote â†’'}
+                            {isTodaySolved ? 'Replay (practice, no rewards)' : 'Decipher Today\'s Quote →'}
                         </Text>
                     </Pressable>
                 </View>

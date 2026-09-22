@@ -135,11 +135,11 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                     dateStr: isDaily ? new Date().toISOString().split('T')[0] : undefined,
                 });
             } else {
-                const starsText = 'â­'.repeat(grade.stars);
-                msg = `ðŸ§  BrainCipher ${isBlitz ? 'Blitz Rush' : 'Decoded'}! [${genreLabel}]\n` +
-                    `ðŸ† Grade: ${grade.grade} (${starsText})\n` +
-                    `â±ï¸ Time: ${timeFormatted} | ðŸŽ¯ Accuracy: ${accuracy}%\n` +
-                    `âœ¨ Score: ${score.toLocaleString()} pts (+${coinsEarned} Coins)\n` +
+                const starsText = '⭐'.repeat(grade.stars);
+                msg = `🧠 BrainCipher ${isBlitz ? 'Blitz Rush' : 'Decoded'}! [${genreLabel}]\n` +
+                    `🏆 Grade: ${grade.grade} (${starsText})\n` +
+                    `⏱️ Time: ${timeFormatted} | 🎯 Accuracy: ${accuracy}%\n` +
+                    `✨ Score: ${score.toLocaleString()} pts (+${coinsEarned} Coins)\n` +
                     `Can you crack the code? https://braincipher.app`;
             }
 
@@ -193,10 +193,10 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         </View>
                         <View style={styles.gradeInfo}>
                             <Text style={[styles.gradeTitle, { color: colors.text }]}>{grade.title}</Text>
-                            <Text style={[styles.starsText, { color: getGradeColor(grade.grade) }]}>{'â˜…'.repeat(grade.stars)}</Text>
+                            <Text style={[styles.starsText, { color: getGradeColor(grade.grade) }]}>{'★'.repeat(grade.stars)}</Text>
                         </View>
                         <View style={[styles.netCoinPill, { backgroundColor: colors.goldBg, borderColor: colors.gold }]}>
-                            <Text style={[styles.coinIcon, { color: colors.gold }]}>â—Ž</Text>
+                            <Text style={[styles.coinIcon, { color: colors.gold }]}>◎</Text>
                             <Text style={[styles.netCoinVal, { color: colors.gold }]}>+{displayCoins}</Text>
                         </View>
                     </View>
@@ -215,7 +215,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                             <View style={styles.ledgerHeaderRow}>
                                 <Text style={[styles.ledgerHeaderTitle, { color: colors.textMuted }]}>BLITZ PAYOUT</Text>
                                 <Text style={[styles.ledgerHeaderRatio, { color: colors.primary }]}>
-                                    {score.toLocaleString()} pts â†’ {coinsEarned} coins
+                                    {score.toLocaleString()} pts → {coinsEarned} coins
                                 </Text>
                             </View>
                             <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
@@ -244,17 +244,17 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         </View>
 
                         <View style={styles.ledgerRow}>
-                            <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>â€¢ Base Level Reward</Text>
-                            <Text style={[styles.ledgerRowValuePositive, { color: colors.primary }]}>+{reward.baseCoins} â—Ž</Text>
+                            <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>• Base Level Reward</Text>
+                            <Text style={[styles.ledgerRowValuePositive, { color: colors.primary }]}>+{reward.baseCoins} ◎</Text>
                         </View>
 
                         {reward.mistakeDeduction > 0 && (
                             <View style={styles.ledgerRow}>
                                 <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
-                                    â€¢ Wrong Answers ({reward.mistakesCount})
+                                    • Wrong Answers ({reward.mistakesCount})
                                 </Text>
                                 <Text style={[styles.ledgerRowValueNegative, { color: colors.error }]}>
-                                    -{reward.mistakeDeduction} â—Ž
+                                    -{reward.mistakeDeduction} ◎
                                 </Text>
                             </View>
                         )}
@@ -262,10 +262,10 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         {reward.hintDeduction > 0 && (
                             <View style={styles.ledgerRow}>
                                 <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
-                                    â€¢ Hints Used ({reward.hintsCount})
+                                    • Hints Used ({reward.hintsCount})
                                 </Text>
                                 <Text style={[styles.ledgerRowValueNegative, { color: colors.error }]}>
-                                    -{reward.hintDeduction} â—Ž
+                                    -{reward.hintDeduction} ◎
                                 </Text>
                             </View>
                         )}
@@ -273,10 +273,10 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         {reward.timeDeduction > 0 && (
                             <View style={styles.ledgerRow}>
                                 <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
-                                    â€¢ Exceeded Par Time
+                                    • Exceeded Par Time
                                 </Text>
                                 <Text style={[styles.ledgerRowValueNegative, { color: colors.error }]}>
-                                    -{reward.timeDeduction} â—Ž
+                                    -{reward.timeDeduction} ◎
                                 </Text>
                             </View>
                         )}
@@ -284,10 +284,10 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         {reward.keyDeduction > 0 && (
                             <View style={styles.ledgerRow}>
                                 <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
-                                    â€¢ Master Key Usage
+                                    • Master Key Usage
                                 </Text>
                                 <Text style={[styles.ledgerRowValueNegative, { color: colors.error }]}>
-                                    -{reward.keyDeduction} â—Ž
+                                    -{reward.keyDeduction} ◎
                                 </Text>
                             </View>
                         )}
@@ -295,10 +295,10 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         {reward.cleanBonus > 0 && (
                             <View style={styles.ledgerRow}>
                                 <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
-                                    â€¢ Flawless Clean Solve
+                                    • Flawless Clean Solve
                                 </Text>
                                 <Text style={[styles.ledgerRowValuePositive, { color: colors.primary }]}>
-                                    +{reward.cleanBonus} â—Ž
+                                    +{reward.cleanBonus} ◎
                                 </Text>
                             </View>
                         )}
@@ -362,7 +362,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         ]}
                     >
                         <Text style={styles.primaryBtnText}>
-                            {isDaily ? 'Back to Daily Cipher' : (isBlitz && isBlitzTimeout) ? 'Play Blitz Again' : 'Next Cryptogram â†’'}
+                            {isDaily ? 'Back to Daily Cipher' : (isBlitz && isBlitzTimeout) ? 'Play Blitz Again' : 'Next Cryptogram →'}
                         </Text>
                     </Pressable>
 
@@ -376,7 +376,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                 pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] }
                             ]}
                         >
-                            <Text style={[styles.secondaryBtnIcon, { color: liked ? colors.error : colors.textSecondary }]}>{liked ? 'â™¥' : 'â™¡'}</Text>
+                            <Text style={[styles.secondaryBtnIcon, { color: liked ? colors.error : colors.textSecondary }]}>{liked ? '♥' : '♡'}</Text>
                             <Text style={[styles.secondaryBtnText, { color: liked ? colors.error : colors.textSecondary }]}>
                                 {liked ? 'Saved' : 'Save'}
                             </Text>
@@ -390,7 +390,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                 pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] }
                             ]}
                         >
-                            <Text style={[styles.secondaryBtnIcon, { color: colors.textSecondary }]}>â†—</Text>
+                            <Text style={[styles.secondaryBtnIcon, { color: colors.textSecondary }]}>↗</Text>
                             <Text style={[styles.secondaryBtnText, { color: colors.textSecondary }]}>Share</Text>
                         </Pressable>
 
@@ -405,7 +405,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                 pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] }
                             ]}
                         >
-                            <Text style={styles.secondaryBtnIcon}>â€¹</Text>
+                            <Text style={styles.secondaryBtnIcon}>‹</Text>
                             <Text style={[styles.secondaryBtnText, { color: colors.textSecondary }]}>Back</Text>
                         </Pressable>
                     </View>
