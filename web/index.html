@@ -7,7 +7,7 @@
     <meta name="description" content="Decipher timeless scientific laws, cosmic principles, and mathematical breakthroughs. Featuring Fraunhofer spectroscopy analysis and physics-based tactile decoding.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Spectral:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-base: #060913;
@@ -36,7 +36,7 @@
         body {
             background-color: var(--bg-base);
             color: var(--text-primary);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             overflow-x: hidden;
             line-height: 1.5;
         }
@@ -100,7 +100,7 @@
         }
 
         .preloader-terminal {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.9rem;
             color: var(--cyan-glow);
             letter-spacing: 0.15em;
@@ -124,9 +124,11 @@
             left: 0;
             top: 0;
             bottom: 0;
-            width: 0%;
+            width: 100%;
+            transform: scaleX(0);
+            transform-origin: left center;
             background: linear-gradient(90deg, var(--cyan-glow), var(--emerald-glow));
-            transition: width 0.8s var(--ease-out);
+            transition: transform 0.8s var(--ease-out);
         }
 
         /* Floating Nav Header */
@@ -156,7 +158,7 @@
             gap: 10px;
             text-decoration: none;
             color: var(--text-primary);
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Spectral', serif;
             font-weight: 700;
             font-size: 1.15rem;
             letter-spacing: -0.02em;
@@ -171,7 +173,7 @@
             align-items: center;
             justify-content: center;
             font-size: 18px;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
         }
 
         .nav-links {
@@ -211,8 +213,8 @@
         .nav-btn:hover {
             background: var(--cyan-glow);
             color: #04060c;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-            transform: scale(0.97);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+            transform: scale(0.96);
         }
 
         /* Hero Section */
@@ -237,7 +239,7 @@
             background: rgba(56, 189, 248, 0.08);
             border: 1px solid rgba(56, 189, 248, 0.25);
             font-size: 0.8rem;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'IBM Plex Mono', monospace;
             color: var(--cyan-glow);
             text-transform: uppercase;
             letter-spacing: 0.1em;
@@ -250,16 +252,15 @@
             height: 7px;
             border-radius: 50%;
             background: var(--emerald-glow);
-            box-shadow: 0 0 8px var(--emerald-glow);
         }
 
         @keyframes pulse-glow {
             from { border-color: rgba(56, 189, 248, 0.2); }
-            to { border-color: rgba(56, 189, 248, 0.6); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+            to { border-color: rgba(56, 189, 248, 0.6); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); }
         }
 
         .hero h1 {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Spectral', serif;
             font-size: clamp(2.5rem, 6.5vw, 5.5rem);
             font-weight: 800;
             line-height: 1.06;
@@ -302,7 +303,7 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 10px 30px -5px rgba(56, 189, 248, 0.45);
+            box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.55);
             transition: transform 0.16s var(--ease-out), box-shadow 0.16s;
             border: none;
             cursor: pointer;
@@ -377,7 +378,7 @@
         }
 
         .console-title {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.85rem;
             color: var(--cyan-glow);
             letter-spacing: 0.05em;
@@ -386,7 +387,7 @@
         .console-stats {
             display: flex;
             gap: 20px;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.8rem;
             color: var(--text-muted);
         }
@@ -411,7 +412,7 @@
         }
 
         .spectroscopy-title {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.72rem;
             color: var(--cyan-glow);
             letter-spacing: 0.1em;
@@ -441,18 +442,17 @@
         .spectral-chip:hover, .spectral-chip.active {
             border-color: var(--cyan-glow);
             background: rgba(56, 189, 248, 0.15);
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
         }
 
         .spectral-line {
             width: 3px;
             background: var(--cyan-glow);
             border-radius: 2px;
-            transition: height 0.3s;
         }
 
         .spectral-char {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.75rem;
             font-weight: 700;
         }
@@ -493,7 +493,7 @@
             justify-content: center;
             font-size: 1.35rem;
             font-weight: 800;
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Spectral', serif;
             color: var(--text-primary);
             cursor: pointer;
             transition: transform 0.15s var(--ease-out), border-color 0.15s, background-color 0.15s;
@@ -508,7 +508,7 @@
             border-color: var(--cyan-glow);
             border-bottom-color: var(--cyan-glow);
             background: rgba(56, 189, 248, 0.18);
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
             transform: translateY(-3px) scale(1.04);
         }
 
@@ -527,7 +527,7 @@
         }
 
         .puzzle-clue {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.75rem;
             font-weight: 700;
             color: var(--text-muted);
@@ -553,7 +553,7 @@
             border: 1px solid var(--border-subtle);
             border-bottom: 2px solid rgba(255, 255, 255, 0.15);
             color: var(--text-primary);
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 1rem;
             font-weight: 700;
             border-radius: 8px;
@@ -601,7 +601,7 @@
         }
 
         .section-tag {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.8rem;
             color: var(--cyan-glow);
             letter-spacing: 0.15em;
@@ -610,7 +610,7 @@
         }
 
         .section-title {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Spectral', serif;
             font-size: clamp(2rem, 4vw, 3.25rem);
             font-weight: 800;
             letter-spacing: -0.03em;
@@ -664,7 +664,7 @@
         }
 
         .bento-card h3 {
-            font-family: 'Space Grotesk', sans-serif;
+            font-family: 'Spectral', serif;
             font-size: 1.5rem;
             font-weight: 700;
             margin-bottom: 12px;
@@ -710,11 +710,11 @@
             color: var(--emerald-glow);
             padding: 16px 28px;
             border-radius: 9999px;
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'IBM Plex Mono', monospace;
             font-size: 0.9rem;
             font-weight: 700;
             z-index: 999;
-            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
             display: flex;
             align-items: center;
             gap: 10px;
@@ -848,7 +848,7 @@
                         Real-time monogram frequency mapping benchmarked against the standard English natural corpus (ETAOIN SHRDLU). Compare cipher spectral emission spikes to standard letter probabilities to deduce substitutions.
                     </p>
                 </div>
-                <div style="margin-top:28px; padding:14px; background:rgba(0,0,0,0.3); border-radius:12px; font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--cyan-glow)">
+                <div style="margin-top:28px; padding:14px; background:rgba(0,0,0,0.3); border-radius:12px; font-family:'IBM Plex Mono',monospace; font-size:0.8rem; color:var(--cyan-glow)">
                     &gt; λ(E) = 12.7% | λ(T) = 9.1% | λ(A) = 8.2% | Weyl PRNG Seeded
                 </div>
             </div>
@@ -861,7 +861,7 @@
                         High-stakes speed decryption. Chain consecutive solves under clock pressure to compound exponential combo multipliers and earn rank points.
                     </p>
                 </div>
-                <div style="margin-top:20px; font-family:'Space Grotesk',sans-serif; font-size:2rem; font-weight:900; color:var(--emerald-glow)">
+                <div style="margin-top:20px; font-family:'Spectral',serif; font-size:2rem; font-weight:900; color:var(--emerald-glow)">
                     2.5× MULTIPLIER
                 </div>
             </div>
@@ -935,10 +935,10 @@
             const preloader = document.getElementById('preloader');
             const text = document.getElementById('preloaderText');
 
-            setTimeout(() => { if (fill) fill.style.width = '60%'; }, 200);
+            setTimeout(() => { if (fill) fill.style.transform = 'scaleX(0.6)'; }, 200);
             setTimeout(() => {
                 if (text) text.textContent = 'CALIBRATING FRAUNHOFER SPECTRA...';
-                if (fill) fill.style.width = '100%';
+                if (fill) fill.style.transform = 'scaleX(1)';
             }, 600);
             setTimeout(() => {
                 if (preloader) {
