@@ -1,0 +1,45 @@
+/* eslint-env jest */
+
+// Mock AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
+);
+
+// Mock Google Mobile Ads
+jest.mock('react-native-google-mobile-ads', () => {
+  return {
+    RewardedAd: {
+      createForAdRequest: jest.fn(() => ({
+        load: jest.fn(),
+        show: jest.fn(),
+        addAdEventListener: jest.fn(() => jest.fn()),
+      })),
+    },
+    RewardedAdEventType: {
+      LOADED: 'LOADED',
+      EARNED_REWARD: 'EARNED_REWARD',
+    },
+    AdEventType: {
+      CLOSED: 'CLOSED',
+      ERROR: 'ERROR',
+    },
+    TestIds: {
+      REWARDED: 'ca-app-pub-3940256099942544/5224354917',
+    },
+  };
+});
+
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => {
+  const React = require('react');
+  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  const SafeAreaInsetsContext = React.createContext(inset);
+  return {
+    SafeAreaProvider: ({ children }) => children,
+    SafeAreaConsumer: ({ children }) => children(inset),
+    SafeAreaInsetsContext,
+    useSafeAreaInsets: () => inset,
+    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
+    SafeAreaView: ({ children }) => children,
+  };
+});

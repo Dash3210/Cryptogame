@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrainCipher — The Scientific Cryptogram Engine</title>
+    <meta name="description" content="Decipher timeless scientific laws, cosmic principles, and mathematical breakthroughs. Featuring Fraunhofer spectroscopy analysis and physics-based tactile decoding.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #060913;
+            --bg-surface: #0c1222;
+            --bg-surface-elevated: #131c35;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(56, 189, 248, 0.35);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --cyan-glow: #38bdf8;
+            --emerald-glow: #10b981;
+            --amber-glow: #f59e0b;
+            --purple-glow: #a855f7;
+            --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+            --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        ::selection {
+            background-color: var(--cyan-glow);
+            color: #000;
+        }
+
+        /* SVG Noise Grain Overlay */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            opacity: 0.025;
+            z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Ambient Glow Spheres */
+        .glow-sphere {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            pointer-events: none;
+            opacity: 0.35;
+            z-index: 0;
+            will-change: transform;
+        }
+
+        .glow-1 {
+            top: -150px;
+            right: 5%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.45) 0%, rgba(168, 85, 247, 0) 70%);
+        }
+
+        .glow-2 {
+            top: 40%;
+            left: -200px;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(56, 189, 248, 0) 70%);
+        }
+
+        /* Preloader */
+        #preloader {
+            position: fixed;
+            inset: 0;
+            background: #04060c;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s var(--ease-out), visibility 0.6s;
+        }
+
+        .preloader-terminal {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--cyan-glow);
+            letter-spacing: 0.15em;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .preloader-progress-bar {
+            width: 240px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-top: 16px;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .preloader-progress-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0%;
+            background: linear-gradient(90deg, var(--cyan-glow), var(--emerald-glow));
+            transition: width 0.8s var(--ease-out);
+        }
+
+        /* Floating Nav Header */
+        header {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(92%, 1120px);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            background: rgba(12, 18, 34, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 9999px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+            transition: transform 0.4s var(--ease-out), opacity 0.4s;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-primary);
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.15rem;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-symbol {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s, transform 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--cyan-glow);
+            transform: translateY(-1px);
+        }
+
+        .nav-btn {
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--cyan-glow);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 8px 18px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--cyan-glow);
+            color: #04060c;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+            transform: scale(0.97);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 140px 24px 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 9999px;
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--cyan-glow);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 24px;
+            animation: pulse-glow 3s infinite alternate;
+        }
+
+        .badge-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--emerald-glow);
+            box-shadow: 0 0 8px var(--emerald-glow);
+        }
+
+        @keyframes pulse-glow {
+            from { border-color: rgba(56, 189, 248, 0.2); }
+            to { border-color: rgba(56, 189, 248, 0.6); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+        }
+
+        .hero h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 6.5vw, 5.5rem);
+            font-weight: 800;
+            line-height: 1.06;
+            letter-spacing: -0.035em;
+            max-width: 900px;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 span.gradient-text {
+            background: linear-gradient(135deg, #ffffff 30%, #38bdf8 70%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p.lead {
+            font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+            color: var(--text-secondary);
+            max-width: 660px;
+            margin-bottom: 40px;
+            font-weight: 400;
+            line-height: 1.65;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 60px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            color: #04060c;
+            padding: 16px 36px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px -5px rgba(56, 189, 248, 0.45);
+            transition: transform 0.16s var(--ease-out), box-shadow 0.16s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.96);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+            padding: 16px 32px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s, border-color 0.2s, transform 0.16s var(--ease-out);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.96);
+        }
+
+        /* Interactive Showcase Console */
+        .showcase-container {
+            width: min(94%, 960px);
+            margin: 0 auto;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .console-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 18px;
+            margin-bottom: 24px;
+        }
+
+        .console-mode {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .console-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .console-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .console-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--cyan-glow);
+            letter-spacing: 0.05em;
+        }
+
+        .console-stats {
+            display: flex;
+            gap: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .console-stat-val {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        /* Spectroscopy Resonance Bar */
+        .spectroscopy-bar {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 14px;
+            padding: 12px 18px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            overflow-x: auto;
+        }
+
+        .spectroscopy-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--cyan-glow);
+            letter-spacing: 0.1em;
+            white-space: nowrap;
+        }
+
+        .spectral-lines {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+            height: 36px;
+        }
+
+        .spectral-chip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .spectral-chip:hover, .spectral-chip.active {
+            border-color: var(--cyan-glow);
+            background: rgba(56, 189, 248, 0.15);
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+        }
+
+        .spectral-line {
+            width: 3px;
+            background: var(--cyan-glow);
+            border-radius: 2px;
+            transition: height 0.3s;
+        }
+
+        .spectral-char {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* Interactive Puzzle Board */
+        .puzzle-board {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 32px;
+            min-height: 120px;
+            align-items: center;
+        }
+
+        .puzzle-word {
+            display: flex;
+            gap: 5px;
+            margin: 4px 6px;
+        }
+
+        .puzzle-cell-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .puzzle-cell {
+            width: 44px;
+            height: 52px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            border-bottom: 3px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            font-weight: 800;
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: transform 0.15s var(--ease-out), border-color 0.15s, background-color 0.15s;
+        }
+
+        .puzzle-cell:hover {
+            border-color: rgba(56, 189, 248, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .puzzle-cell.selected {
+            border-color: var(--cyan-glow);
+            border-bottom-color: var(--cyan-glow);
+            background: rgba(56, 189, 248, 0.18);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+            transform: translateY(-3px) scale(1.04);
+        }
+
+        .puzzle-cell.matched {
+            border-color: var(--emerald-glow);
+            border-bottom-color: var(--emerald-glow);
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--emerald-glow);
+        }
+
+        .puzzle-cell.solved {
+            background: transparent;
+            border-color: transparent;
+            border-bottom-color: transparent;
+            color: var(--emerald-glow);
+        }
+
+        .puzzle-clue {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        /* Virtual Keyboard */
+        .keyboard-dock {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .key-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 8px;
+            min-width: 44px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.12s var(--ease-out), background-color 0.15s, border-color 0.15s;
+        }
+
+        .key-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .key-btn:active {
+            transform: scale(0.96) translateY(2px);
+            background: var(--cyan-glow);
+            color: #04060c;
+        }
+
+        .key-btn.action-key {
+            padding: 0 16px;
+            font-size: 0.85rem;
+            background: rgba(56, 189, 248, 0.1);
+            color: var(--cyan-glow);
+            border-color: rgba(56, 189, 248, 0.25);
+        }
+
+        /* Feature Bento Grid */
+        .features-section {
+            padding: 120px 24px;
+            max-width: 1140px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .section-tag {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--cyan-glow);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 4vw, 3.25rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+
+        .bento-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 24px;
+            padding: 36px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: border-color 0.3s, transform 0.3s var(--ease-out), box-shadow 0.3s;
+        }
+
+        .bento-card:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
+        }
+
+        .col-8 { grid-column: span 8; }
+        .col-4 { grid-column: span 4; }
+        .col-6 { grid-column: span 6; }
+        .col-12 { grid-column: span 12; }
+
+        @media (max-width: 900px) {
+            .col-8, .col-4, .col-6 { grid-column: span 12; }
+        }
+
+        .bento-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .bento-card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .bento-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border-subtle);
+            padding: 60px 24px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: var(--cyan-glow);
+        }
+
+        /* Success Banner Modal */
+        .toast-banner {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%) translateY(120%);
+            background: rgba(16, 185, 129, 0.15);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--emerald-glow);
+            color: var(--emerald-glow);
+            padding: 16px 28px;
+            border-radius: 9999px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 700;
+            z-index: 999;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.4s var(--ease-out);
+        }
+
+        .toast-banner.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Accessibility / Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="noise-overlay"></div>
+    <div class="glow-sphere glow-1"></div>
+    <div class="glow-sphere glow-2"></div>
+
+    <!-- Preloader -->
+    <div id="preloader">
+        <div class="preloader-terminal">
+            <span class="logo-symbol">⚛</span>
+            <span id="preloaderText">INITIALIZING SPECTROMETER...</span>
+        </div>
+        <div class="preloader-progress-bar">
+            <div class="preloader-progress-fill" id="preloaderFill"></div>
+        </div>
+    </div>
+
+    <!-- Floating Navigation -->
+    <header id="mainNav">
+        <a href="#" class="nav-logo">
+            <div class="logo-symbol">⚛</div>
+            BrainCipher
+        </a>
+        <ul class="nav-links">
+            <li><a href="#play">Live Solver</a></li>
+            <li><a href="#features">Spectroscopy</a></li>
+            <li><a href="#modes">Blitz Rush</a></li>
+            <li><a href="#leaderboards">Ranks</a></li>
+        </ul>
+        <a href="https://github.com/utkarsh232005" target="_blank" class="nav-btn">
+            <span>Get APK</span> ↓
+        </a>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="badge-pill">
+            <span class="badge-dot"></span>
+            Version 1.0.0 • React Native & Web
+        </div>
+
+        <h1>
+            Decipher the <span class="gradient-text">Laws of Reality</span>
+        </h1>
+
+        <p class="lead">
+            An elite scientific cryptogram engine governed by Fraunhofer spectroscopy, second-order damped spring dynamics, and genuine historical breakthroughs.
+        </p>
+
+        <div class="hero-actions">
+            <a href="#play" class="btn-primary">
+                ⚡ Try Live Decryption Demo
+            </a>
+            <a href="#features" class="btn-secondary">
+                Explore Engine Mechanics →
+            </a>
+        </div>
+
+        <!-- Interactive Showcase Console -->
+        <div class="showcase-container" id="play">
+            <div class="console-header">
+                <div class="console-mode">
+                    <div class="console-dots">
+                        <div class="console-dot" style="background:#ef4444"></div>
+                        <div class="console-dot" style="background:#f59e0b"></div>
+                        <div class="console-dot" style="background:#10b981"></div>
+                    </div>
+                    <span class="console-title">SPECTROMETER TERMINAL // PHYSICS DOMAIN</span>
+                </div>
+                <div class="console-stats">
+                    <div>TIME: <span class="console-stat-val" id="timeDisplay">0:14</span></div>
+                    <div>SOLVED: <span class="console-stat-val" id="progressDisplay">0%</span></div>
+                    <div>PEAK: <span class="console-stat-val" style="color:var(--cyan-glow)">E (12.7%)</span></div>
+                </div>
+            </div>
+
+            <!-- Spectroscopy Resonance Bar -->
+            <div class="spectroscopy-bar">
+                <span class="spectroscopy-title">FRAUNHOFER RESONANCE</span>
+                <div class="spectral-lines" id="spectralContainer">
+                    <!-- Injected by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Cryptogram Puzzle Board -->
+            <div class="puzzle-board" id="puzzleBoard">
+                <!-- Injected by JavaScript -->
+            </div>
+
+            <!-- Virtual Keyboard -->
+            <div class="keyboard-dock" id="keyboard">
+                <div class="keyboard-row" id="kbRow1"></div>
+                <div class="keyboard-row" id="kbRow2"></div>
+                <div class="keyboard-row" id="kbRow3"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bento Features Section -->
+    <section class="features-section" id="features">
+        <div class="section-header">
+            <div class="section-tag">ENGINEERING INTEGRITY</div>
+            <h2 class="section-title">Engineered with Physical Precision</h2>
+        </div>
+
+        <div class="bento-grid">
+            <div class="bento-card col-8">
+                <div>
+                    <div class="bento-icon" style="color:var(--cyan-glow)">🔬</div>
+                    <h3>Fraunhofer Spectroscopy Analysis</h3>
+                    <p>
+                        Real-time monogram frequency mapping benchmarked against the standard English natural corpus (ETAOIN SHRDLU). Compare cipher spectral emission spikes to standard letter probabilities to deduce substitutions.
+                    </p>
+                </div>
+                <div style="margin-top:28px; padding:14px; background:rgba(0,0,0,0.3); border-radius:12px; font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--cyan-glow)">
+                    &gt; λ(E) = 12.7% | λ(T) = 9.1% | λ(A) = 8.2% | Weyl PRNG Seeded
+                </div>
+            </div>
+
+            <div class="bento-card col-4">
+                <div>
+                    <div class="bento-icon" style="color:var(--emerald-glow)">⚡</div>
+                    <h3>Blitz Rush 90s Mode</h3>
+                    <p>
+                        High-stakes speed decryption. Chain consecutive solves under clock pressure to compound exponential combo multipliers and earn rank points.
+                    </p>
+                </div>
+                <div style="margin-top:20px; font-family:'Space Grotesk',sans-serif; font-size:2rem; font-weight:900; color:var(--emerald-glow)">
+                    2.5× MULTIPLIER
+                </div>
+            </div>
+
+            <div class="bento-card col-4">
+                <div>
+                    <div class="bento-icon" style="color:var(--amber-glow)">🏆</div>
+                    <h3>Google Play Integration</h3>
+                    <p>
+                        Direct native synchronization with Google Play Games Services v2. Global leaderboards and cryptographic mastery achievements.
+                    </p>
+                </div>
+            </div>
+
+            <div class="bento-card col-8">
+                <div>
+                    <div class="bento-icon" style="color:var(--purple-glow)">🛡️</div>
+                    <h3>Second-Order Oscillator Physics</h3>
+                    <p>
+                        Every keypress, card transition, and letter wave ripple is governed by mathematical harmonic dampening (m·x'' + c·x' + k·x = 0). Restrained scale feedback at 0.96 and zero motion slop.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Success Toast -->
+    <div class="toast-banner" id="toastBanner">
+        <span>✨</span>
+        <span>CIPHER DECODED: FIRST LAW OF THERMODYNAMICS</span>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2026 BrainCipher Engine. Crafted with precision for thinkers and cryptanalysts.</p>
+        <p style="margin-top:8px"><a href="#">Privacy Policy</a> • <a href="#">Terms of Service</a> • <a href="#">Documentation</a></p>
+    </footer>
+
+    <!-- Interactive Script -->
+    <script>
+        // Web Audio Synthesizer for Tactile Feedback
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function playClickSound(freq = 440, type = 'sine', duration = 0.04) {
+            try {
+                if (!audioCtx) audioCtx = new AudioContext();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {}
+        }
+
+        function playChime() {
+            [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                setTimeout(() => playClickSound(freq, 'triangle', 0.25), idx * 75);
+            });
+        }
+
+        // Preloader Sequence
+        window.addEventListener('DOMContentLoaded', () => {
+            const fill = document.getElementById('preloaderFill');
+            const preloader = document.getElementById('preloader');
+            const text = document.getElementById('preloaderText');
+
+            setTimeout(() => { if (fill) fill.style.width = '60%'; }, 200);
+            setTimeout(() => {
+                if (text) text.textContent = 'CALIBRATING FRAUNHOFER SPECTRA...';
+                if (fill) fill.style.width = '100%';
+            }, 600);
+            setTimeout(() => {
+                if (preloader) {
+                    preloader.style.opacity = '0';
+                    setTimeout(() => preloader.style.visibility = 'hidden', 600);
+                }
+            }, 1000);
+        });
+
+        // Interactive Cryptogram Game Demo
+        const SOLUTION = "ENERGY CAN NEITHER BE CREATED NOR DESTROYED";
+        // Valid substitution: every real letter maps to a distinct cipher letter
+        // and no letter maps to itself, so the demo is always solvable.
+        const CIPHER_MAP = {
+            'E': 'Q', 'N': 'W', 'R': 'Z', 'G': 'T', 'Y': 'K',
+            'C': 'U', 'A': 'I', 'I': 'O', 'T': 'P', 'H': 'A',
+            'B': 'S', 'D': 'M', 'S': 'R', 'O': 'F'
+        };
+
+        // Current user mapping
+        const userMap = { 'Q': 'E' }; // Give 'E' free as tutorial hint
+        let selectedCipher = 'P'; // Start focused on 'T'
+
+        const boardEl = document.getElementById('puzzleBoard');
+        const spectralEl = document.getElementById('spectralContainer');
+
+        function renderBoard() {
+            boardEl.innerHTML = '';
+            const words = SOLUTION.split(' ');
+
+            words.forEach(word => {
+                const wordDiv = document.createElement('div');
+                wordDiv.className = 'puzzle-word';
+
+                for (let i = 0; i < word.length; i++) {
+                    const realChar = word[i];
+                    const cipherChar = CIPHER_MAP[realChar] || realChar;
+                    const enteredChar = userMap[cipherChar] || '';
+                    const isSolved = enteredChar === realChar;
+                    const isSelected = cipherChar === selectedCipher;
+
+                    const cellBox = document.createElement('div');
+                    cellBox.className = 'puzzle-cell-box';
+
+                    const cell = document.createElement('div');
+                    cell.className = `puzzle-cell ${isSelected ? 'selected' : ''} ${isSolved ? 'matched' : ''}`;
+                    cell.textContent = enteredChar;
+
+                    cell.addEventListener('click', () => {
+                        selectedCipher = cipherChar;
+                        playClickSound(520, 'sine', 0.05);
+                        renderBoard();
+                        renderSpectroscopy();
+                    });
+
+                    const clue = document.createElement('div');
+                    clue.className = 'puzzle-clue';
+                    clue.textContent = isSolved ? '' : cipherChar;
+
+                    cellBox.appendChild(cell);
+                    cellBox.appendChild(clue);
+                    wordDiv.appendChild(cellBox);
+                }
+
+                boardEl.appendChild(wordDiv);
+            });
+
+            checkCompletion();
+        }
+
+        // English reference frequencies, used to label each cipher spike.
+        const EN_FREQ_RANK = ['E','T','A','O','I','N','S','H','R','D','L','C','U','M','W','F','G','Y','P','B','V','K','J','X','Q','Z'];
+
+        // Frequencies are computed from the actual demo solution so the spectral
+        // strip can never drift from the puzzle.
+        function buildFrequencies() {
+            const counts = {};
+            for (const ch of SOLUTION) {
+                if (/[A-Z]/.test(ch)) counts[ch] = (counts[ch] || 0) + 1;
+            }
+            return Object.entries(counts)
+                .map(([real, count]) => ({ char: CIPHER_MAP[real] || real, count }))
+                .sort((a, b) => b.count - a.count || (a.char < b.char ? -1 : 1))
+                .map((item, index) => ({ ...item, ref: EN_FREQ_RANK[index] || '' }));
+        }
+
+        function renderSpectroscopy() {
+            spectralEl.innerHTML = '';
+            buildFrequencies().forEach(item => {
+                const chip = document.createElement('div');
+                chip.className = `spectral-chip ${item.char === selectedCipher ? 'active' : ''}`;
+                
+                const heightPx = Math.max(10, item.count * 5.5);
+                const mapped = userMap[item.char] ? `→${userMap[item.char]}` : '';
+
+                chip.innerHTML = `
+                    <div class="spectral-line" style="height:${heightPx}px"></div>
+                    <span class="spectral-char">${item.char}${mapped}</span>
+                `;
+
+                chip.addEventListener('click', () => {
+                    selectedCipher = item.char;
+                    playClickSound(600, 'sine', 0.05);
+                    renderBoard();
+                    renderSpectroscopy();
+                });
+
+                spectralEl.appendChild(chip);
+            });
+        }
+
+        // Keyboard Setup
+        const KEYBOARD_ROWS = [
+            'QWERTYUIOP',
+            'ASDFGHJKL',
+            'ZXCVBNM'
+        ];
+
+        function initKeyboard() {
+            KEYBOARD_ROWS.forEach((rowStr, idx) => {
+                const rowEl = document.getElementById(`kbRow${idx + 1}`);
+                if (!rowEl) return;
+                rowEl.innerHTML = '';
+
+                if (idx === 2) {
+                    const bksp = document.createElement('button');
+                    bksp.className = 'key-btn action-key';
+                    bksp.textContent = '⌫';
+                    bksp.addEventListener('click', () => {
+                        if (selectedCipher && userMap[selectedCipher]) {
+                            delete userMap[selectedCipher];
+                            playClickSound(260, 'square', 0.06);
+                            renderBoard();
+                            renderSpectroscopy();
+                        }
+                    });
+                    rowEl.appendChild(bksp);
+                }
+
+                for (const char of rowStr) {
+                    const btn = document.createElement('button');
+                    btn.className = 'key-btn';
+                    btn.textContent = char;
+
+                    btn.addEventListener('click', () => {
+                        if (selectedCipher) {
+                            userMap[selectedCipher] = char;
+                            playClickSound(440 + char.charCodeAt(0) * 2, 'sine', 0.05);
+                            renderBoard();
+                            renderSpectroscopy();
+                        }
+                    });
+
+                    rowEl.appendChild(btn);
+                }
+
+                if (idx === 2) {
+                    const hintBtn = document.createElement('button');
+                    hintBtn.className = 'key-btn action-key';
+                    hintBtn.textContent = '💡';
+                    hintBtn.title = 'Reveal active letter';
+                    hintBtn.addEventListener('click', () => {
+                        if (selectedCipher) {
+                            // Find real solution
+                            for (const [real, cipher] of Object.entries(CIPHER_MAP)) {
+                                if (cipher === selectedCipher) {
+                                    userMap[selectedCipher] = real;
+                                    break;
+                                }
+                            }
+                            playClickSound(880, 'triangle', 0.1);
+                            renderBoard();
+                            renderSpectroscopy();
+                        }
+                    });
+                    rowEl.appendChild(hintBtn);
+                }
+            });
+        }
+
+        // Physical Keyboard Support
+        window.addEventListener('keydown', (e) => {
+            const key = e.key.toUpperCase();
+            if (/^[A-Z]$/.test(key) && selectedCipher) {
+                userMap[selectedCipher] = key;
+                playClickSound(480, 'sine', 0.05);
+                renderBoard();
+                renderSpectroscopy();
+            } else if (e.key === 'Backspace' && selectedCipher) {
+                delete userMap[selectedCipher];
+                playClickSound(260, 'square', 0.06);
+                renderBoard();
+                renderSpectroscopy();
+            }
+        });
+
+        // Completion & Progress Tracking
+        function checkCompletion() {
+            let total = 0;
+            let correct = 0;
+
+            for (const char of SOLUTION) {
+                if (char === ' ') continue;
+                total++;
+                const cipher = CIPHER_MAP[char];
+                if (userMap[cipher] === char) correct++;
+            }
+
+            const pct = Math.round((correct / total) * 100);
+            const progressEl = document.getElementById('progressDisplay');
+            if (progressEl) progressEl.textContent = `${pct}%`;
+
+            if (correct === total) {
+                const toast = document.getElementById('toastBanner');
+                if (toast) toast.classList.add('show');
+                playChime();
+            }
+        }
+
+        // Timer
+        let seconds = 14;
+        setInterval(() => {
+            seconds++;
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            const timeEl = document.getElementById('timeDisplay');
+            if (timeEl) timeEl.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
+        }, 1000);
+
+        // Initialize Everything
+        initKeyboard();
+        renderBoard();
+        renderSpectroscopy();
+    </script>
+</body>
+</html>

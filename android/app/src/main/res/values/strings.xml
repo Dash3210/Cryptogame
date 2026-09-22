@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">BrainCipher</string>
+    <!-- Replace with your Google Play Console Game Services Project ID (12-digit number) -->
+    <string name="game_services_project_id">YOUR_PLAY_GAMES_PROJECT_ID</string>
+</resources>

@@ -1,0 +1,8 @@
+{
+  "name": "BrainCipher",
+  "displayName": "BrainCipher",
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-9087778942896444~1286071902",
+    "ios_app_id": "ca-app-pub-3940256099942544~1458002511"
+  }
+}

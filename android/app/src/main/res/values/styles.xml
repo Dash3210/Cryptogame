@@ -1,0 +1,10 @@
+<resources>
+
+    <!-- Base launch theme. Pinned to the dark AppCompat variant so a device in
+         light mode does not flash a white window before the JS theme loads. -->
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
+    </style>
+
+</resources>

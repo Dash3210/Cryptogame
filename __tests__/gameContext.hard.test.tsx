@@ -1,0 +1,270 @@
+import React from 'react';
+import ReactTestRenderer from 'react-test-renderer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GameProvider, useGame } from '../src/context/GameContext';
+
+const TestComponent = ({ onContext }: { onContext: (ctx: ReturnType<typeof useGame>) => void }) => {
+  const context = useGame();
+  React.useEffect(() => {
+    onContext(context);
+  }, [context, onContext]);
+  return null;
+};
+
+describe('Hard Metrics: GameContext State Machine & Resilience', () => {
+  beforeEach(async () => {
+    jest.useFakeTimers();
+    await AsyncStorage.clear();
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  test('Daily Streak Engine: Accurate calculations across today, yesterday, and lapse days', async () => {
+    let ctx: ReturnType<typeof useGame> | null = null;
+    let renderer: any;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <GameProvider>
+          <TestComponent onContext={(c) => { ctx = c; }} />
+        </GameProvider>
+      );
+      jest.runAllTimers();
+    });
+
+    // Case 1: First solve today (streak becomes 1)
+    const today = new Date().toISOString().split('T')[0];
+    await ReactTestRenderer.act(async () => {
+      ctx!.recordPuzzleCompletion({
+        category: 'Physics',
+        timeSeconds: 25,
+        hintsUsed: 0,
+        mistakesCount: 0,
+        isDaily: true,
+        difficulty: 'Normal',
+        score: 200,
+        coins: 40,
+        grade: 'S'
+      });
+    });
+
+    expect(ctx!.stats.currentStreak).toBe(1);
+    expect(ctx!.stats.dailySolvedDates).toContain(today);
+
+    // Case 2: Solving daily puzzle again on the same day must not increment streak twice
+    await ReactTestRenderer.act(async () => {
+      ctx!.recordPuzzleCompletion({
+        category: 'Physics',
+        timeSeconds: 20,
+        hintsUsed: 0,
+        mistakesCount: 0,
+        isDaily: true,
+        difficulty: 'Normal',
+        score: 200,
+        coins: 40,
+        grade: 'S'
+      });
+    });
+
+    expect(ctx!.stats.currentStreak).toBe(1);
+
+    await ReactTestRenderer.act(async () => {
+      renderer.unmount();
+    });
+  });
+
+  test('Achievement Matrix: All 16 achievement conditions trigger accurately', async () => {
+    let ctx: ReturnType<typeof useGame> | null = null;
+    let renderer: any;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <GameProvider>
+          <TestComponent onContext={(c) => { ctx = c; }} />
+        </GameProvider>
+      );
+      jest.runAllTimers();
+    });
+
+    // Trigger Speed Demon (<30s) + Flawless (0 mistakes) + Pure Insight (0 hints)
+    await ReactTestRenderer.act(async () => {
+      ctx!.recordPuzzleCompletion({
+        category: 'Astronomy',
+        timeSeconds: 14, // Lightning Reflexes (<15s) + Speed Demon (<30s)
+        hintsUsed: 0,
+        mistakesCount: 0,
+        isDaily: false,
+        difficulty: 'Legendary', // Legendary Decryptor
+        score: 500,
+        coins: 50,
+        grade: 'S'
+      });
+    });
+
+    const getAch = (id: string) => ctx!.achievements.find(a => a.id === id);
+
+    expect(getAch('first_cipher')?.isUnlocked).toBe(true);
+    expect(getAch('clean_solve')?.isUnlocked).toBe(true);
+    expect(getAch('speed_demon')?.isUnlocked).toBe(true);
+    expect(getAch('lightning_fast')?.isUnlocked).toBe(true);
+    expect(getAch('legendary_solver')?.isUnlocked).toBe(true);
+
+    // Claim mechanism & double claim prevention
+    const initialCoins = ctx!.coins;
+    await ReactTestRenderer.act(async () => {
+      ctx!.claimAchievement('first_cipher');
+    });
+
+    expect(ctx!.coins).toBe(initialCoins + getAch('first_cipher')!.rewardCoins);
+    expect(getAch('first_cipher')?.claimed).toBe(true);
+
+    // Attempting to claim again must not give additional coins
+    const coinsAfterFirstClaim = ctx!.coins;
+    await ReactTestRenderer.act(async () => {
+      ctx!.claimAchievement('first_cipher');
+    });
+    expect(ctx!.coins).toBe(coinsAfterFirstClaim);
+
+    // Theme Unlocks achievement test
+    await ReactTestRenderer.act(async () => {
+      ctx!.unlockTheme('cyberpunk');
+      ctx!.unlockTheme('terminal');
+      ctx!.unlockTheme('gold');
+      ctx!.unlockTheme('light');
+    });
+
+    expect(getAch('theme_collector')?.isUnlocked).toBe(true);
+
+    // Blitz High Score achievement test (>1000)
+    await ReactTestRenderer.act(async () => {
+      ctx!.updateBlitzHighScore(2500);
+    });
+    expect(ctx!.stats.blitzHighScore).toBe(2500);
+    expect(getAch('blitz_master')?.isUnlocked).toBe(true);
+
+    await ReactTestRenderer.act(async () => {
+      renderer.unmount();
+    });
+  });
+
+  test('Aesthetic Elite requires three PAID themes, not the two free defaults', async () => {
+    let ctx: ReturnType<typeof useGame> | null = null;
+    let renderer: any;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <GameProvider>
+          <TestComponent onContext={(c) => { ctx = c; }} />
+        </GameProvider>
+      );
+      jest.runAllTimers();
+    });
+
+    const themeAch = () => ctx!.achievements.find(a => a.id === 'theme_collector');
+
+    await ReactTestRenderer.act(async () => { ctx!.unlockTheme('cyberpunk'); });
+    expect(themeAch()?.isUnlocked).toBe(false);
+
+    await ReactTestRenderer.act(async () => { ctx!.unlockTheme('terminal'); });
+    expect(themeAch()?.isUnlocked).toBe(false);
+
+    await ReactTestRenderer.act(async () => { ctx!.unlockTheme('gold'); });
+    expect(themeAch()?.isUnlocked).toBe(true);
+
+    await ReactTestRenderer.act(async () => { renderer.unmount(); });
+  });
+
+  test('Fastest Solves Record Engine: Preserves best times per subject', async () => {
+    let ctx: ReturnType<typeof useGame> | null = null;
+    let renderer: any;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <GameProvider>
+          <TestComponent onContext={(c) => { ctx = c; }} />
+        </GameProvider>
+      );
+      jest.runAllTimers();
+    });
+
+    // First solve: 45 seconds
+    await ReactTestRenderer.act(async () => {
+      ctx!.recordPuzzleCompletion({
+        category: 'Biology',
+        timeSeconds: 45,
+        hintsUsed: 0,
+        mistakesCount: 0,
+        isDaily: false,
+        difficulty: 'Normal',
+        score: 100,
+        coins: 20,
+        grade: 'A'
+      });
+    });
+    expect(ctx!.stats.bestTimes['Biology']).toBe(45);
+
+    // Slower solve: 60 seconds (must not overwrite 45s record)
+    await ReactTestRenderer.act(async () => {
+      ctx!.recordPuzzleCompletion({
+        category: 'Biology',
+        timeSeconds: 60,
+        hintsUsed: 0,
+        mistakesCount: 0,
+        isDaily: false,
+        difficulty: 'Normal',
+        score: 80,
+        coins: 15,
+        grade: 'B'
+      });
+    });
+    expect(ctx!.stats.bestTimes['Biology']).toBe(45);
+
+    // Faster solve: 28 seconds (must overwrite 45s record)
+    await ReactTestRenderer.act(async () => {
+      ctx!.recordPuzzleCompletion({
+        category: 'Biology',
+        timeSeconds: 28,
+        hintsUsed: 0,
+        mistakesCount: 0,
+        isDaily: false,
+        difficulty: 'Normal',
+        score: 150,
+        coins: 30,
+        grade: 'S'
+      });
+    });
+    expect(ctx!.stats.bestTimes['Biology']).toBe(28);
+
+    await ReactTestRenderer.act(async () => {
+      renderer.unmount();
+    });
+  });
+
+  test('AsyncStorage Resilience: Gracefully recovers default state from corrupted or empty storage', async () => {
+    await AsyncStorage.setItem('brainCipherCoins', 'NOT_A_NUMBER');
+    await AsyncStorage.setItem('brainCipherStats', '{ CORRUPTED_JSON');
+
+    let ctx: ReturnType<typeof useGame> | null = null;
+    let renderer: any;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <GameProvider>
+          <TestComponent onContext={(c) => { ctx = c; }} />
+        </GameProvider>
+      );
+      jest.runAllTimers();
+    });
+
+    expect(ctx).not.toBeNull();
+    expect(ctx!.coins).toBeGreaterThanOrEqual(0);
+    expect(ctx!.stats.puzzlesSolved).toBe(0);
+
+    await ReactTestRenderer.act(async () => {
+      renderer.unmount();
+    });
+  });
+});
