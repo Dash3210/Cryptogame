@@ -243,6 +243,44 @@ describe('Hard Metrics: GameContext State Machine & Resilience', () => {
     });
   });
 
+  test('Achievement definitions come from code, not stale persisted copy', async () => {
+    // Simulate an old install that stored a stale icon/title for an achievement.
+    await AsyncStorage.setItem('brainCipherAchievements', JSON.stringify([
+      {
+        id: 'first_cipher',
+        icon: 'STALE',
+        title: 'Old Title',
+        description: 'old',
+        category: 'special',
+        target: 1,
+        progress: 1,
+        isUnlocked: true,
+        rewardCoins: 25,
+        claimed: false,
+      },
+    ]));
+
+    let ctx: ReturnType<typeof useGame> | null = null;
+    let renderer: any;
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <GameProvider>
+          <TestComponent onContext={(c) => { ctx = c; }} />
+        </GameProvider>
+      );
+      jest.runAllTimers();
+    });
+
+    const ach = ctx!.achievements.find(a => a.id === 'first_cipher');
+    expect(ach?.icon).not.toBe('STALE');
+    expect(ach?.title).toBe('First Contact');
+    // Mutable progress is still restored.
+    expect(ach?.progress).toBe(1);
+    expect(ach?.isUnlocked).toBe(true);
+
+    await ReactTestRenderer.act(async () => { renderer.unmount(); });
+  });
+
   test('AsyncStorage Resilience: Gracefully recovers default state from corrupted or empty storage', async () => {
     await AsyncStorage.setItem('brainCipherCoins', 'NOT_A_NUMBER');
     await AsyncStorage.setItem('brainCipherStats', '{ CORRUPTED_JSON');

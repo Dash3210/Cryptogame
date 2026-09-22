@@ -337,10 +337,19 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                     try {
                         const parsed: Achievement[] = JSON.parse(storedAchievements);
                         if (Array.isArray(parsed)) {
-                            // Merge with INITIAL_ACHIEVEMENTS to handle any newly added achievements
+                            // Static definition fields (icon, title, description,
+                            // category, target, rewardCoins) always come from code;
+                            // only mutable progress is restored. Otherwise an old
+                            // install keeps stale copy and iconography forever.
                             const merged = INITIAL_ACHIEVEMENTS.map(initial => {
                                 const found = parsed.find(p => p.id === initial.id);
-                                return found ? { ...initial, ...found } : initial;
+                                if (!found) return initial;
+                                return {
+                                    ...initial,
+                                    progress: typeof found.progress === 'number' ? found.progress : 0,
+                                    isUnlocked: found.isUnlocked === true,
+                                    claimed: found.claimed === true,
+                                };
                             });
                             setAchievements(merged);
                         }
