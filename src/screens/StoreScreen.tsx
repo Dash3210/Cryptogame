@@ -107,7 +107,7 @@ export const StoreScreen = () => {
         triggerHaptic('light');
         adService.show(() => {
             addCoins(50);
-            Alert.alert("Coins Rewarded!", "You earned +50 Cipher Coins! 🪙");
+            Alert.alert("Coins Rewarded!", "You earned +50 Cipher Coins.");
         });
     };
 
@@ -125,7 +125,7 @@ export const StoreScreen = () => {
 
                     <View style={styles.headerRight}>
                         <View style={[styles.coinBadge, { backgroundColor: colors.goldBg, borderColor: colors.gold }]}>
-                            <Text style={{ fontSize: 16 }}>🪙</Text>
+                            <Text style={{ fontSize: 15, color: colors.gold }}>â—Ž</Text>
                             <Text tabular style={[styles.coinVal, { color: colors.gold }]}>{coins}</Text>
                         </View>
 
@@ -140,7 +140,7 @@ export const StoreScreen = () => {
                             accessibilityRole="button"
                             accessibilityLabel="Watch ad for 50 coins"
                         >
-                            <Text style={[styles.freeCoinText, { color: colors.primary }]}>+50 🪙 Ad</Text>
+                            <Text style={[styles.freeCoinText, { color: colors.primary }]}>+50 Ad</Text>
                         </Pressable>
                     </View>
                 </View>
@@ -222,7 +222,7 @@ export const StoreScreen = () => {
 
                                     {isOwned ? (
                                         <View style={[styles.ownedBadge, { backgroundColor: colors.successBg }]}>
-                                            <Text style={[styles.ownedText, { color: colors.success }]}>✓ In Library</Text>
+                                            <Text style={[styles.ownedText, { color: colors.success }]}>âœ“ In Library</Text>
                                         </View>
                                     ) : (
                                         <View style={styles.buyBtnRow}>
@@ -237,7 +237,7 @@ export const StoreScreen = () => {
                                                 accessibilityRole="button"
                                                 accessibilityLabel={`Unlock ${ext.label} for ${price} coins`}
                                             >
-                                                <Text style={styles.buyCoinText}>🪙 {price}</Text>
+                                                <Text style={styles.buyCoinText}>{price} coins</Text>
                                             </Pressable>
 
                                             <Pressable
@@ -324,7 +324,7 @@ export const StoreScreen = () => {
                                             accessibilityRole="button"
                                             accessibilityLabel={`Unlock ${meta.name} theme for ${themePrice} coins`}
                                         >
-                                            <Text tabular style={styles.buyCoinText}>🪙 {themePrice}</Text>
+                                            <Text tabular style={styles.buyCoinText}>{themePrice} coins</Text>
                                         </Pressable>
                                     )}
                                 </View>
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
         letterSpacing: 1.5,
     },
     title: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: '900',
         fontFamily: 'serif',
     },
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     card: {
         flexDirection: 'row',
         padding: 14,
-        borderRadius: 20,
+        borderRadius: 16,
         borderWidth: 1,
         alignItems: 'center',
         justifyContent: 'space-between',

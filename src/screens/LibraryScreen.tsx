@@ -59,7 +59,7 @@ export const LibraryScreen = () => {
                     pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] }
                 ]}
                 onPress={() => handleSelectGenre(subject.id)}
-                android_ripple={{ color: 'rgba(255, 255, 255, 0.06)' }}
+                android_ripple={{ color: `${colors.primary}14` }}
                 accessibilityRole="button"
                 accessibilityLabel={`${subject.label} subject archive`}
             >
@@ -231,8 +231,9 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 22,
-        fontWeight: '800',
-        letterSpacing: 0.3,
+        fontWeight: '900',
+        fontFamily: 'serif',
+        letterSpacing: 0.2,
     },
     rankRow: {
         flexDirection: 'row',
@@ -353,7 +354,7 @@ const styles = StyleSheet.create({
     },
     emptyResults: {
         padding: 20,
-        borderRadius: RADIUS.container,
+        borderRadius: RADIUS.card,
         borderWidth: 1,
         gap: 6,
         alignItems: 'center',
@@ -370,7 +371,7 @@ const styles = StyleSheet.create({
     },
     card: {
         padding: 12,
-        borderRadius: RADIUS.container,
+        borderRadius: RADIUS.card,
         borderWidth: 1,
         gap: 10,
         minHeight: 120,

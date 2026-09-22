@@ -55,7 +55,7 @@ export const LeaderboardScreen = () => {
                             pressed && { opacity: 0.75, transform: [{ scale: 0.96 }] }
                         ]}
                     >
-                        <Text style={[styles.backButtonText, { color: colors.textSecondary }]}>‹</Text>
+                        <Text style={[styles.backButtonText, { color: colors.textSecondary }]}>â€¹</Text>
                     </Pressable>
                     <Text style={[styles.title, { color: colors.text }]}>Leaderboard</Text>
                 </View>
@@ -105,7 +105,7 @@ export const LeaderboardScreen = () => {
                         <View style={[styles.playGamesCard, { backgroundColor: colors.surface, borderColor: playGamesUser.isAuthenticated ? colors.success : colors.border }]}>
                             <View style={styles.playGamesHeader}>
                                 <View style={styles.playGamesBadge}>
-                                    <Text style={styles.playGamesIcon}>🎮</Text>
+                                    <Text style={[styles.playGamesIcon, { color: colors.primary }]}>â—ˆ</Text>
                                     <View style={{ flex: 1 }}>
                                         <Text style={[styles.playGamesTitle, { color: colors.text }]}>Google Play Games</Text>
                                         <Text style={[styles.playGamesSubtitle, { color: playGamesUser.isAuthenticated ? colors.success : colors.textMuted }]}>
@@ -129,7 +129,7 @@ export const LeaderboardScreen = () => {
                                         openPlayGamesLeaderboard();
                                     }}
                                 >
-                                    <Text style={styles.playGamesButtonText}>🏆 Open Play Games Leaderboard</Text>
+                                    <Text style={styles.playGamesButtonText}>Open Play Games Leaderboard</Text>
                                 </Pressable>
                             ) : (
                                 <Pressable
@@ -143,7 +143,7 @@ export const LeaderboardScreen = () => {
                                         await signInPlayGames();
                                     }}
                                 >
-                                    <Text style={styles.playGamesButtonText}>🎮 Sign In with Google Play</Text>
+                                    <Text style={styles.playGamesButtonText}>Sign In with Google Play</Text>
                                 </Pressable>
                             )}
                         </View>
@@ -218,14 +218,14 @@ const styles = StyleSheet.create({
     container: { flex: 1 },
     header: { paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1 },
     headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-    backButton: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center' },
+    backButton: { width: 44, height: 44, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
     backButtonText: { fontSize: 24, fontWeight: '800', marginTop: -2 },
-    title: { fontSize: 24, fontWeight: '900', fontFamily: 'serif' },
+    title: { fontSize: 22, fontWeight: '900', fontFamily: 'serif' },
     tabs: { flexDirection: 'row' },
     tab: { flex: 1, minHeight: 48, paddingVertical: 14, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 2 },
     tabText: { fontWeight: '800', textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 },
     content: { padding: 16, paddingBottom: 40 },
-    rankCard: { padding: 14, borderRadius: 22, marginBottom: 16, borderWidth: 1.5 },
+    rankCard: { padding: 14, borderRadius: 20, marginBottom: 16, borderWidth: 1.5 },
     rankRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
     rankLabel: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
     rankValue: { fontSize: 32, fontWeight: '900', fontFamily: 'monospace' },
@@ -237,14 +237,14 @@ const styles = StyleSheet.create({
     emptyRankBody: { fontSize: 13, lineHeight: 19 },
     masteryList: { gap: 12 },
     subtext: { textAlign: 'center', marginBottom: 12, fontSize: 13 },
-    masteryCard: { padding: 12, borderRadius: 22, flexDirection: 'row', gap: 14, alignItems: 'center', borderWidth: 1 },
+    masteryCard: { padding: 12, borderRadius: 20, flexDirection: 'row', gap: 14, alignItems: 'center', borderWidth: 1 },
     masteryIconContainer: { width: 44, height: 44, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
     masteryIcon: { fontSize: 24 },
     masteryLabel: { fontWeight: '800', fontSize: 14, marginBottom: 6 },
     progressBarBg: { height: 6, borderRadius: 3, marginBottom: 4, overflow: 'hidden' },
     progressBarFill: { height: 6 },
     progressText: { fontSize: 11, fontWeight: '700' },
-    playGamesCard: { padding: 14, borderRadius: 22, marginBottom: 16, borderWidth: 1.5 },
+    playGamesCard: { padding: 14, borderRadius: 20, marginBottom: 16, borderWidth: 1.5 },
     playGamesHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
     playGamesBadge: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
     playGamesIcon: { fontSize: 28 },

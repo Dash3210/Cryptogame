@@ -28,10 +28,12 @@ export const MasteryScreen = () => {
     const allGenres = [...SUBJECTS, ...EXTENSIONS.filter(e => myExtensions.has(e.id))];
     const completedGenres = allGenres.filter(g => isGenreComplete(g.id, solvedQuotes));
 
-    // Global accuracy calculation
-    const accuracy = stats.totalGuesses > 0
+    // Global accuracy calculation. With no guesses there is no accuracy to show,
+    // so the UI renders a dash rather than a misleading 100%.
+    const hasGuesses = stats.totalGuesses > 0;
+    const accuracy = hasGuesses
         ? Math.round((stats.correctGuesses / stats.totalGuesses) * 100)
-        : 100;
+        : 0;
 
     // Total play time formatted
     const playMinutes = Math.floor(stats.totalPlayTimeSeconds / 60);
@@ -49,7 +51,7 @@ export const MasteryScreen = () => {
                         <Text style={[styles.title, { color: colors.text }]}>Mastery & Rank</Text>
                     </View>
                     <View style={[styles.coinBadge, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}>
-                        <Text style={{ fontSize: 14 }}>🪙</Text>
+                        <Text style={{ fontSize: 13, color: colors.gold }}>◎</Text>
                         <Text style={[styles.coinText, { color: colors.text }]}>{coins}</Text>
                     </View>
                 </View>
@@ -57,8 +59,8 @@ export const MasteryScreen = () => {
                 {/* Player Rank Card */}
                 <View style={[styles.rankCard, { backgroundColor: colors.primaryBg, borderColor: colors.primary }]}>
                     <View style={styles.rankTopRow}>
-                        <View style={styles.rankIconBox}>
-                            <Text style={{ fontSize: 28 }}>👑</Text>
+                        <View style={[styles.rankIconBox, { backgroundColor: colors.primaryBg }]}>
+                            <Text style={{ fontSize: 26, color: colors.primary }}>♛</Text>
                         </View>
                         <View style={{ flex: 1 }}>
                             <Text style={[styles.rankBadgeText, { color: colors.primary }]}>RANK #{rank}</Text>
@@ -164,7 +166,7 @@ export const MasteryScreen = () => {
                                         <View style={styles.achHeaderRow}>
                                             <Text style={[styles.achTitle, { color: colors.text }]}>{ach.title}</Text>
                                             <View style={[styles.coinRewardPill, { backgroundColor: colors.goldBg }]}>
-                                                <Text style={{ fontSize: 10 }}>🪙</Text>
+                                                <Text style={{ fontSize: 10, color: colors.gold }}>◎</Text>
                                                 <Text style={[styles.coinRewardText, { color: colors.gold }]}>
                                                     +{ach.rewardCoins}
                                                 </Text>
@@ -224,25 +226,25 @@ export const MasteryScreen = () => {
                     <View style={styles.statsContainer}>
                         <View style={styles.statsGrid}>
                             <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                                <Text style={styles.statIcon}>🎯</Text>
+                                <Text style={[styles.statIcon, { color: colors.primary }]}>◉</Text>
                                 <Text style={[styles.statValue, { color: colors.primary }]}>{stats.puzzlesSolved}</Text>
                                 <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Puzzles Solved</Text>
                             </View>
 
                             <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                                <Text style={styles.statIcon}>⚡</Text>
-                                <Text style={[styles.statValue, { color: colors.success }]}>{accuracy}%</Text>
+                                <Text style={[styles.statIcon, { color: colors.success }]}>≫</Text>
+                                <Text style={[styles.statValue, { color: colors.success }]}>{hasGuesses ? `${accuracy}%` : '—'}</Text>
                                 <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Accuracy</Text>
                             </View>
 
                             <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                                <Text style={styles.statIcon}>🔥</Text>
+                                <Text style={[styles.statIcon, { color: colors.gold }]}>▲</Text>
                                 <Text style={[styles.statValue, { color: colors.gold }]}>{stats.currentStreak}</Text>
                                 <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Current Streak</Text>
                             </View>
 
                             <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                                <Text style={styles.statIcon}>⏱️</Text>
+                                <Text style={[styles.statIcon, { color: colors.textSecondary }]}>◔</Text>
                                 <Text style={[styles.statValue, { color: colors.text }]}>{playHours}h</Text>
                                 <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Play Time</Text>
                             </View>
@@ -250,7 +252,7 @@ export const MasteryScreen = () => {
 
                         {/* Best Times Section */}
                         <View style={[styles.bestTimesCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                            <Text style={[styles.sectionTitle, { color: colors.text }]}>⏱️ Fastest Solves by Subject</Text>
+                            <Text style={[styles.sectionTitle, { color: colors.text }]}>Fastest Solves by Subject</Text>
                             {Object.keys(stats.bestTimes).length === 0 ? (
                                 <Text style={[styles.emptyHint, { color: colors.textMuted }]}>
                                     Solve puzzles to record personal speed records!
@@ -277,7 +279,7 @@ export const MasteryScreen = () => {
                     <View style={styles.subjectsContainer}>
                         {completedGenres.length === 0 ? (
                             <View style={styles.emptySubjectsBox}>
-                                <Text style={{ fontSize: 48 }}>🎯</Text>
+                                <Text style={{ fontSize: 40, color: colors.primary }}>◉</Text>
                                 <Text style={[styles.emptyTitle, { color: colors.textSecondary }]}>
                                     No subjects mastered yet
                                 </Text>
@@ -303,7 +305,7 @@ export const MasteryScreen = () => {
                                                 <Text style={{ fontSize: 28 }}>{genre.icon}</Text>
                                             </View>
                                             <Text style={[styles.masteryLabel, { color: colors.text }]}>{genre.label}</Text>
-                                            <Text style={[styles.masteryBadge, { color: colors.gold }]}>🏅 MASTERED</Text>
+                                            <Text style={[styles.masteryBadge, { color: colors.gold }]}>◈ MASTERED</Text>
                                             <Text style={[styles.masteryCount, { color: colors.textMuted }]}>
                                                 {progress.total}/{progress.total} Puzzles
                                             </Text>
@@ -338,7 +340,7 @@ const styles = StyleSheet.create({
         letterSpacing: 1.5,
     },
     title: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: '900',
         fontFamily: 'serif',
     },
@@ -513,7 +515,7 @@ const styles = StyleSheet.create({
     },
     bestTimesCard: {
         padding: 18,
-        borderRadius: 18,
+        borderRadius: 16,
         borderWidth: 1,
         gap: 10,
     },

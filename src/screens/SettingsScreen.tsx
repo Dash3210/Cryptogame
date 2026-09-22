@@ -27,7 +27,7 @@ const HowToPlayModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ v
                             pressed && { opacity: 0.5 }
                         ]}
                     >
-                        <Text style={[htpStyles.closeBtnText, { color: colors.text }]}>‹</Text>
+                        <Text style={[htpStyles.closeBtnText, { color: colors.text }]}>â€¹</Text>
                     </Pressable>
                     <Text style={[htpStyles.headerTitle, { color: colors.text }]}>How to Play</Text>
                 </View>
@@ -35,23 +35,23 @@ const HowToPlayModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ v
                 <ScrollView contentContainerStyle={htpStyles.content} showsVerticalScrollIndicator={false}>
                     {/* The Goal */}
                     <View style={htpStyles.section}>
-                        <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>🎯 The Mission</Text>
+                        <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>The Mission</Text>
                         <Text style={[htpStyles.bodyText, { color: colors.textSecondary }]}>
                             Every puzzle presents an encrypted definition where each English letter has been substituted with a unique cipher code. Decrypt the clues to reveal the scientific concept or quote!
                         </Text>
                         <View style={[htpStyles.exampleBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                             <Text style={[htpStyles.exampleCipher, { color: colors.error }]}>X KWRT VIB</Text>
-                            <Text style={[htpStyles.exampleArrow, { color: colors.text }]}>⬇</Text>
+                            <Text style={[htpStyles.exampleArrow, { color: colors.text }]}>â¬‡</Text>
                             <Text style={[htpStyles.exampleSolved, { color: colors.success }]}>I LOVE YOU</Text>
                         </View>
                     </View>
 
                     {/* Pro Gamer Tips */}
                     <View style={htpStyles.section}>
-                        <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>💡 Cryptanalysis Tips</Text>
+                        <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>Cryptanalysis Tips</Text>
 
                         <View style={[htpStyles.tipCard, { backgroundColor: colors.primaryBg }]}>
-                            <Text style={[htpStyles.tipTitle, { color: colors.primary }]}>1. Frequency Analysis 📊</Text>
+                            <Text style={[htpStyles.tipTitle, { color: colors.primary }]}>1. Frequency Analysis</Text>
                             <Text style={[htpStyles.tipText, { color: colors.textSecondary }]}>
                                 In English, E, T, A, O, I, N appear most frequently. Use the Frequency Tool at the top of the screen to quickly spot common vowels!
                             </Text>
@@ -65,7 +65,7 @@ const HowToPlayModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ v
                         </View>
 
                         <View style={[htpStyles.tipCard, { backgroundColor: colors.successBg }]}>
-                            <Text style={[htpStyles.tipTitle, { color: colors.success }]}>3. Combo Multipliers 🔥</Text>
+                            <Text style={[htpStyles.tipTitle, { color: colors.success }]}>3. Combo Multipliers</Text>
                             <Text style={[htpStyles.tipText, { color: colors.textSecondary }]}>
                                 Correctly placing letters consecutively without errors builds your Combo Multiplier up to 2.5x score bonus!
                             </Text>
@@ -74,7 +74,7 @@ const HowToPlayModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ v
 
                     {/* Grading System */}
                     <View style={htpStyles.section}>
-                        <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>🏆 Solve Grades</Text>
+                        <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>Solve Grades</Text>
                         <Text style={[htpStyles.bodyText, { color: colors.textSecondary }]}>
                             Solve with 95%+ accuracy and 0 hints to earn the coveted S-Rank!
                         </Text>
@@ -117,7 +117,7 @@ const htpStyles = StyleSheet.create({
     exampleCipher: { fontFamily: 'monospace', fontSize: 18, fontWeight: '800', letterSpacing: 2 },
     exampleArrow: { fontSize: 18 },
     exampleSolved: { fontFamily: 'monospace', fontSize: 18, fontWeight: '800', letterSpacing: 2 },
-    tipCard: { padding: 14, borderRadius: 14, gap: 4 },
+    tipCard: { padding: 14, borderRadius: 12, gap: 4 },
     tipTitle: { fontSize: 14, fontWeight: '800' },
     tipText: { fontSize: 13, lineHeight: 18 },
 });
@@ -201,14 +201,14 @@ export const SettingsScreen = () => {
                         pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
                     ]}
                 >
-                    <Text style={{ fontSize: 26 }}>📖</Text>
+                    <Text style={{ fontSize: 24, color: colors.primary }}>â–¤</Text>
                     <View style={{ flex: 1 }}>
                         <Text style={[styles.howToPlayTitle, { color: colors.primary }]}>How to Play & Pro Tips</Text>
                         <Text style={[styles.howToPlaySub, { color: colors.textSecondary }]}>
                             Rules, cryptanalysis tips & scoring guide
                         </Text>
                     </View>
-                    <Text style={[styles.howToPlayArrow, { color: colors.primary }]}>›</Text>
+                    <Text style={[styles.howToPlayArrow, { color: colors.primary }]}>â€º</Text>
                 </Pressable>
 
                 {/* Difficulty */}
@@ -280,7 +280,7 @@ export const SettingsScreen = () => {
                                         { color: colors.text },
                                         isActive && { color: colors.primary, fontWeight: '800' }
                                     ]}>
-                                        {THEME_NAMES[tKey].name} {!isOwned && '🔒'}
+                                        {THEME_NAMES[tKey].name} {!isOwned && 'â–£'}
                                     </Text>
                                 </Pressable>
                             );
@@ -431,7 +431,7 @@ export const SettingsScreen = () => {
                         <Text style={[styles.resetBtnText, { color: colors.error }]}>Reset All Game Progress</Text>
                     </Pressable>
 
-                    <Text style={[styles.versionText, { color: colors.textMuted }]}>BrainCipher v1.0.0 • Production Build</Text>
+                    <Text style={[styles.versionText, { color: colors.textMuted }]}>BrainCipher v1.0.0 â€¢ Production Build</Text>
                 </View>
             </ScrollView>
 
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     backButtonText: { fontSize: 24, fontWeight: '800', marginTop: -2 },
-    title: { fontSize: 24, fontWeight: '900', fontFamily: 'serif' },
+    title: { fontSize: 22, fontWeight: '900', fontFamily: 'serif' },
     content: { padding: 20, gap: 24, paddingBottom: 40 },
     howToPlayButton: {
         flexDirection: 'row',
@@ -473,14 +473,14 @@ const styles = StyleSheet.create({
     howToPlaySub: { fontSize: 12, marginTop: 2 },
     howToPlayArrow: { fontSize: 24, fontWeight: '800' },
     section: { gap: 10 },
-    sectionTitle: { fontSize: 17, fontWeight: '800' },
+    sectionTitle: { fontSize: 16, fontWeight: '800' },
     label: { fontSize: 13, fontWeight: '700', marginTop: 4 },
     optionsRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
     optionChip: {
         minHeight: 48,
         paddingHorizontal: 14,
         paddingVertical: 10,
-        borderRadius: 14,
+        borderRadius: 12,
         borderWidth: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
         gap: 6,
         paddingHorizontal: 14,
         paddingVertical: 10,
-        borderRadius: 14,
+        borderRadius: 12,
         borderWidth: 1,
     },
     chipText: { fontSize: 13, fontWeight: '600' },
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
     resetBtn: {
         minHeight: 48,
         paddingVertical: 14,
-        borderRadius: 14,
+        borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 1,

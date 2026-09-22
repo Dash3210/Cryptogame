@@ -72,7 +72,7 @@ export const UnifiedOperationsStrip: React.FC<UnifiedOperationsStripProps> = ({
                         styles.bay,
                         pressed && styles.pressedBay,
                     ]}
-                    android_ripple={{ color: 'rgba(0, 229, 255, 0.12)' }}
+                    android_ripple={{ color: `${colors.primary}1f` }}
                     accessibilityRole="button"
                     accessibilityLabel="Daily Cipher operation"
                 >
@@ -112,7 +112,7 @@ export const UnifiedOperationsStrip: React.FC<UnifiedOperationsStripProps> = ({
                         styles.bay,
                         pressed && styles.pressedBay,
                     ]}
-                    android_ripple={{ color: 'rgba(56, 189, 248, 0.12)' }}
+                    android_ripple={{ color: `${colors.matching}1f` }}
                     accessibilityRole="button"
                     accessibilityLabel="Blitz Rush operation"
                 >

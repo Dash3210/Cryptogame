@@ -66,6 +66,10 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
         mode: isDaily ? 'daily' : isBlitz ? 'blitz' : 'standard',
     });
 
+    // What the player actually receives. A Blitz run pays out once, at the end,
+    // from accumulated points; showing the per-round reward here was misleading.
+    const displayCoins = isBlitz && isBlitzTimeout ? coinsEarned : isPractice ? 0 : reward.netCoins;
+
     const entranceScale = useRef(new Animated.Value(0.96)).current;
     const entranceOpacity = useRef(new Animated.Value(0)).current;
 
@@ -131,11 +135,11 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                     dateStr: isDaily ? new Date().toISOString().split('T')[0] : undefined,
                 });
             } else {
-                const starsText = '⭐'.repeat(grade.stars);
-                msg = `🧠 BrainCipher ${isBlitz ? 'Blitz Rush' : 'Decoded'}! [${genreLabel}]\n` +
-                    `🏆 Grade: ${grade.grade} (${starsText})\n` +
-                    `⏱️ Time: ${timeFormatted} | 🎯 Accuracy: ${accuracy}%\n` +
-                    `✨ Score: ${score.toLocaleString()} pts (+${coinsEarned} Coins)\n` +
+                const starsText = 'â­'.repeat(grade.stars);
+                msg = `ðŸ§  BrainCipher ${isBlitz ? 'Blitz Rush' : 'Decoded'}! [${genreLabel}]\n` +
+                    `ðŸ† Grade: ${grade.grade} (${starsText})\n` +
+                    `â±ï¸ Time: ${timeFormatted} | ðŸŽ¯ Accuracy: ${accuracy}%\n` +
+                    `âœ¨ Score: ${score.toLocaleString()} pts (+${coinsEarned} Coins)\n` +
                     `Can you crack the code? https://braincipher.app`;
             }
 
@@ -189,11 +193,11 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         </View>
                         <View style={styles.gradeInfo}>
                             <Text style={[styles.gradeTitle, { color: colors.text }]}>{grade.title}</Text>
-                            <Text style={styles.starsText}>{'⭐'.repeat(grade.stars)}</Text>
+                            <Text style={[styles.starsText, { color: getGradeColor(grade.grade) }]}>{'â˜…'.repeat(grade.stars)}</Text>
                         </View>
                         <View style={[styles.netCoinPill, { backgroundColor: colors.goldBg, borderColor: colors.gold }]}>
-                            <Text style={styles.coinIcon}>🪙</Text>
-                            <Text style={[styles.netCoinVal, { color: colors.gold }]}>+{isPractice ? 0 : reward.netCoins}</Text>
+                            <Text style={[styles.coinIcon, { color: colors.gold }]}>â—Ž</Text>
+                            <Text style={[styles.netCoinVal, { color: colors.gold }]}>+{displayCoins}</Text>
                         </View>
                     </View>
 
@@ -204,6 +208,18 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         <View style={styles.ledgerContainer}>
                             <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
                                 Practice run: rewards are disabled because you already solved today's cipher. Your streak is safe.
+                            </Text>
+                        </View>
+                    ) : isBlitz && isBlitzTimeout ? (
+                        <View style={styles.ledgerContainer}>
+                            <View style={styles.ledgerHeaderRow}>
+                                <Text style={[styles.ledgerHeaderTitle, { color: colors.textMuted }]}>BLITZ PAYOUT</Text>
+                                <Text style={[styles.ledgerHeaderRatio, { color: colors.primary }]}>
+                                    {score.toLocaleString()} pts â†’ {coinsEarned} coins
+                                </Text>
+                            </View>
+                            <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
+                                Points convert to coins at 20:1, with a minimum of 5 coins for finishing the run.
                             </Text>
                         </View>
                     ) : isBlitz && !isBlitzTimeout ? (
@@ -228,17 +244,17 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         </View>
 
                         <View style={styles.ledgerRow}>
-                            <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>• Base Level Reward</Text>
-                            <Text style={[styles.ledgerRowValuePositive, { color: colors.primary }]}>+{reward.baseCoins} 🪙</Text>
+                            <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>â€¢ Base Level Reward</Text>
+                            <Text style={[styles.ledgerRowValuePositive, { color: colors.primary }]}>+{reward.baseCoins} â—Ž</Text>
                         </View>
 
                         {reward.mistakeDeduction > 0 && (
                             <View style={styles.ledgerRow}>
                                 <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
-                                    • Wrong Answers ({reward.mistakesCount})
+                                    â€¢ Wrong Answers ({reward.mistakesCount})
                                 </Text>
                                 <Text style={[styles.ledgerRowValueNegative, { color: colors.error }]}>
-                                    -{reward.mistakeDeduction} 🪙
+                                    -{reward.mistakeDeduction} â—Ž
                                 </Text>
                             </View>
                         )}
@@ -246,10 +262,10 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         {reward.hintDeduction > 0 && (
                             <View style={styles.ledgerRow}>
                                 <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
-                                    • Hints Used ({reward.hintsCount})
+                                    â€¢ Hints Used ({reward.hintsCount})
                                 </Text>
                                 <Text style={[styles.ledgerRowValueNegative, { color: colors.error }]}>
-                                    -{reward.hintDeduction} 🪙
+                                    -{reward.hintDeduction} â—Ž
                                 </Text>
                             </View>
                         )}
@@ -257,10 +273,10 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         {reward.timeDeduction > 0 && (
                             <View style={styles.ledgerRow}>
                                 <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
-                                    • Exceeded Par Time
+                                    â€¢ Exceeded Par Time
                                 </Text>
                                 <Text style={[styles.ledgerRowValueNegative, { color: colors.error }]}>
-                                    -{reward.timeDeduction} 🪙
+                                    -{reward.timeDeduction} â—Ž
                                 </Text>
                             </View>
                         )}
@@ -268,10 +284,10 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         {reward.keyDeduction > 0 && (
                             <View style={styles.ledgerRow}>
                                 <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
-                                    • Master Key Usage
+                                    â€¢ Master Key Usage
                                 </Text>
                                 <Text style={[styles.ledgerRowValueNegative, { color: colors.error }]}>
-                                    -{reward.keyDeduction} 🪙
+                                    -{reward.keyDeduction} â—Ž
                                 </Text>
                             </View>
                         )}
@@ -279,10 +295,10 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         {reward.cleanBonus > 0 && (
                             <View style={styles.ledgerRow}>
                                 <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
-                                    • Flawless Clean Solve
+                                    â€¢ Flawless Clean Solve
                                 </Text>
                                 <Text style={[styles.ledgerRowValuePositive, { color: colors.primary }]}>
-                                    +{reward.cleanBonus} 🪙
+                                    +{reward.cleanBonus} â—Ž
                                 </Text>
                             </View>
                         )}
@@ -346,7 +362,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         ]}
                     >
                         <Text style={styles.primaryBtnText}>
-                            {isDaily ? 'Back to Daily Cipher' : (isBlitz && isBlitzTimeout) ? 'Play Blitz Again ⚡' : 'Next Cryptogram →'}
+                            {isDaily ? 'Back to Daily Cipher' : (isBlitz && isBlitzTimeout) ? 'Play Blitz Again' : 'Next Cryptogram â†’'}
                         </Text>
                     </Pressable>
 
@@ -360,7 +376,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                 pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] }
                             ]}
                         >
-                            <Text style={styles.secondaryBtnIcon}>{liked ? '❤️' : '🤍'}</Text>
+                            <Text style={[styles.secondaryBtnIcon, { color: liked ? colors.error : colors.textSecondary }]}>{liked ? 'â™¥' : 'â™¡'}</Text>
                             <Text style={[styles.secondaryBtnText, { color: liked ? colors.error : colors.textSecondary }]}>
                                 {liked ? 'Saved' : 'Save'}
                             </Text>
@@ -374,7 +390,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                 pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] }
                             ]}
                         >
-                            <Text style={styles.secondaryBtnIcon}>📤</Text>
+                            <Text style={[styles.secondaryBtnIcon, { color: colors.textSecondary }]}>â†—</Text>
                             <Text style={[styles.secondaryBtnText, { color: colors.textSecondary }]}>Share</Text>
                         </Pressable>
 
@@ -389,7 +405,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                 pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] }
                             ]}
                         >
-                            <Text style={styles.secondaryBtnIcon}>‹</Text>
+                            <Text style={styles.secondaryBtnIcon}>â€¹</Text>
                             <Text style={[styles.secondaryBtnText, { color: colors.textSecondary }]}>Back</Text>
                         </Pressable>
                     </View>
@@ -579,7 +595,7 @@ const styles = StyleSheet.create({
     },
     quoteCard: {
         padding: 20,
-        borderRadius: 18,
+        borderRadius: 16,
         borderWidth: 1,
         gap: 8,
     },

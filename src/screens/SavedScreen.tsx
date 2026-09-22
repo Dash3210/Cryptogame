@@ -13,7 +13,7 @@ export const SavedScreen = () => {
         try {
             triggerHaptic('medium');
             await Share.share({
-                message: `🧠 "${item.text}"\n— ${item.author} [${item.category}]\n\nDeciphered with BrainCipher: https://braincipher.app`
+                message: `ðŸ§  "${item.text}"\nâ€” ${item.author} [${item.category}]\n\nDeciphered with BrainCipher: https://braincipher.app`
             });
         } catch {}
     };
@@ -33,7 +33,7 @@ export const SavedScreen = () => {
             <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
                 {favoriteItems.length === 0 ? (
                     <View style={styles.emptyContainer}>
-                        <Text style={{ fontSize: 48, marginBottom: 8 }}>❤️</Text>
+                        <Text style={{ fontSize: 40, marginBottom: 8, color: colors.textMuted }}>â™¡</Text>
                         <Text style={[styles.emptyTitle, { color: colors.textSecondary }]}>No saved quotes yet</Text>
                         <Text style={[styles.emptyText, { color: colors.textMuted }]}>
                             Tap the heart icon after deciphering a quote to bookmark your favorite wisdom and definitions here.
@@ -53,7 +53,7 @@ export const SavedScreen = () => {
                             {item.category === 'Daily Cipher' ? (
                                 <>
                                     <Text style={[styles.quoteText, { color: colors.text }]}>"{item.text}"</Text>
-                                    <Text style={[styles.authorText, { color: colors.primary }]}>— {item.author}</Text>
+                                    <Text style={[styles.authorText, { color: colors.primary }]}>â€” {item.author}</Text>
                                 </>
                             ) : (
                                 <>
@@ -73,7 +73,7 @@ export const SavedScreen = () => {
                                     accessibilityRole="button"
                                     accessibilityLabel={`Share quote by ${item.author}`}
                                 >
-                                    <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>📤 Share</Text>
+                                    <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>â†— Share</Text>
                                 </Pressable>
                                 <Pressable
                                     style={({ pressed }) => [
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
         borderBottomWidth: 1,
     },
-    title: { fontSize: 24, fontWeight: '900', fontFamily: 'serif' },
+    title: { fontSize: 22, fontWeight: '900', fontFamily: 'serif' },
     content: { padding: 20, gap: 14, paddingBottom: 40 },
     emptyContainer: {
         alignItems: 'center',
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     },
     card: {
         padding: 18,
-        borderRadius: 18,
+        borderRadius: 16,
         borderWidth: 1,
         gap: 6,
     },

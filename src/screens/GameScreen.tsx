@@ -228,16 +228,20 @@ export const GameScreen = () => {
         triggerHaptic('heavy');
 
         const accuracy = calculateAccuracy(correctCount, totalCount, mistakes.length);
-        setAccuracyPercent(accuracy);
+        // With no guesses at all the accuracy formula reports 100%; a Blitz run
+        // where nothing was solved should read as 0%, not perfect.
+        const displayAccuracy = totalCount > 0 ? accuracy : 0;
+        setAccuracyPercent(displayAccuracy);
 
+        // Grade from actual solves first: solving nothing is always a D.
         let finalGrade: { grade: SolveGrade; title: string; stars: number };
         if (blitzSolves >= 5 && accuracy >= 80) {
             finalGrade = { grade: 'S', title: 'Blitz Mastermind', stars: 3 };
         } else if (blitzSolves >= 3 && accuracy >= 65) {
             finalGrade = { grade: 'A', title: 'Speed Decryptor', stars: 3 };
-        } else if (blitzSolves >= 1) {
+        } else if (blitzSolves >= 1 && accuracy >= 50) {
             finalGrade = { grade: 'B', title: 'Rapid Solver', stars: 2 };
-        } else if (accuracy >= 50 && mistakes.length <= 3) {
+        } else if (blitzSolves >= 1) {
             finalGrade = { grade: 'C', title: 'Time Pressured', stars: 1 };
         } else {
             finalGrade = { grade: 'D', title: 'Time Expired', stars: 1 };
@@ -682,7 +686,7 @@ export const GameScreen = () => {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
                 <View style={styles.centeredFull}>
-                    <Text style={{ fontSize: 72 }}>🎓</Text>
+                    <Text style={{ fontSize: 56, color: colors.primary }}>▣</Text>
                     <Text style={[styles.bigTitle, { color: colors.text }]}>Subject Mastered!</Text>
                     <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
                         You have conquered every cryptogram in {genreLabel}!
@@ -829,7 +833,7 @@ const styles = StyleSheet.create({
     secondaryButton: {
         paddingVertical: 14,
         paddingHorizontal: 24,
-        borderRadius: 14,
+        borderRadius: 12,
         width: '100%',
         alignItems: 'center',
         borderWidth: 1,

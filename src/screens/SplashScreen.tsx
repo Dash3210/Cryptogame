@@ -7,6 +7,7 @@ import { View,
     Image,
     Text,
     AccessibilityInfo } from 'react-native';
+import { useGame } from '../context/GameContext';
 
 interface SplashScreenProps {
     onStart: () => void;
@@ -90,14 +91,17 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
         };
     }, [fadeAnim, scaleAnim, slideAnim, pulseAnim]);
 
-    return (
-        <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#4338ca" />
+    const { colors, settings } = useGame();
+    const isLight = settings.theme === 'light';
 
-            {/* Background decoration */}
-            <View style={styles.bgCircle1} />
-            <View style={styles.bgCircle2} />
-            <View style={styles.bgCircle3} />
+    return (
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+            <StatusBar barStyle={isLight ? 'dark-content' : 'light-content'} backgroundColor={colors.background} />
+
+            {/* Background decoration (subtle, theme-aware) */}
+            <View style={[styles.bgCircle1, { backgroundColor: colors.surfaceHighlight }]} />
+            <View style={[styles.bgCircle2, { backgroundColor: colors.surfaceHighlight }]} />
+            <View style={[styles.bgCircle3, { backgroundColor: colors.surfaceHighlight }]} />
 
             <View style={styles.content}>
                 {/* Logo Image */}
@@ -119,10 +123,10 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
 
                 {/* Animated Title — cipher decode effect */}
                 <Animated.View style={{ opacity: fadeAnim }}>
-                    <Text style={styles.title}>
+                    <Text style={[styles.title, { color: colors.text }]}>
                         {displayTitle}
                     </Text>
-                    <Text style={styles.tagline}>
+                    <Text style={[styles.tagline, { color: colors.textSecondary }]}>
                         Test your intellect.{'\n'}Decrypt definitions.{'\n'}Master subjects.
                     </Text>
                 </Animated.View>
@@ -137,16 +141,16 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
                     ]}
                 >
                     <View style={styles.featureRow}>
-                        <Text style={styles.featureIcon}>🧬</Text>
-                        <Text style={styles.featureText}>7+ Subject Categories</Text>
+                        <Text style={[styles.featureIcon, { color: colors.primary }]}>✦</Text>
+                        <Text style={[styles.featureText, { color: colors.textSecondary }]}>7+ Subject Categories</Text>
                     </View>
                     <View style={styles.featureRow}>
-                        <Text style={styles.featureIcon}>🧩</Text>
-                        <Text style={styles.featureText}>Cryptogram Puzzles</Text>
+                        <Text style={[styles.featureIcon, { color: colors.primary }]}>⊞</Text>
+                        <Text style={[styles.featureText, { color: colors.textSecondary }]}>Cryptogram Puzzles</Text>
                     </View>
                     <View style={styles.featureRow}>
-                        <Text style={styles.featureIcon}>🏆</Text>
-                        <Text style={styles.featureText}>Track Your Mastery</Text>
+                        <Text style={[styles.featureIcon, { color: colors.primary }]}>◈</Text>
+                        <Text style={[styles.featureText, { color: colors.textSecondary }]}>Track Your Mastery</Text>
                     </View>
                 </Animated.View>
             </View>
@@ -162,13 +166,17 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
             >
                 <Pressable
                     onPress={onStart}
-                    style={({ pressed }) => [styles.startButton, pressed && styles.startButtonPressed]}
+                    style={({ pressed }) => [
+                        styles.startButton,
+                        { backgroundColor: colors.primary, shadowColor: colors.primary },
+                        pressed && styles.startButtonPressed,
+                    ]}
                 >
-                    <Text style={styles.startText}>START LEARNING</Text>
-                    <Text style={styles.startArrow}>→</Text>
+                    <Text style={[styles.startText, { color: isLight ? '#ffffff' : colors.background }]}>START LEARNING</Text>
+                    <Text style={[styles.startArrow, { color: isLight ? '#ffffff' : colors.background }]}>→</Text>
                 </Pressable>
 
-                <Text style={styles.version}>v1.0.0</Text>
+                <Text style={[styles.version, { color: colors.textMuted }]}>v1.0.0</Text>
             </Animated.View>
         </View>
     );
@@ -177,7 +185,6 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#4338ca',
         justifyContent: 'space-between',
         paddingHorizontal: 24,
         paddingVertical: 16,
@@ -187,7 +194,7 @@ const styles = StyleSheet.create({
         width: 300,
         height: 300,
         borderRadius: 150,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        opacity: 0.5,
         top: -80,
         right: -80 },
     bgCircle2: {
@@ -195,7 +202,7 @@ const styles = StyleSheet.create({
         width: 200,
         height: 200,
         borderRadius: 100,
-        backgroundColor: 'rgba(255,255,255,0.03)',
+        opacity: 0.4,
         bottom: 100,
         left: -60 },
     bgCircle3: {
@@ -203,7 +210,7 @@ const styles = StyleSheet.create({
         width: 150,
         height: 150,
         borderRadius: 75,
-        backgroundColor: 'rgba(255,255,255,0.04)',
+        opacity: 0.45,
         top: '40%' as any,
         right: -40 },
     content: {
@@ -228,12 +235,11 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 36,
         fontWeight: '900',
+        fontFamily: 'serif',
         textAlign: 'center',
-        letterSpacing: 1,
-        color: 'white' },
+        letterSpacing: 0.5 },
     tagline: {
         fontSize: 16,
-        color: 'rgba(255,255,255,0.7)',
         textAlign: 'center',
         lineHeight: 24,
         marginTop: 8 },
@@ -248,13 +254,11 @@ const styles = StyleSheet.create({
         fontSize: 20 },
     featureText: {
         fontSize: 15,
-        color: 'rgba(255,255,255,0.85)',
         fontWeight: '600' },
     buttonContainer: {
         alignItems: 'center',
         gap: 16 },
     startButton: {
-        backgroundColor: 'white',
         minHeight: 56,
         paddingVertical: 18,
         paddingHorizontal: 40,
@@ -275,13 +279,10 @@ const styles = StyleSheet.create({
     startText: {
         fontSize: 18,
         fontWeight: '900',
-        color: '#4338ca',
         letterSpacing: 1 },
     startArrow: {
         fontSize: 20,
-        fontWeight: '700',
-        color: '#4338ca' },
+        fontWeight: '700' },
     version: {
         fontSize: 12,
-        color: 'rgba(255,255,255,0.4)',
         fontWeight: '600' } });

@@ -57,7 +57,7 @@ export class ErrorBoundary extends Component<Props, State> {
         if (this.state.hasError) {
             return (
                 <View style={styles.container}>
-                    <Text style={styles.icon}>⚠️</Text>
+                    <Text style={styles.icon}>!</Text>
                     <Text style={styles.title}>Something went wrong</Text>
                     <Text style={styles.message}>
                         The app encountered an unexpected error. Please try again.
@@ -102,7 +102,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#1c1917'
     },
     icon: {
-        fontSize: 48,
+        fontSize: 36,
+        fontWeight: '900',
+        color: '#f59e0b',
         marginBottom: 16
     },
     title: {

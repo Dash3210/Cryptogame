@@ -84,7 +84,7 @@ export const GenreCard: React.FC<GenreCardProps> = ({
 const styles = StyleSheet.create({
     card: {
         padding: 12,
-        borderRadius: 22,
+        borderRadius: 16,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 12,

@@ -99,15 +99,14 @@ class AdService {
     }
 
     private notifyUnavailable(onFallback?: () => void) {
-        if (onFallback) {
-            onFallback();
-        } else {
-            Alert.alert(
-                "Ad Unavailable",
-                "We could not load an ad right now. Please check your connection and try again.",
-                [{ text: "OK" }]
-            );
-        }
+        // Always tell the player, even when the caller needs to reset UI state,
+        // otherwise tapping "Solve All" / "Hint" appears to do nothing.
+        onFallback?.();
+        Alert.alert(
+            "Ad Unavailable",
+            "We could not load an ad right now. Please check your connection and try again.",
+            [{ text: "OK" }]
+        );
         if (!this.rewardedAd) {
             setTimeout(() => this.load(), 500);
         }

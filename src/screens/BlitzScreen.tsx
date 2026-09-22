@@ -37,7 +37,7 @@ export const BlitzScreen = () => {
             <ScrollView contentContainerStyle={styles.content}>
                 {/* Hero High Score Banner */}
                 <View style={[styles.heroCard, { backgroundColor: colors.primaryBg, borderColor: colors.primary }]}>
-                    <Text style={{ fontSize: 48 }}>⚡</Text>
+                    <Text style={{ fontSize: 40, color: colors.primary }}>≫</Text>
                     <Text style={[styles.heroLabel, { color: colors.primary }]}>PERSONAL BEST</Text>
                     <Text style={[styles.heroScore, { color: colors.primary }]}>
                         {stats.blitzHighScore.toLocaleString()}
@@ -47,11 +47,11 @@ export const BlitzScreen = () => {
 
                 {/* Rules & Mechanics */}
                 <View style={[styles.rulesCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                    <Text style={[styles.rulesHeader, { color: colors.text }]}>⚡ How Blitz Rush Works</Text>
+                    <Text style={[styles.rulesHeader, { color: colors.text }]}>How Blitz Rush Works</Text>
 
                     <View style={styles.ruleRow}>
                         <View style={[styles.ruleBadge, { backgroundColor: colors.surfaceHighlight }]}>
-                            <Text style={styles.ruleIcon}>⏱️</Text>
+                            <Text style={[styles.ruleIcon, { color: colors.primary }]}>◔</Text>
                         </View>
                         <View style={styles.ruleTextCol}>
                             <Text style={[styles.ruleTitle, { color: colors.text }]}>90-Second Clock</Text>
@@ -63,7 +63,7 @@ export const BlitzScreen = () => {
 
                     <View style={styles.ruleRow}>
                         <View style={[styles.ruleBadge, { backgroundColor: colors.surfaceHighlight }]}>
-                            <Text style={styles.ruleIcon}>➕</Text>
+                            <Text style={[styles.ruleIcon, { color: colors.primary }]}>+</Text>
                         </View>
                         <View style={styles.ruleTextCol}>
                             <Text style={[styles.ruleTitle, { color: colors.text }]}>+15s Time Extension</Text>
@@ -75,7 +75,7 @@ export const BlitzScreen = () => {
 
                     <View style={styles.ruleRow}>
                         <View style={[styles.ruleBadge, { backgroundColor: colors.surfaceHighlight }]}>
-                            <Text style={styles.ruleIcon}>🔥</Text>
+                            <Text style={[styles.ruleIcon, { color: colors.gold }]}>▲</Text>
                         </View>
                         <View style={styles.ruleTextCol}>
                             <Text style={[styles.ruleTitle, { color: colors.text }]}>Combo Multipliers</Text>
@@ -95,7 +95,7 @@ export const BlitzScreen = () => {
                         pressed && { opacity: 0.85, transform: [{ scale: 0.96 }] }
                     ]}
                 >
-                    <Text style={styles.startBtnText}>START BLITZ RUSH ⚡</Text>
+                    <Text style={styles.startBtnText}>START BLITZ RUSH</Text>
                 </Pressable>
             </ScrollView>
         </SafeAreaView>
@@ -120,11 +120,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     backIcon: { fontSize: 24, fontWeight: '800', marginTop: -2 },
-    title: { fontSize: 22, fontWeight: '800' },
+    title: { fontSize: 22, fontWeight: '900', fontFamily: 'serif' },
     content: { padding: 20, gap: 20 },
     heroCard: {
         padding: 24,
-        borderRadius: 24,
+        borderRadius: 20,
         borderWidth: 2,
         alignItems: 'center',
         gap: 4,
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     rulesHeader: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: '800',
         marginBottom: 4,
     },
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     ruleDesc: { fontSize: 13, marginTop: 2, lineHeight: 18 },
     startBtn: {
         paddingVertical: 18,
-        borderRadius: 18,
+        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
         shadowOffset: { width: 0, height: 6 },
