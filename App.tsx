@@ -3,7 +3,7 @@ import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GameProvider, useGame } from './src/context/GameContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { getFontScale } from './src/styles/theme';
@@ -28,6 +28,11 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 // Tab Navigator (Home Screen)
 function HomeTabs() {
   const { settings, colors } = useGame();
+  const insets = useSafeAreaInsets();
+
+  // Explicit height that includes the bottom inset, otherwise the labels can be
+  // clipped by the Android gesture bar (edge-to-edge is enforced on targetSdk 35+).
+  const tabBarHeight = 58 + insets.bottom;
 
   return (
     <Tab.Navigator
@@ -37,13 +42,13 @@ function HomeTabs() {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
           borderTopWidth: 1,
-          // Let the navigator add the bottom safe-area inset (edge-to-edge on
-          // targetSdk 36 would otherwise push the labels under the gesture bar).
+          height: tabBarHeight,
           paddingTop: 6,
+          paddingBottom: insets.bottom + 6,
           elevation: 0,
         },
         tabBarItemStyle: {
-          minHeight: 48,
+          paddingTop: 4,
           justifyContent: 'center',
           alignItems: 'center',
         },
@@ -53,7 +58,8 @@ function HomeTabs() {
           fontSize: 10 * getFontScale(settings.fontSize),
           fontWeight: '700',
           textTransform: 'uppercase',
-          letterSpacing: 0.8,
+          letterSpacing: 0.4,
+          marginTop: 2,
         },
       }}
     >

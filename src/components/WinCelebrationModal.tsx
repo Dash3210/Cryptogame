@@ -29,6 +29,9 @@ interface WinCelebrationModalProps {
     isBlitzTimeout?: boolean;
     /** A replayed daily cipher: graded, but pays nothing. */
     isPractice?: boolean;
+    /** True when the double-or-nothing bonus is still available. */
+    bonusAvailable?: boolean;
+    onOpenBonus?: () => void;
     userMap?: Record<string, string>;
     cipherMap?: Record<string, string>;
 }
@@ -50,6 +53,8 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
     isBlitz,
     isBlitzTimeout,
     isPractice = false,
+    bonusAvailable = false,
+    onOpenBonus,
     userMap,
     cipherMap,
 }) => {
@@ -351,6 +356,26 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
 
                 {/* Action Buttons */}
                 <View style={styles.buttonStack}>
+                    {bonusAvailable && onOpenBonus && (
+                        <Pressable
+                            onPress={() => {
+                                triggerHaptic('medium');
+                                onOpenBonus();
+                            }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Try the double reward bonus"
+                            style={({ pressed }) => [
+                                styles.bonusBtn,
+                                { backgroundColor: colors.goldBg, borderColor: colors.gold },
+                                pressed && { opacity: 0.9, transform: [{ scale: 0.97 }] },
+                            ]}
+                        >
+                            <Icon name="sparkle-burst" size={18} color={colors.gold} />
+                            <Text style={[styles.bonusBtnText, { color: colors.gold }]}>
+                                Double your reward
+                            </Text>
+                        </Pressable>
+                    )}
                     <Pressable
                         onPress={() => {
                             triggerHaptic('medium');
@@ -630,6 +655,20 @@ const styles = StyleSheet.create({
     buttonStack: {
         gap: 10,
         marginTop: 4,
+    },
+    bonusBtn: {
+        minHeight: 52,
+        borderRadius: 16,
+        borderWidth: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+    },
+    bonusBtnText: {
+        fontSize: 15,
+        fontWeight: '800',
+        letterSpacing: 0.3,
     },
     primaryBtn: {
         paddingVertical: 16,

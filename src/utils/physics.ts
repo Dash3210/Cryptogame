@@ -145,6 +145,17 @@ export const ENGLISH_FREQUENCY_RANK: string[] = [
     'E', 'T', 'A', 'O', 'I', 'N', 'S', 'H', 'R', 'D', 'L', 'C', 'U', 'M', 'W', 'F', 'G', 'Y', 'P', 'B', 'V', 'K', 'J', 'X', 'Q', 'Z'
 ];
 
+/**
+ * Normalised English letter commonness in [0, 1] where E is 1.
+ * Used to shade the on-screen keyboard as a cryptanalysis aid.
+ */
+export function englishFrequencyWeight(char: string): number {
+    const freq = ENGLISH_LETTER_FREQUENCIES[char.toUpperCase()] ?? 0;
+    const max = Math.max(...Object.values(ENGLISH_LETTER_FREQUENCIES));
+    if (max <= 0) return 0;
+    return Math.max(0, Math.min(1, freq / max));
+}
+
 export interface EnigmaCardParams {
     quoteText: string;
     userMap: Record<string, string>;

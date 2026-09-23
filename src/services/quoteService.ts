@@ -6,6 +6,26 @@
 
 import { QuoteData } from '../types';
 import { QUOTE_DB, DAILY_QUOTES, BLITZ_QUOTES } from '../data/quotes';
+import { shuffleArray } from '../utils/cipher';
+
+/**
+ * Build a multiple-choice answer set for the post-solve bonus round.
+ * Prefers distractors from the same subject, then any subject.
+ */
+export function getAnswerOptions(category: string, correctAnswer: string, count = 4): string[] {
+    const wanted = Math.max(2, count) - 1;
+    const sameCategory = (QUOTE_DB[category] || [])
+        .map(q => q.author)
+        .filter(a => a && a !== correctAnswer);
+    const allAnswers = Object.values(QUOTE_DB)
+        .flat()
+        .map(q => q.author)
+        .filter(a => a && a !== correctAnswer);
+
+    const pool = Array.from(new Set(sameCategory.length >= wanted ? sameCategory : allAnswers));
+    const distractors = shuffleArray(pool).slice(0, wanted);
+    return shuffleArray([correctAnswer, ...distractors]);
+}
 
 /**
  * Get the next available quote for a category (sequential)

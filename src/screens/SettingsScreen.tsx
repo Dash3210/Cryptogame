@@ -310,8 +310,8 @@ export const SettingsScreen = () => {
 
                     <View style={styles.switchRow}>
                         <View>
-                            <Text style={[styles.switchLabel, { color: colors.text }]}>Frequency Analysis Bar</Text>
-                            <Text style={[styles.switchSub, { color: colors.textMuted }]}>Show letter occurrence counts above grid</Text>
+                            <Text style={[styles.switchLabel, { color: colors.text }]}>Frequency Hints</Text>
+                            <Text style={[styles.switchSub, { color: colors.textMuted }]}>Shade keyboard keys by how common the letter is in English</Text>
                         </View>
                         <Switch
                             value={settings.showFrequencyBar}

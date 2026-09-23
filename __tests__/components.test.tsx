@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import { GameProvider } from '../src/context/GameContext';
-import { FrequencyBar } from '../src/components/FrequencyBar';
 import { Header } from '../src/components/Header';
 import { VirtualKeyboard } from '../src/components/VirtualKeyboard';
 import { GenreCard } from '../src/components/GenreCard';
@@ -15,29 +14,6 @@ describe('UI Components Test Suite', () => {
   afterEach(() => {
     jest.clearAllTimers();
     jest.useRealTimers();
-  });
-
-  test('FrequencyBar renders frequency badges and handles selection', async () => {
-    const frequencies = [
-      { char: 'E', cipherChar: 'X', frequency: 5, solved: false },
-      { char: 'T', cipherChar: 'Y', frequency: 3, solved: true },
-    ];
-    const onSelect = jest.fn();
-
-    let renderer: any;
-    await ReactTestRenderer.act(async () => {
-      renderer = ReactTestRenderer.create(
-        <GameProvider>
-          <FrequencyBar
-            frequencies={frequencies}
-            selectedCipherChar="X"
-            onSelectCipherChar={onSelect}
-          />
-        </GameProvider>
-      );
-    });
-
-    expect(renderer).toBeDefined();
   });
 
   test('Header renders status, timer, and combo multiplier', async () => {

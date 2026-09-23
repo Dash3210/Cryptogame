@@ -3,7 +3,7 @@ import { View, StyleSheet, Alert, ScrollView, AppState, Pressable } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { AppText as Text } from '../components/AppText';
-import { Header, PuzzleBoard, VirtualKeyboard, FrequencyBar, WinCelebrationModal, Icon } from '../components';
+import { Header, PuzzleBoard, VirtualKeyboard, WinCelebrationModal, BonusGuessModal, Icon } from '../components';
 import {
     generateCipher,
     isSolved,
@@ -11,12 +11,11 @@ import {
     generateHints,
     getNextUnsolvedIndex,
     getPreviousCellIndex,
-    getLetterFrequencies,
     calculateAccuracy,
     getComboMultiplier,
     calculateCoinReward
 } from '../utils/cipher';
-import { getNextQuote, getDailyQuote, getRandomBlitzQuote } from '../services/quoteService';
+import { getNextQuote, getDailyQuote, getRandomBlitzQuote, getAnswerOptions } from '../services/quoteService';
 import { todayKey } from '../utils/date';
 import { adService } from '../services/adService';
 import { GameStatus, LevelData, CellData, GameMode, SolveGrade, CoinRewardBreakdown } from '../types';
@@ -65,6 +64,7 @@ export const GameScreen = () => {
         updateBlitzHighScore,
         triggerHaptic,
         addCoins,
+        addPoints,
     } = useGame();
 
     const genreLabel = GENRE_LABELS[genreId] || genreId;
@@ -82,6 +82,10 @@ export const GameScreen = () => {
     const [isAdPaused, setIsAdPaused] = useState(false);
     // A replayed daily cipher is a practice run: it is graded but pays nothing.
     const [isPracticeRun, setIsPracticeRun] = useState(false);
+    // Post-solve "double or nothing" bonus round.
+    const [bonusOptions, setBonusOptions] = useState<string[] | null>(null);
+    const [bonusAwarded, setBonusAwarded] = useState(false);
+    const [showBonus, setShowBonus] = useState(false);
     const [showFrequencyBar, setShowFrequencyBar] = useState(settings.showFrequencyBar);
 
     // Gamer Metrics: Combo, Accuracy & Score
@@ -130,12 +134,6 @@ export const GameScreen = () => {
         const cellChar = quoteData.text[selectedCellIndex]?.toUpperCase();
         return (cellChar && /[A-Z]/.test(cellChar)) ? cipherMap[cellChar] || null : null;
     }, [selectedCellIndex, quoteData, cipherMap]);
-
-    // Letter Frequency List
-    const frequencies = useMemo(() => {
-        if (!quoteData || !cipherMap) return [];
-        return getLetterFrequencies(quoteData.text, cipherMap, userMap);
-    }, [quoteData, cipherMap, userMap]);
 
     // Combo Multiplier (single source of truth shared with the scoring engine)
     const comboMultiplier = useMemo(() => getComboMultiplier(comboCount), [comboCount]);
@@ -300,6 +298,9 @@ export const GameScreen = () => {
         // A daily that is already solved today can be replayed, but as practice.
         setIsPracticeRun(mode === 'daily' && stats.dailySolvedDates.includes(today));
         finishedRef.current = false;
+        setBonusOptions(null);
+        setBonusAwarded(false);
+        setShowBonus(false);
 
         const qId = nextQuote.id || `${genreId}-${nextQuote.author}`;
         const savedData = mode === 'standard' ? savedGames[genreId] : undefined;
@@ -396,6 +397,10 @@ export const GameScreen = () => {
                 // Replaying a solved daily pays nothing and does not touch stats.
                 return;
             }
+            // Offer the optional double-or-nothing bonus for a real solve.
+            setBonusOptions(getAnswerOptions(genreId, quoteData.author, 4));
+            setBonusAwarded(false);
+            setShowBonus(false);
             markQuoteSolved(qId, genreId);
             recordPuzzleCompletion({
                 quoteId: qId,
@@ -511,18 +516,6 @@ export const GameScreen = () => {
         const nextIdx = getNextUnsolvedIndex(quoteData.text, cipherMap, userMap, selectedCellIndex ?? -1);
         if (nextIdx !== null) setSelectedCellIndex(nextIdx);
     }, [status, selectedCellIndex, quoteData, cipherMap, userMap]);
-
-    const handleSelectCipherFromFrequency = useCallback((targetCipherChar: string) => {
-        if (!quoteData) return;
-        const upper = quoteData.text.toUpperCase();
-        for (let i = 0; i < upper.length; i++) {
-            const real = upper[i];
-            if (/[A-Z]/.test(real) && cipherMap[real] === targetCipherChar) {
-                setSelectedCellIndex(i);
-                break;
-            }
-        }
-    }, [quoteData, cipherMap]);
 
     const handleHint = useCallback(() => {
         if (status !== 'playing' || selectedCellIndex === null || !quoteData || !selectedCipherChar) return;
@@ -722,7 +715,9 @@ export const GameScreen = () => {
     // ===== WIN VIEW =====
     if (status === 'won') {
         const isBlitzTimeout = mode === 'blitz' && blitzTimeLeft === 0;
+        const bonusAvailable = !!bonusOptions && !bonusAwarded;
         return (
+            <>
             <WinCelebrationModal
                 quoteData={quoteData}
                 genreLabel={genreLabel}
@@ -754,7 +749,27 @@ export const GameScreen = () => {
                 isPractice={isPracticeRun}
                 userMap={userMap}
                 cipherMap={cipherMap}
+                bonusAvailable={bonusAvailable}
+                onOpenBonus={() => setShowBonus(true)}
             />
+            {bonusOptions && (
+                <BonusGuessModal
+                    visible={showBonus}
+                    definition={quoteData.text}
+                    options={bonusOptions}
+                    correctAnswer={quoteData.author}
+                    onResolved={(correct) => {
+                        if (correct && !bonusAwarded) {
+                            setBonusAwarded(true);
+                            addCoins(coinsEarned);
+                            addPoints(earnedScore);
+                            triggerHaptic('success');
+                        }
+                    }}
+                    onClose={() => setShowBonus(false)}
+                />
+            )}
+            </>
         );
     }
 
@@ -778,14 +793,6 @@ export const GameScreen = () => {
                 isBlitz={mode === 'blitz'}
             />
 
-            {showFrequencyBar && (
-                <FrequencyBar
-                    frequencies={frequencies}
-                    selectedCipherChar={selectedCipherChar}
-                    onSelectCipherChar={handleSelectCipherFromFrequency}
-                />
-            )}
-
             <ScrollView
                 style={styles.boardScroll}
                 contentContainerStyle={styles.boardScrollContent}
@@ -806,6 +813,7 @@ export const GameScreen = () => {
                     onDelete={handleDelete}
                     onNext={handleNext}
                     blockUsedLetters={settings.blockUsedLetters}
+                    frequencyHints={showFrequencyBar}
                 />
             </View>
         </SafeAreaView>
