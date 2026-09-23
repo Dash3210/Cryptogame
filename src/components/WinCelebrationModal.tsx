@@ -7,6 +7,7 @@ import { LevelData, SolveGrade, CoinRewardBreakdown } from '../types';
 import { useGame } from '../context/GameContext';
 import { SPRING_PRESETS, generateEnigmaShareCard } from '../utils/physics';
 import { CipherTransition } from './CipherTransition';
+import { Icon } from './Icon';
 import { calculateCoinReward } from '../utils/cipher';
 
 interface WinCelebrationModalProps {
@@ -196,7 +197,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                             <Text style={[styles.starsText, { color: getGradeColor(grade.grade) }]}>{'★'.repeat(grade.stars)}</Text>
                         </View>
                         <View style={[styles.netCoinPill, { backgroundColor: colors.goldBg, borderColor: colors.gold }]}>
-                            <Text style={[styles.coinIcon, { color: colors.gold }]}>◎</Text>
+                            <Icon name="coin" size={16} color={colors.gold} />
                             <Text style={[styles.netCoinVal, { color: colors.gold }]}>+{displayCoins}</Text>
                         </View>
                     </View>
@@ -245,7 +246,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
 
                         <View style={styles.ledgerRow}>
                             <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>• Base Level Reward</Text>
-                            <Text style={[styles.ledgerRowValuePositive, { color: colors.primary }]}>+{reward.baseCoins} ◎</Text>
+                            <Text style={[styles.ledgerRowValuePositive, { color: colors.primary }]}>+{reward.baseCoins}</Text>
                         </View>
 
                         {reward.mistakeDeduction > 0 && (
@@ -254,7 +255,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                     • Wrong Answers ({reward.mistakesCount})
                                 </Text>
                                 <Text style={[styles.ledgerRowValueNegative, { color: colors.error }]}>
-                                    -{reward.mistakeDeduction} ◎
+                                    -{reward.mistakeDeduction}
                                 </Text>
                             </View>
                         )}
@@ -265,7 +266,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                     • Hints Used ({reward.hintsCount})
                                 </Text>
                                 <Text style={[styles.ledgerRowValueNegative, { color: colors.error }]}>
-                                    -{reward.hintDeduction} ◎
+                                    -{reward.hintDeduction}
                                 </Text>
                             </View>
                         )}
@@ -276,7 +277,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                     • Exceeded Par Time
                                 </Text>
                                 <Text style={[styles.ledgerRowValueNegative, { color: colors.error }]}>
-                                    -{reward.timeDeduction} ◎
+                                    -{reward.timeDeduction}
                                 </Text>
                             </View>
                         )}
@@ -287,7 +288,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                     • Master Key Usage
                                 </Text>
                                 <Text style={[styles.ledgerRowValueNegative, { color: colors.error }]}>
-                                    -{reward.keyDeduction} ◎
+                                    -{reward.keyDeduction}
                                 </Text>
                             </View>
                         )}
@@ -298,7 +299,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                     • Flawless Clean Solve
                                 </Text>
                                 <Text style={[styles.ledgerRowValuePositive, { color: colors.primary }]}>
-                                    +{reward.cleanBonus} ◎
+                                    +{reward.cleanBonus}
                                 </Text>
                             </View>
                         )}
@@ -376,7 +377,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                 pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] }
                             ]}
                         >
-                            <Text style={[styles.secondaryBtnIcon, { color: liked ? colors.error : colors.textSecondary }]}>{liked ? '♥' : '♡'}</Text>
+                            <Icon name={liked ? 'heart' : 'heart-outline'} size={16} color={liked ? colors.error : colors.textSecondary} />
                             <Text style={[styles.secondaryBtnText, { color: liked ? colors.error : colors.textSecondary }]}>
                                 {liked ? 'Saved' : 'Save'}
                             </Text>
@@ -390,7 +391,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                 pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] }
                             ]}
                         >
-                            <Text style={[styles.secondaryBtnIcon, { color: colors.textSecondary }]}>↗</Text>
+                            <Icon name="share" size={16} color={colors.textSecondary} />
                             <Text style={[styles.secondaryBtnText, { color: colors.textSecondary }]}>Share</Text>
                         </Pressable>
 
@@ -405,7 +406,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                 pressed && { opacity: 0.7, transform: [{ scale: 0.96 }] }
                             ]}
                         >
-                            <Text style={styles.secondaryBtnIcon}>‹</Text>
+                            <Icon name="chevron-left" size={16} color={colors.textSecondary} />
                             <Text style={[styles.secondaryBtnText, { color: colors.textSecondary }]}>Back</Text>
                         </Pressable>
                     </View>

@@ -8,6 +8,7 @@ import { View,
     Text,
     AccessibilityInfo } from 'react-native';
 import { useGame } from '../context/GameContext';
+import { Icon } from '../components/Icon';
 
 interface SplashScreenProps {
     onStart: () => void;
@@ -141,15 +142,15 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onStart }) => {
                     ]}
                 >
                     <View style={styles.featureRow}>
-                        <Text style={[styles.featureIcon, { color: colors.primary }]}>✦</Text>
+                        <Icon name="sparkle" size={20} color={colors.primary} />
                         <Text style={[styles.featureText, { color: colors.textSecondary }]}>7+ Subject Categories</Text>
                     </View>
                     <View style={styles.featureRow}>
-                        <Text style={[styles.featureIcon, { color: colors.primary }]}>⊞</Text>
+                        <Icon name="puzzle" size={20} color={colors.primary} />
                         <Text style={[styles.featureText, { color: colors.textSecondary }]}>Cryptogram Puzzles</Text>
                     </View>
                     <View style={styles.featureRow}>
-                        <Text style={[styles.featureIcon, { color: colors.primary }]}>◈</Text>
+                        <Icon name="medal" size={20} color={colors.primary} />
                         <Text style={[styles.featureText, { color: colors.textSecondary }]}>Track Your Mastery</Text>
                     </View>
                 </Animated.View>

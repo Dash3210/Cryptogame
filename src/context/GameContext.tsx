@@ -35,22 +35,23 @@ const INITIAL_STATS: PlayerStats = {
 };
 
 const INITIAL_ACHIEVEMENTS: Achievement[] = [
-    { id: 'first_cipher', icon: '✦', title: 'First Contact', description: 'Solve your first cryptogram', category: 'special', target: 1, progress: 0, isUnlocked: false, rewardCoins: 25, claimed: false },
-    { id: 'scholar_10', icon: '▤', title: 'Scholar', description: 'Solve 10 cryptograms', category: 'mastery', target: 10, progress: 0, isUnlocked: false, rewardCoins: 60, claimed: false },
-    { id: 'mastermind_50', icon: '◈', title: 'Mastermind', description: 'Solve 50 cryptograms across all genres', category: 'mastery', target: 50, progress: 0, isUnlocked: false, rewardCoins: 200, claimed: false },
-    { id: 'centurion_100', icon: '▣', title: 'Enigma Centurion', description: 'Solve 100 total puzzles', category: 'mastery', target: 100, progress: 0, isUnlocked: false, rewardCoins: 500, claimed: false },
-    { id: 'clean_solve', icon: '✧', title: 'Pure Insight', description: 'Solve a puzzle with 0 hints and 0 mistakes', category: 'accuracy', target: 1, progress: 0, isUnlocked: false, rewardCoins: 50, claimed: false },
-    { id: 'flawless_5', icon: '◉', title: 'Flawless Decryptor', description: 'Solve 5 puzzles with 0 mistakes', category: 'accuracy', target: 5, progress: 0, isUnlocked: false, rewardCoins: 120, claimed: false },
-    { id: 'speed_demon', icon: '≫', title: 'Speed Demon', description: 'Solve a puzzle in under 30 seconds', category: 'speed', target: 1, progress: 0, isUnlocked: false, rewardCoins: 60, claimed: false },
-    { id: 'lightning_fast', icon: '◔', title: 'Lightning Reflexes', description: 'Solve a puzzle in under 15 seconds', category: 'speed', target: 1, progress: 0, isUnlocked: false, rewardCoins: 120, claimed: false },
-    { id: 'daily_starter', icon: '▤', title: 'Daily Dedication', description: 'Solve your first Daily Cipher challenge', category: 'streaks', target: 1, progress: 0, isUnlocked: false, rewardCoins: 40, claimed: false },
-    { id: 'streak_7', icon: '▲', title: 'Week of Brilliance', description: 'Maintain a 7-day Daily Cipher streak', category: 'streaks', target: 7, progress: 0, isUnlocked: false, rewardCoins: 200, claimed: false },
-    { id: 'streak_30', icon: '♛', title: 'Unbreakable Will', description: 'Reach a 30-day Daily Cipher streak', category: 'streaks', target: 30, progress: 0, isUnlocked: false, rewardCoins: 600, claimed: false },
-    { id: 'polymath_3', icon: '▣', title: 'Polymath', description: 'Master all puzzles in 3 distinct subjects', category: 'mastery', target: 3, progress: 0, isUnlocked: false, rewardCoins: 150, claimed: false },
-    { id: 'omniscient_all', icon: '✦', title: 'Omniscient Mind', description: 'Master all subjects in the library', category: 'mastery', target: 7, progress: 0, isUnlocked: false, rewardCoins: 400, claimed: false },
-    { id: 'legendary_solver', icon: '✧', title: 'Legendary Decryptor', description: 'Solve a Legendary difficulty puzzle', category: 'special', target: 1, progress: 0, isUnlocked: false, rewardCoins: 100, claimed: false },
-    { id: 'blitz_master', icon: '➤', title: 'Blitz Overdrive', description: 'Score 1,000+ points in Blitz Rush mode', category: 'speed', target: 1, progress: 0, isUnlocked: false, rewardCoins: 120, claimed: false },
-    { id: 'theme_collector', icon: '◑', title: 'Aesthetic Elite', description: 'Unlock 3 custom themes in the Store', category: 'special', target: 3, progress: 0, isUnlocked: false, rewardCoins: 100, claimed: false },
+    // `icon` is an icon-kit slug rendered by the Icon component.
+    { id: 'first_cipher', icon: 'sparkle', title: 'First Contact', description: 'Solve your first cryptogram', category: 'special', target: 1, progress: 0, isUnlocked: false, rewardCoins: 25, claimed: false },
+    { id: 'scholar_10', icon: 'book', title: 'Scholar', description: 'Solve 10 cryptograms', category: 'mastery', target: 10, progress: 0, isUnlocked: false, rewardCoins: 60, claimed: false },
+    { id: 'mastermind_50', icon: 'brain', title: 'Mastermind', description: 'Solve 50 cryptograms across all genres', category: 'mastery', target: 50, progress: 0, isUnlocked: false, rewardCoins: 200, claimed: false },
+    { id: 'centurion_100', icon: 'monument', title: 'Enigma Centurion', description: 'Solve 100 total puzzles', category: 'mastery', target: 100, progress: 0, isUnlocked: false, rewardCoins: 500, claimed: false },
+    { id: 'clean_solve', icon: 'sparkle-burst', title: 'Pure Insight', description: 'Solve a puzzle with 0 hints and 0 mistakes', category: 'accuracy', target: 1, progress: 0, isUnlocked: false, rewardCoins: 50, claimed: false },
+    { id: 'flawless_5', icon: 'target', title: 'Flawless Decryptor', description: 'Solve 5 puzzles with 0 mistakes', category: 'accuracy', target: 5, progress: 0, isUnlocked: false, rewardCoins: 120, claimed: false },
+    { id: 'speed_demon', icon: 'bolt', title: 'Speed Demon', description: 'Solve a puzzle in under 30 seconds', category: 'speed', target: 1, progress: 0, isUnlocked: false, rewardCoins: 60, claimed: false },
+    { id: 'lightning_fast', icon: 'timer', title: 'Lightning Reflexes', description: 'Solve a puzzle in under 15 seconds', category: 'speed', target: 1, progress: 0, isUnlocked: false, rewardCoins: 120, claimed: false },
+    { id: 'daily_starter', icon: 'calendar', title: 'Daily Dedication', description: 'Solve your first Daily Cipher challenge', category: 'streaks', target: 1, progress: 0, isUnlocked: false, rewardCoins: 40, claimed: false },
+    { id: 'streak_7', icon: 'flame', title: 'Week of Brilliance', description: 'Maintain a 7-day Daily Cipher streak', category: 'streaks', target: 7, progress: 0, isUnlocked: false, rewardCoins: 200, claimed: false },
+    { id: 'streak_30', icon: 'trophy', title: 'Unbreakable Will', description: 'Reach a 30-day Daily Cipher streak', category: 'streaks', target: 30, progress: 0, isUnlocked: false, rewardCoins: 600, claimed: false },
+    { id: 'polymath_3', icon: 'graduation', title: 'Polymath', description: 'Master all puzzles in 3 distinct subjects', category: 'mastery', target: 3, progress: 0, isUnlocked: false, rewardCoins: 150, claimed: false },
+    { id: 'omniscient_all', icon: 'galaxy', title: 'Omniscient Mind', description: 'Master all subjects in the library', category: 'mastery', target: 7, progress: 0, isUnlocked: false, rewardCoins: 400, claimed: false },
+    { id: 'legendary_solver', icon: 'sword', title: 'Legendary Decryptor', description: 'Solve a Legendary difficulty puzzle', category: 'special', target: 1, progress: 0, isUnlocked: false, rewardCoins: 100, claimed: false },
+    { id: 'blitz_master', icon: 'rocket', title: 'Blitz Overdrive', description: 'Score 1,000+ points in Blitz Rush mode', category: 'speed', target: 1, progress: 0, isUnlocked: false, rewardCoins: 120, claimed: false },
+    { id: 'theme_collector', icon: 'palette', title: 'Aesthetic Elite', description: 'Unlock 3 custom themes in the Store', category: 'special', target: 3, progress: 0, isUnlocked: false, rewardCoins: 100, claimed: false },
 ];
 
 const INITIAL_COINS = 50; // Welcome bonus

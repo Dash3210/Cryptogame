@@ -5,6 +5,7 @@ import { AppText as Text } from '../components/AppText';
 import { useGame } from '../context/GameContext';
 import { QuoteData } from '../types';
 import { getQuoteById } from '../services/quoteService';
+import { Icon } from '../components/Icon';
 
 export const SavedScreen = () => {
     const { favorites, toggleFavorite, colors, triggerHaptic } = useGame();
@@ -33,7 +34,7 @@ export const SavedScreen = () => {
             <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
                 {favoriteItems.length === 0 ? (
                     <View style={styles.emptyContainer}>
-                        <Text style={{ fontSize: 40, marginBottom: 8, color: colors.textMuted }}>♡</Text>
+                        <Icon name="heart-outline" size={40} color={colors.textMuted} style={{ marginBottom: 8 }} />
                         <Text style={[styles.emptyTitle, { color: colors.textSecondary }]}>No saved quotes yet</Text>
                         <Text style={[styles.emptyText, { color: colors.textMuted }]}>
                             Tap the heart icon after deciphering a quote to bookmark your favorite wisdom and definitions here.
@@ -73,7 +74,8 @@ export const SavedScreen = () => {
                                     accessibilityRole="button"
                                     accessibilityLabel={`Share quote by ${item.author}`}
                                 >
-                                    <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>↗ Share</Text>
+                                    <Icon name="share" size={14} color={colors.textSecondary} />
+                                    <Text style={[styles.actionBtnText, { color: colors.textSecondary }]}>Share</Text>
                                 </Pressable>
                                 <Pressable
                                     style={({ pressed }) => [
@@ -172,6 +174,8 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         borderRadius: 12,
         borderWidth: 1,
+        flexDirection: 'row',
+        gap: 6,
         justifyContent: 'center',
         alignItems: 'center',
     },

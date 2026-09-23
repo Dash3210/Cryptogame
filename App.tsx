@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StatusBar, Text } from 'react-native';
+import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -8,6 +8,7 @@ import { GameProvider, useGame } from './src/context/GameContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { getFontScale } from './src/styles/theme';
 import { HomeTabParamList, RootStackParamList } from './src/navigation/types';
+import { Icon } from './src/components/Icon';
 
 // Screens
 import { SplashScreen } from './src/screens/SplashScreen';
@@ -60,35 +61,35 @@ function HomeTabs() {
         name="Library"
         component={LibraryScreen}
         options={{
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>⊞</Text>
+          tabBarIcon: ({ color }) => <Icon name="nav-library" size={22} color={color} />
         }}
       />
       <Tab.Screen
         name="Saved"
         component={SavedScreen}
         options={{
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>★</Text>
+          tabBarIcon: ({ color }) => <Icon name="nav-saved" size={22} color={color} />
         }}
       />
       <Tab.Screen
         name="Store"
         component={StoreScreen}
         options={{
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>⧉</Text>
+          tabBarIcon: ({ color }) => <Icon name="nav-store" size={22} color={color} />
         }}
       />
       <Tab.Screen
         name="Mastery"
         component={MasteryScreen}
         options={{
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>▲</Text>
+          tabBarIcon: ({ color }) => <Icon name="nav-mastery" size={22} color={color} />
         }}
       />
       <Tab.Screen
         name="Settings"
         component={SettingsScreen}
         options={{
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>⚙</Text>
+          tabBarIcon: ({ color }) => <Icon name="nav-settings" size={22} color={color} />
         }}
       />
     </Tab.Navigator>

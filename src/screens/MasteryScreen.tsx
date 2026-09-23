@@ -6,6 +6,7 @@ import { AppText as Text } from '../components/AppText';
 import { useGame } from '../context/GameContext';
 import { SUBJECTS, EXTENSIONS } from '../data/quotes';
 import { isGenreComplete, getGenreProgress } from '../services/quoteService';
+import { Icon, IconName } from '../components/Icon';
 
 export const MasteryScreen = () => {
     const navigation = useNavigation<any>();
@@ -51,7 +52,7 @@ export const MasteryScreen = () => {
                         <Text style={[styles.title, { color: colors.text }]}>Mastery & Rank</Text>
                     </View>
                     <View style={[styles.coinBadge, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}>
-                        <Text style={{ fontSize: 13, color: colors.gold }}>◎</Text>
+                        <Icon name="coin" size={13} color={colors.gold} />
                         <Text style={[styles.coinText, { color: colors.text }]}>{coins}</Text>
                     </View>
                 </View>
@@ -60,7 +61,7 @@ export const MasteryScreen = () => {
                 <View style={[styles.rankCard, { backgroundColor: colors.primaryBg, borderColor: colors.primary }]}>
                     <View style={styles.rankTopRow}>
                         <View style={[styles.rankIconBox, { backgroundColor: colors.primaryBg }]}>
-                            <Text style={{ fontSize: 26, color: colors.primary }}>♛</Text>
+                            <Icon name="nav-mastery" size={26} color={colors.primary} />
                         </View>
                         <View style={{ flex: 1 }}>
                             <Text style={[styles.rankBadgeText, { color: colors.primary }]}>RANK #{rank}</Text>
@@ -159,7 +160,7 @@ export const MasteryScreen = () => {
                                             backgroundColor: ach.isUnlocked ? colors.goldBg : colors.surfaceHighlight
                                         }
                                     ]}>
-                                        <Text style={{ fontSize: 24 }}>{ach.icon}</Text>
+                                        <Icon name={ach.icon as IconName} size={24} color={ach.isUnlocked ? colors.gold : colors.textSecondary} />
                                     </View>
 
                                     <View style={styles.achInfo}>
@@ -226,25 +227,25 @@ export const MasteryScreen = () => {
                     <View style={styles.statsContainer}>
                         <View style={styles.statsGrid}>
                             <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                                <Text style={[styles.statIcon, { color: colors.primary }]}>◉</Text>
+                                <Icon name="target" size={22} color={colors.primary} />
                                 <Text style={[styles.statValue, { color: colors.primary }]}>{stats.puzzlesSolved}</Text>
                                 <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Puzzles Solved</Text>
                             </View>
 
                             <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                                <Text style={[styles.statIcon, { color: colors.success }]}>≫</Text>
+                                <Icon name="bolt" size={22} color={colors.success} />
                                 <Text style={[styles.statValue, { color: colors.success }]}>{hasGuesses ? `${accuracy}%` : '—'}</Text>
                                 <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Accuracy</Text>
                             </View>
 
                             <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                                <Text style={[styles.statIcon, { color: colors.gold }]}>▲</Text>
+                                <Icon name="flame" size={22} color={colors.gold} />
                                 <Text style={[styles.statValue, { color: colors.gold }]}>{stats.currentStreak}</Text>
                                 <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Current Streak</Text>
                             </View>
 
                             <View style={[styles.statBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                                <Text style={[styles.statIcon, { color: colors.textSecondary }]}>◔</Text>
+                                <Icon name="timer" size={22} color={colors.textSecondary} />
                                 <Text style={[styles.statValue, { color: colors.text }]}>{playHours}h</Text>
                                 <Text style={[styles.statTitle, { color: colors.textSecondary }]}>Play Time</Text>
                             </View>
@@ -279,7 +280,7 @@ export const MasteryScreen = () => {
                     <View style={styles.subjectsContainer}>
                         {completedGenres.length === 0 ? (
                             <View style={styles.emptySubjectsBox}>
-                                <Text style={{ fontSize: 40, color: colors.primary }}>◉</Text>
+                                <Icon name="target" size={40} color={colors.primary} />
                                 <Text style={[styles.emptyTitle, { color: colors.textSecondary }]}>
                                     No subjects mastered yet
                                 </Text>
@@ -305,7 +306,10 @@ export const MasteryScreen = () => {
                                                 <Text style={{ fontSize: 28 }}>{genre.icon}</Text>
                                             </View>
                                             <Text style={[styles.masteryLabel, { color: colors.text }]}>{genre.label}</Text>
-                                            <Text style={[styles.masteryBadge, { color: colors.gold }]}>◈ MASTERED</Text>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                                <Icon name="medal" size={12} color={colors.gold} />
+                                                <Text style={[styles.masteryBadge, { color: colors.gold }]}>MASTERED</Text>
+                                            </View>
                                             <Text style={[styles.masteryCount, { color: colors.textMuted }]}>
                                                 {progress.total}/{progress.total} Puzzles
                                             </Text>

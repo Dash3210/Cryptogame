@@ -3,7 +3,7 @@ import { View, StyleSheet, Alert, ScrollView, AppState, Pressable } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { AppText as Text } from '../components/AppText';
-import { Header, PuzzleBoard, VirtualKeyboard, FrequencyBar, WinCelebrationModal } from '../components';
+import { Header, PuzzleBoard, VirtualKeyboard, FrequencyBar, WinCelebrationModal, Icon } from '../components';
 import {
     generateCipher,
     isSolved,
@@ -686,7 +686,7 @@ export const GameScreen = () => {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
                 <View style={styles.centeredFull}>
-                    <Text style={{ fontSize: 56, color: colors.primary }}>▣</Text>
+                    <Icon name="graduation" size={56} color={colors.primary} />
                     <Text style={[styles.bigTitle, { color: colors.text }]}>Subject Mastered!</Text>
                     <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
                         You have conquered every cryptogram in {genreLabel}!

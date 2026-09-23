@@ -7,6 +7,7 @@ import { EXTENSIONS } from '../data/quotes';
 import { Theme } from '../types';
 import { THEME_NAMES } from '../styles/theme';
 import { adService } from '../services/adService';
+import { Icon, IconName } from '../components/Icon';
 
 export const StoreScreen = () => {
     const {
@@ -125,7 +126,7 @@ export const StoreScreen = () => {
 
                     <View style={styles.headerRight}>
                         <View style={[styles.coinBadge, { backgroundColor: colors.goldBg, borderColor: colors.gold }]}>
-                            <Text style={{ fontSize: 15, color: colors.gold }}>◎</Text>
+                            <Icon name="coin" size={15} color={colors.gold} />
                             <Text tabular style={[styles.coinVal, { color: colors.gold }]}>{coins}</Text>
                         </View>
 
@@ -210,7 +211,7 @@ export const StoreScreen = () => {
                                 >
                                     <View style={styles.cardInfo}>
                                         <View style={[styles.iconBox, { backgroundColor: colors.surfaceHighlight }]}>
-                                            <Text style={{ fontSize: 26 }}>{ext.icon}</Text>
+                                            <Icon name={ext.icon as IconName} size={24} color={colors.text} />
                                         </View>
                                         <View style={{ flex: 1 }}>
                                             <Text style={[styles.cardTitle, { color: colors.text }]}>{ext.label}</Text>
@@ -284,7 +285,7 @@ export const StoreScreen = () => {
                                 >
                                     <View style={styles.cardInfo}>
                                         <View style={[styles.iconBox, { backgroundColor: colors.surfaceHighlight }]}>
-                                            <Text style={{ fontSize: 26 }}>{meta.icon}</Text>
+                                            <Icon name={meta.icon as IconName} size={24} color={colors.text} />
                                         </View>
                                         <View style={{ flex: 1 }}>
                                             <Text style={[styles.cardTitle, { color: colors.text }]}>{meta.name}</Text>

@@ -39,6 +39,9 @@ local.properties
 *.apk
 *.aab
 
+# Local tooling output
+catboost_info/
+
 # node.js
 #
 node_modules/

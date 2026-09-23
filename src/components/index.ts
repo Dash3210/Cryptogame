@@ -13,3 +13,5 @@ export { DailyQuoteModal } from './DailyQuoteModal';
 export { AppText } from './AppText';
 export { ErrorBoundary } from './ErrorBoundary';
 export { CipherTransition } from './CipherTransition';
+export { Icon } from './Icon';
+export type { IconName, IconProps } from './Icon';

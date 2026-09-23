@@ -8,6 +8,7 @@ import { SUBJECTS, EXTENSIONS } from '../data/quotes';
 import { getGenreProgress } from '../services/quoteService';
 import { DailyQuoteModal } from '../components/DailyQuoteModal';
 import { UnifiedOperationsStrip } from '../components/UnifiedOperationsStrip';
+import { Icon, IconName } from '../components/Icon';
 import { RADIUS } from '../styles/theme';
 
 export const LibraryScreen = () => {
@@ -72,7 +73,7 @@ export const LibraryScreen = () => {
                 ]}>
                     <View style={styles.cardHeaderRow}>
                         <View style={[styles.iconContainer, { backgroundColor: colors.surfaceHighlight }]}>
-                            <Text style={styles.icon}>{subject.icon}</Text>
+                            <Icon name={subject.icon as IconName} size={20} color={colors.text} />
                         </View>
                         <View style={styles.cardHeaderTelemetry}>
                             <Text style={[styles.sectionIndexText, { color: colors.textMuted }]}>
@@ -164,7 +165,7 @@ export const LibraryScreen = () => {
 
                 {/* Minimal Integrated Search Bar */}
                 <View style={[styles.searchBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                    <Text style={[styles.searchIcon, { color: colors.textMuted }]}>⌕</Text>
+                    <Icon name="search" size={16} color={colors.textMuted} />
                     <TextInput
                         style={[styles.searchInput, { color: colors.text }]}
                         placeholder="Search subjects..."
@@ -181,7 +182,7 @@ export const LibraryScreen = () => {
                             accessibilityRole="button"
                             accessibilityLabel="Clear search input"
                         >
-                            <Text style={[styles.clearIcon, { color: colors.textMuted }]}>✕</Text>
+                            <Icon name="close" size={14} color={colors.textMuted} />
                         </Pressable>
                     )}
                 </View>

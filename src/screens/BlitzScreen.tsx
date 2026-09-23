@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { AppText as Text } from '../components/AppText';
 import { useGame } from '../context/GameContext';
+import { Icon } from '../components/Icon';
 
 export const BlitzScreen = () => {
     const navigation = useNavigation<any>();
@@ -37,7 +38,7 @@ export const BlitzScreen = () => {
             <ScrollView contentContainerStyle={styles.content}>
                 {/* Hero High Score Banner */}
                 <View style={[styles.heroCard, { backgroundColor: colors.primaryBg, borderColor: colors.primary }]}>
-                    <Text style={{ fontSize: 40, color: colors.primary }}>≫</Text>
+                    <Icon name="bolt" size={40} color={colors.primary} />
                     <Text style={[styles.heroLabel, { color: colors.primary }]}>PERSONAL BEST</Text>
                     <Text style={[styles.heroScore, { color: colors.primary }]}>
                         {stats.blitzHighScore.toLocaleString()}
@@ -51,7 +52,7 @@ export const BlitzScreen = () => {
 
                     <View style={styles.ruleRow}>
                         <View style={[styles.ruleBadge, { backgroundColor: colors.surfaceHighlight }]}>
-                            <Text style={[styles.ruleIcon, { color: colors.primary }]}>◔</Text>
+                            <Icon name="timer" size={20} color={colors.primary} />
                         </View>
                         <View style={styles.ruleTextCol}>
                             <Text style={[styles.ruleTitle, { color: colors.text }]}>90-Second Clock</Text>
@@ -75,7 +76,7 @@ export const BlitzScreen = () => {
 
                     <View style={styles.ruleRow}>
                         <View style={[styles.ruleBadge, { backgroundColor: colors.surfaceHighlight }]}>
-                            <Text style={[styles.ruleIcon, { color: colors.gold }]}>▲</Text>
+                            <Icon name="combo" size={20} color={colors.gold} />
                         </View>
                         <View style={styles.ruleTextCol}>
                             <Text style={[styles.ruleTitle, { color: colors.text }]}>Combo Multipliers</Text>

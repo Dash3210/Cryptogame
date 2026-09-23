@@ -6,6 +6,7 @@ import { AppText as Text } from '../components/AppText';
 import { useGame } from '../context/GameContext';
 import { AppSettings, Difficulty, FontFamily, FontSize, Theme } from '../types';
 import { THEME_NAMES } from '../styles/theme';
+import { Icon, IconName } from '../components/Icon';
 
 // ==================== HOW TO PLAY MODAL ====================
 const HowToPlayModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ visible, onClose }) => {
@@ -201,7 +202,7 @@ export const SettingsScreen = () => {
                         pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }
                     ]}
                 >
-                    <Text style={{ fontSize: 24, color: colors.primary }}>▤</Text>
+                    <Icon name="book" size={24} color={colors.primary} />
                     <View style={{ flex: 1 }}>
                         <Text style={[styles.howToPlayTitle, { color: colors.primary }]}>How to Play & Pro Tips</Text>
                         <Text style={[styles.howToPlaySub, { color: colors.textSecondary }]}>
@@ -274,14 +275,17 @@ export const SettingsScreen = () => {
                                     hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                                     accessibilityRole="button"
                                 >
-                                    <Text style={{ fontSize: 16 }}>{THEME_NAMES[tKey].icon}</Text>
-                                    <Text style={[
-                                        styles.chipText,
-                                        { color: colors.text },
-                                        isActive && { color: colors.primary, fontWeight: '800' }
-                                    ]}>
-                                        {THEME_NAMES[tKey].name} {!isOwned && '▣'}
-                                    </Text>
+                                    <Icon name={THEME_NAMES[tKey].icon as IconName} size={16} color={isActive ? colors.primary : colors.text} />
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                        <Text style={[
+                                            styles.chipText,
+                                            { color: colors.text },
+                                            isActive && { color: colors.primary, fontWeight: '800' }
+                                        ]}>
+                                            {THEME_NAMES[tKey].name}
+                                        </Text>
+                                        {!isOwned && <Icon name="lock" size={11} color={colors.textMuted} />}
+                                    </View>
                                 </Pressable>
                             );
                         })}

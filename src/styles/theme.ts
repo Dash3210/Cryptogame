@@ -107,58 +107,16 @@ export const TYPOGRAPHY = {
 export type TypographyVariant = keyof typeof TYPOGRAPHY;
 
 /**
- * Monochrome glyph set.
- *
- * A single, consistent icon treatment. Every mark is a plain text glyph rendered
- * in the current theme colour, so the UI never mixes colour emoji with vector
- * symbols. Use these instead of emoji anywhere an icon is needed.
+ * Theme metadata. `icon` is an icon-kit slug rendered by the Icon component.
  */
-export const GLYPHS = {
-    coin: '◎',
-    heart: '♥',
-    heartOutline: '♡',
-    share: '↗',
-    timer: '◔',
-    streak: '▲',
-    bolt: '≫',
-    lock: '▣',
-    star: '★',
-    starOutline: '☆',
-    check: '✓',
-    close: '✕',
-    back: '‹',
-    forward: '›',
-    grid: '⊞',
-    bookmark: '▮',
-    archive: '▤',
-    settings: '⚙',
-    chart: '∿',
-    medal: '◈',
-    sparkle: '✧',
-    target: '◉',
-    trophy: '✦',
-    palette: '◑',
-    rocket: '➤',
-    book: '▤',
-    graduation: '▣',
-    key: '⚿',
-    hint: '?',
-    puzzle: '⊞',
-    crown: '♛',
-    science: '⌬',
-    flame: '▲',
-} as const;
-
-export type GlyphName = keyof typeof GLYPHS;
-
 export const THEME_NAMES: Record<Theme, { name: string; icon: string; description: string }> = {
-    dark: { name: 'Dark Slate', icon: '◆', description: 'Midnight graphite & vibrant cyan' },
-    cyberpunk: { name: 'Cyberpunk Neon', icon: '≫', description: 'Electric cyan & magenta on near-black' },
-    terminal: { name: 'Matrix Terminal', icon: '▤', description: 'Phosphor green on pure black' },
-    gold: { name: 'Obsidian Gold', icon: '◈', description: 'Onyx black with royal gold' },
-    midnight: { name: 'Midnight Galaxy', icon: '✦', description: 'Cosmic violet & starlight' },
-    ocean: { name: 'Ocean Depths', icon: '◐', description: 'Deep navy, seafoam & pearl' },
-    light: { name: 'Clean Paper', icon: '○', description: 'Crisp editorial daylight' },
+    dark: { name: 'Dark Slate', icon: 'theme-dark', description: 'Midnight graphite & vibrant cyan' },
+    cyberpunk: { name: 'Cyberpunk Neon', icon: 'theme-cyberpunk', description: 'Electric cyan & magenta on near-black' },
+    terminal: { name: 'Matrix Terminal', icon: 'theme-terminal', description: 'Phosphor green on pure black' },
+    gold: { name: 'Obsidian Gold', icon: 'theme-gold', description: 'Onyx black with royal gold' },
+    midnight: { name: 'Midnight Galaxy', icon: 'theme-midnight', description: 'Cosmic violet & starlight' },
+    ocean: { name: 'Ocean Depths', icon: 'theme-ocean', description: 'Deep navy, seafoam & pearl' },
+    light: { name: 'Clean Paper', icon: 'theme-light', description: 'Crisp editorial daylight' },
 };
 
 export const COLORS: Record<Theme, ThemeColors> = {

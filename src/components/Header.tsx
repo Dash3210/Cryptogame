@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
 import { AppText as Text } from './AppText';
+import { Icon } from './Icon';
 import { GameStatus } from '../types';
 import { useGame } from '../context/GameContext';
 import { RADIUS } from '../styles/theme';
@@ -77,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({
                     accessibilityLabel="Back to library"
                     accessibilityRole="button"
                 >
-                    <Text style={[styles.backIcon, { color: colors.textSecondary }]}>‹</Text>
+                    <Icon name="chevron-left" size={24} color={colors.textSecondary} />
                 </Pressable>
 
                 <View style={styles.metaContainer}>
@@ -135,9 +136,7 @@ export const Header: React.FC<HeaderProps> = ({
                         accessibilityLabel="Toggle Frequency Spectroscopy"
                         accessibilityRole="button"
                     >
-                        <Text style={[styles.toolButtonText, { color: showFrequency ? colors.primary : colors.textSecondary }]}>
-                            ∿
-                        </Text>
+                        <Icon name="frequency-wave" size={18} color={showFrequency ? colors.primary : colors.textSecondary} />
                     </Pressable>
                 )}
 
@@ -156,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
                     accessibilityLabel="Settings"
                     accessibilityRole="button"
                 >
-                    <Text style={[styles.toolButtonText, { color: colors.textSecondary }]}>⚙</Text>
+                    <Icon name="nav-settings" size={18} color={colors.textSecondary} />
                 </Pressable>
 
                 {/* Key (Solve All) Button */}

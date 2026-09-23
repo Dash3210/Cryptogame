@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { AppText as Text } from '../components/AppText';
 import { useGame } from '../context/GameContext';
+import { Icon } from '../components/Icon';
 import { toDateKey, todayKey } from '../utils/date';
 
 export const DailyChallengeScreen = () => {
@@ -76,7 +77,7 @@ export const DailyChallengeScreen = () => {
                         <View>
                             <Text style={[styles.streakLabel, { color: colors.textMuted }]}>CURRENT STREAK</Text>
                             <View style={styles.streakNumRow}>
-                                <Text style={[styles.flameIcon, { color: colors.gold }]}>▲</Text>
+                                <Icon name="flame" size={22} color={colors.gold} />
                                 <Text style={[styles.streakVal, { color: colors.gold }]}>{stats.currentStreak}</Text>
                                 <Text style={[styles.streakUnit, { color: colors.textSecondary }]}>Days</Text>
                             </View>
@@ -145,7 +146,7 @@ export const DailyChallengeScreen = () => {
                 {/* Today's Mission Card */}
                 <View style={[styles.missionCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                     <View style={[styles.iconBox, { backgroundColor: colors.primaryBg }]}>
-                        <Text style={{ fontSize: 30, color: colors.primary }}>⊞</Text>
+                        <Icon name="puzzle" size={30} color={colors.primary} />
                     </View>
 
                     <Text style={[styles.missionTitle, { color: colors.text }]}>Today's Cryptogram</Text>
@@ -155,11 +156,11 @@ export const DailyChallengeScreen = () => {
 
                     <View style={styles.rewardsRow}>
                         <View style={[styles.rewardBadge, { backgroundColor: colors.surfaceHighlight }]}>
-                            <Text style={[styles.rewardIcon, { color: colors.gold }]}>◎</Text>
+                            <Icon name="coin" size={14} color={colors.gold} />
                             <Text style={[styles.rewardText, { color: colors.text }]}>Up to 60 Coins</Text>
                         </View>
                         <View style={[styles.rewardBadge, { backgroundColor: colors.surfaceHighlight }]}>
-                            <Text style={[styles.rewardIcon, { color: colors.gold }]}>▲</Text>
+                            <Icon name="flame" size={14} color={colors.gold} />
                             <Text style={[styles.rewardText, { color: colors.text }]}>+1 Streak</Text>
                         </View>
                     </View>

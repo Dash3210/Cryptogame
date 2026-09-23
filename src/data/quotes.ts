@@ -4,14 +4,15 @@ import { LevelData } from '../types';
 // SUBJECT CATEGORIES
 // ============================================================================
 
+// `icon` is an icon-kit slug rendered by the Icon component.
 export const SUBJECTS = [
-  { id: 'biology', label: 'Biology', icon: '⌬', description: 'Life & Cells' },
-  { id: 'physics', label: 'Physics', icon: '∿', description: 'Matter & Energy' },
-  { id: 'chemistry', label: 'Chemistry', icon: '⚗', description: 'Elements & Reactions' },
-  { id: 'astronomy', label: 'Astronomy', icon: '⊛', description: 'Stars & Space' },
-  { id: 'geography', label: 'Geography', icon: '⊕', description: 'Earth & Places' },
-  { id: 'history', label: 'History', icon: '⌘', description: 'Past Events' },
-  { id: 'literature', label: 'Literature', icon: '¶', description: 'Books & Terms' },
+  { id: 'biology', label: 'Biology', icon: 'subject-biology', description: 'Life & Cells' },
+  { id: 'physics', label: 'Physics', icon: 'subject-physics', description: 'Matter & Energy' },
+  { id: 'chemistry', label: 'Chemistry', icon: 'subject-chemistry', description: 'Elements & Reactions' },
+  { id: 'astronomy', label: 'Astronomy', icon: 'subject-astronomy', description: 'Stars & Space' },
+  { id: 'geography', label: 'Geography', icon: 'subject-geography', description: 'Earth & Places' },
+  { id: 'history', label: 'History', icon: 'subject-history', description: 'Past Events' },
+  { id: 'literature', label: 'Literature', icon: 'subject-literature', description: 'Books & Terms' },
 ];
 
 // ============================================================================
@@ -19,11 +20,11 @@ export const SUBJECTS = [
 // ============================================================================
 
 export const EXTENSIONS = [
-  { id: 'compsci', label: 'Comp Sci', icon: '⌥', description: 'Bits, Algorithms & Logic', isExtension: true, isDownloaded: false, coinPrice: 100 },
-  { id: 'anatomy', label: 'Anatomy', icon: '♥', description: 'The Human Machine', isExtension: true, isDownloaded: false, coinPrice: 100 },
-  { id: 'music', label: 'Music Theory', icon: '♫', description: 'Harmony, Notes & Rhythm', isExtension: true, isDownloaded: false, coinPrice: 120 },
-  { id: 'economics', label: 'Economics', icon: '▲', description: 'Markets, Capital & Wealth', isExtension: true, isDownloaded: false, coinPrice: 120 },
-  { id: 'mythology', label: 'Mythology', icon: 'ϟ', description: 'Legends, Gods & Lore', isExtension: true, isDownloaded: false, coinPrice: 150 },
+  { id: 'compsci', label: 'Comp Sci', icon: 'subject-compsci', description: 'Bits, Algorithms & Logic', isExtension: true, isDownloaded: false, coinPrice: 100 },
+  { id: 'anatomy', label: 'Anatomy', icon: 'subject-anatomy', description: 'The Human Machine', isExtension: true, isDownloaded: false, coinPrice: 100 },
+  { id: 'music', label: 'Music Theory', icon: 'subject-music', description: 'Harmony, Notes & Rhythm', isExtension: true, isDownloaded: false, coinPrice: 120 },
+  { id: 'economics', label: 'Economics', icon: 'subject-economics', description: 'Markets, Capital & Wealth', isExtension: true, isDownloaded: false, coinPrice: 120 },
+  { id: 'mythology', label: 'Mythology', icon: 'subject-mythology', description: 'Legends, Gods & Lore', isExtension: true, isDownloaded: false, coinPrice: 150 },
 ];
 
 // ============================================================================

@@ -2,6 +2,7 @@ import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GameProvider, useGame } from '../src/context/GameContext';
+import { todayKey } from '../src/utils/date';
 
 const TestComponent = ({ onContext }: { onContext: (ctx: ReturnType<typeof useGame>) => void }) => {
   const context = useGame();
@@ -36,7 +37,7 @@ describe('Hard Metrics: GameContext State Machine & Resilience', () => {
     });
 
     // Case 1: First solve today (streak becomes 1)
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayKey();
     await ReactTestRenderer.act(async () => {
       ctx!.recordPuzzleCompletion({
         category: 'Physics',

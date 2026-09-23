@@ -29,6 +29,32 @@ jest.mock('react-native-google-mobile-ads', () => {
   };
 });
 
+// Mock react-native-svg: icons render as plain views in tests (no native module).
+jest.mock('react-native-svg', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const passthrough = (props) =>
+    React.createElement(View, {
+      style: props.style,
+      accessibilityLabel: props.accessibilityLabel,
+      testID: props.testID,
+    });
+  return {
+    __esModule: true,
+    default: passthrough,
+    Svg: passthrough,
+    SvgXml: passthrough,
+    Path: passthrough,
+    Circle: passthrough,
+    Rect: passthrough,
+    Line: passthrough,
+    Polyline: passthrough,
+    Polygon: passthrough,
+    Ellipse: passthrough,
+    G: passthrough,
+  };
+});
+
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => {
   const React = require('react');
