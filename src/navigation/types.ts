@@ -12,9 +12,11 @@ export type RootStackParamList = {
     Home: NavigatorScreenParams<HomeTabParamList> | undefined;
     Game: {
         genreId?: string;
+        branchId?: string;
         mode?: 'standard' | 'daily' | 'blitz';
         dateStr?: string;
     } | undefined;
+
     DailyChallenge: undefined;
     Blitz: undefined;
     Leaderboard: undefined;

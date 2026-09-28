@@ -1,20 +1,31 @@
 export type Difficulty = 'Easy' | 'Normal' | 'Hard' | 'Legendary';
 
 export interface LevelData {
-    id: string;
+    id?: string;
     text: string; // The Definition
     author: string; // The Term/Answer
     category: string; // The Subject
     difficulty?: Difficulty;
 }
 
-export type QuoteData = LevelData;
+export type QuoteData = LevelData & { id: string };
+
+export interface DailyQuote {
+    text: string;
+    author: string;
+    source: string;
+    year: number;
+}
 
 export type GameMode = 'standard' | 'daily' | 'blitz';
 export type SolveGrade = 'S' | 'A' | 'B' | 'C' | 'D';
+export type LengthTier = 'Short' | 'Medium' | 'Long' | 'Epic';
 
 export interface CoinRewardBreakdown {
     baseCoins: number;
+    baseLabel?: string;
+    lengthTier?: LengthTier;
+    lengthBonus?: number;
     mistakeDeduction: number;
     hintDeduction: number;
     timeDeduction: number;
@@ -28,6 +39,31 @@ export interface CoinRewardBreakdown {
     mistakesCount: number;
     hintsCount: number;
     timeSeconds: number;
+}
+
+export interface DynamicScoringParams {
+    quoteText?: string;
+    alphaCount?: number;
+    difficulty?: Difficulty;
+    timerSeconds: number;
+    hintsUsed: number;
+    mistakesCount: number;
+    accuracy?: number;
+    comboMax?: number;
+    usedMasterKey?: boolean;
+    mode?: GameMode;
+}
+
+export interface DynamicScoringResult {
+    score: number;
+    maxScore: number;
+    basePoints: number;
+    graceSeconds: number;
+    timeLossPercent: number;
+    timeFactor: number;
+    accuracyFactor: number;
+    cleanMultiplier: number;
+    comboMultiplier: number;
 }
 
 export interface GameState {
@@ -52,6 +88,7 @@ export interface SavedGameState {
     totalGuesses?: number;
     correctGuesses?: number;
     mode?: GameMode;
+    starterHints?: string[];
 }
 
 export interface CellData {
@@ -73,7 +110,7 @@ export enum GameStatus {
     LEADERBOARD
 }
 
-export interface Genre {
+export interface Track {
     id: string;
     label: string;
     icon: string;
@@ -82,6 +119,18 @@ export interface Genre {
     isDownloaded?: boolean;
     coinPrice?: number;
 }
+
+export type Genre = Track;
+
+export interface Branch {
+    id: string;
+    label: string;
+    description?: string;
+    tracks: string[]; // Track IDs this branch belongs to
+    icon?: string;
+    order: number;
+}
+
 
 export type FontSize = 'system' | 'small' | 'medium' | 'large';
 export type FontFamily = 'system' | 'sans' | 'serif' | 'mono' | 'cursive' | 'handwritten';

@@ -5,80 +5,314 @@ import { useNavigation } from '@react-navigation/native';
 import { AppText as Text } from '../components/AppText';
 import { useGame } from '../context/GameContext';
 import { AppSettings, Difficulty, FontFamily, FontSize, Theme } from '../types';
-import { THEME_NAMES } from '../styles/theme';
+import { THEME_NAMES, getFontFamilyNative } from '../styles/theme';
 import { Icon, IconName } from '../components/Icon';
 
 // ==================== HOW TO PLAY MODAL ====================
-const HowToPlayModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ visible, onClose }) => {
+export const HowToPlayModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ visible, onClose }) => {
     const { colors, triggerHaptic } = useGame();
 
     return (
-        <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-            <SafeAreaView style={[htpStyles.container, { backgroundColor: colors.background }]} edges={['top']}>
+        <Modal
+            visible={visible}
+            animationType="slide"
+            presentationStyle="pageSheet"
+            onRequestClose={onClose}
+        >
+            <SafeAreaView style={[htpStyles.container, { backgroundColor: colors.background }]} edges={['top', 'bottom']}>
+                {/* Header with accessible min-48dp close button */}
                 <View style={[htpStyles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+                    <Text style={[htpStyles.headerTitle, { color: colors.text }]}>How to Play</Text>
                     <Pressable
                         onPress={() => {
                             triggerHaptic('light');
                             onClose();
                         }}
-                        hitSlop={12}
+                        accessibilityRole="button"
+                        accessibilityLabel="Close how to play"
+                        hitSlop={8}
                         style={({ pressed }) => [
                             htpStyles.closeBtn,
                             { backgroundColor: colors.surfaceHighlight },
-                            pressed && { opacity: 0.5 }
+                            pressed && { opacity: 0.7 }
                         ]}
                     >
-                        <Text style={[htpStyles.closeBtnText, { color: colors.text }]}>‹</Text>
+                        <Icon name="close" size={20} color={colors.text} />
                     </Pressable>
-                    <Text style={[htpStyles.headerTitle, { color: colors.text }]}>How to Play</Text>
                 </View>
 
-                <ScrollView contentContainerStyle={htpStyles.content} showsVerticalScrollIndicator={false}>
-                    {/* The Goal */}
+                <ScrollView
+                    contentContainerStyle={htpStyles.content}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Section 1: The Goal */}
                     <View style={htpStyles.section}>
-                        <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>The Mission</Text>
+                        <View style={htpStyles.sectionHeaderRow}>
+                            <Icon name="puzzle" size={20} color={colors.primary} />
+                            <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>The Goal</Text>
+                        </View>
                         <Text style={[htpStyles.bodyText, { color: colors.textSecondary }]}>
-                            Every puzzle presents an encrypted definition where each English letter has been substituted with a unique cipher code. Decrypt the clues to reveal the scientific concept or quote!
+                            Every cipher puzzle encrypts a scientific DEFINITION where each letter is substituted with a unique cipher symbol. Decrypt the clues to reveal the definition, then name the TERM it describes.
                         </Text>
-                        <View style={[htpStyles.exampleBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                            <Text style={[htpStyles.exampleCipher, { color: colors.error }]}>X KWRT VIB</Text>
-                            <Text style={[htpStyles.exampleArrow, { color: colors.text }]}>⬇</Text>
-                            <Text style={[htpStyles.exampleSolved, { color: colors.success }]}>I LOVE YOU</Text>
+                        <View style={[htpStyles.flowCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <View style={htpStyles.flowStep}>
+                                <Text style={[htpStyles.flowLabel, { color: colors.textMuted }]}>ENCRYPTED DEFINITION</Text>
+                                <Text style={[htpStyles.flowCipher, { color: colors.error }]}>X KWRT VIB</Text>
+                            </View>
+                            <View style={htpStyles.flowArrowCol}>
+                                <Icon name="chevron-right" size={16} color={colors.textMuted} />
+                            </View>
+                            <View style={htpStyles.flowStep}>
+                                <Text style={[htpStyles.flowLabel, { color: colors.textMuted }]}>SOLVED DEFINITION</Text>
+                                <Text style={[htpStyles.flowSolved, { color: colors.success }]}>I LOVE YOU</Text>
+                            </View>
                         </View>
                     </View>
 
-                    {/* Pro Gamer Tips */}
+                    {/* Section 2: Solving & Board States */}
                     <View style={htpStyles.section}>
-                        <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>Cryptanalysis Tips</Text>
+                        <View style={htpStyles.sectionHeaderRow}>
+                            <Icon name="target" size={20} color={colors.primary} />
+                            <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>Solving & Cell Navigation</Text>
+                        </View>
+                        <Text style={[htpStyles.bodyText, { color: colors.textSecondary }]}>
+                            Tap any empty gap on the puzzle board to focus it. As you type, the cursor automatically advances to the next empty cell in the definition.
+                        </Text>
+                        <View style={htpStyles.stateRowContainer}>
+                            {/* Active Gap */}
+                            <View style={[htpStyles.stateCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                                <View style={[htpStyles.miniCell, { backgroundColor: colors.successBg, borderColor: colors.success }]}>
+                                    <Text style={[htpStyles.miniCellText, { color: colors.success }]}>A</Text>
+                                </View>
+                                <Text style={[htpStyles.stateTitle, { color: colors.success }]}>Active Gap</Text>
+                                <Text style={[htpStyles.stateDesc, { color: colors.textSecondary }]}>
+                                    Green outline. The current selected cell where your keystrokes land.
+                                </Text>
+                            </View>
 
-                        <View style={[htpStyles.tipCard, { backgroundColor: colors.primaryBg }]}>
-                            <Text style={[htpStyles.tipTitle, { color: colors.primary }]}>1. Frequency Analysis</Text>
-                            <Text style={[htpStyles.tipText, { color: colors.textSecondary }]}>
-                                In English, E, T, A, O, I, N appear most frequently. Use the Frequency Tool at the top of the screen to quickly spot common vowels!
-                            </Text>
+                            {/* Other Empty Gaps */}
+                            <View style={[htpStyles.stateCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                                <View style={[htpStyles.miniCell, { backgroundColor: colors.matchingBg, borderColor: colors.matching }]}>
+                                    <Text style={[htpStyles.miniCellText, { color: colors.matching }]}> </Text>
+                                </View>
+                                <Text style={[htpStyles.stateTitle, { color: colors.matching }]}>Empty Gap</Text>
+                                <Text style={[htpStyles.stateDesc, { color: colors.textSecondary }]}>
+                                    Blue outline. Other empty gaps awaiting your input.
+                                </Text>
+                            </View>
+
+                            {/* Solved Cells */}
+                            <View style={[htpStyles.stateCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                                <View style={[htpStyles.miniCell, { backgroundColor: 'transparent', borderWidth: 0 }]}>
+                                    <Text style={[htpStyles.miniCellText, { color: colors.text, fontWeight: '900' }]}>T</Text>
+                                </View>
+                                <Text style={[htpStyles.stateTitle, { color: colors.text }]}>Solved Cell</Text>
+                                <Text style={[htpStyles.stateDesc, { color: colors.textSecondary }]}>
+                                    Plain and borderless once correctly placed in the text.
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+
+                    {/* Section 3: Keyboard & Frequency Hints */}
+                    <View style={htpStyles.section}>
+                        <View style={htpStyles.sectionHeaderRow}>
+                            <Icon name="frequency-wave" size={20} color={colors.primary} />
+                            <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>Symmetric Keyboard</Text>
+                        </View>
+                        <Text style={[htpStyles.bodyText, { color: colors.textSecondary }]}>
+                            The virtual keyboard features balanced action controls on both sides for effortless thumb reach: Next on the left, 7 letters in the middle, and Delete on the right.
+                        </Text>
+                        <View style={[htpStyles.keyboardDiagram, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <View style={[htpStyles.diagramKeyAction, { backgroundColor: colors.surfaceHighlight }]}>
+                                <Icon name="next-cell" size={16} color={colors.text} />
+                                <Text style={[htpStyles.diagramKeyLabel, { color: colors.textMuted }]}>NEXT</Text>
+                            </View>
+                            <View style={htpStyles.diagramLetterGroup}>
+                                {['Z', 'X', 'C', 'V', 'B', 'N', 'M'].map((letter) => (
+                                    <View key={letter} style={[htpStyles.diagramKeyLetter, { backgroundColor: colors.background }]}>
+                                        <Text style={[htpStyles.diagramLetterText, { color: colors.text }]}>{letter}</Text>
+                                    </View>
+                                ))}
+                            </View>
+                            <View style={[htpStyles.diagramKeyAction, { backgroundColor: colors.surfaceHighlight }]}>
+                                <Icon name="backspace" size={16} color={colors.text} />
+                                <Text style={[htpStyles.diagramKeyLabel, { color: colors.textMuted }]}>DEL</Text>
+                            </View>
                         </View>
 
-                        <View style={[htpStyles.tipCard, { backgroundColor: colors.goldBg }]}>
-                            <Text style={[htpStyles.tipTitle, { color: colors.gold }]}>2. Word Lengths & Patterns</Text>
-                            <Text style={[htpStyles.tipText, { color: colors.textSecondary }]}>
-                                Single-letter words are almost always 'A' or 'I'. Common two-letter words include 'OF', 'TO', 'IN', 'IS', 'IT'.
-                            </Text>
-                        </View>
-
-                        <View style={[htpStyles.tipCard, { backgroundColor: colors.successBg }]}>
-                            <Text style={[htpStyles.tipTitle, { color: colors.success }]}>3. Combo Multipliers</Text>
-                            <Text style={[htpStyles.tipText, { color: colors.textSecondary }]}>
-                                Correctly placing letters consecutively without errors builds your Combo Multiplier up to 2.5x score bonus!
+                        <View style={[htpStyles.calloutCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <View style={htpStyles.calloutHeaderRow}>
+                                <Icon name="hint" size={18} color={colors.gold} />
+                                <Text style={[htpStyles.calloutTitle, { color: colors.gold }]}>Frequency Hints</Text>
+                            </View>
+                            <Text style={[htpStyles.calloutBody, { color: colors.textSecondary }]}>
+                                Enable Frequency Hints in Settings to shade keyboard keys by their actual occurrence count in this puzzle. Keys are shaded only for letters you have already correctly decoded. Undecoded letters and letters not in the puzzle stay unlit, never leaking the solution.
                             </Text>
                         </View>
                     </View>
 
-                    {/* Grading System */}
+                    {/* Section 4: Coins & Economy */}
                     <View style={htpStyles.section}>
-                        <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>Solve Grades</Text>
+                        <View style={htpStyles.sectionHeaderRow}>
+                            <Icon name="coin" size={20} color={colors.gold} />
+                            <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>Coin Economy</Text>
+                        </View>
                         <Text style={[htpStyles.bodyText, { color: colors.textSecondary }]}>
-                            Solve with 95%+ accuracy and 0 hints to earn the coveted S-Rank!
+                            Base coin rewards scale by difficulty and puzzle length (Short, Medium, Long, Epic), minus deductions for mistakes, hints, and overtime, with a clean-solve bonus and a guaranteed floor.
                         </Text>
+                        <View style={[htpStyles.tableCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <View style={[htpStyles.tableRow, { borderBottomColor: colors.border }]}>
+                                <Text style={[htpStyles.tableCellLabel, { color: colors.textSecondary }]}>Difficulty Base</Text>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.text }]}>Easy: 40 · Normal: 50 · Hard: 65 · Leg.: 80</Text>
+                            </View>
+                            <View style={[htpStyles.tableRow, { borderBottomColor: colors.border }]}>
+                                <Text style={[htpStyles.tableCellLabel, { color: colors.textSecondary }]}>Length Tiers</Text>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.text }]}>Short (+0) · Med (+5) · Long (+10) · Epic (+15)</Text>
+                            </View>
+                            <View style={[htpStyles.tableRow, { borderBottomColor: colors.border }]}>
+                                <Text style={[htpStyles.tableCellLabel, { color: colors.textSecondary }]}>Deductions</Text>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.error }]}>Mistakes (-2) · Hints (-3) · Overtime (-1/20s)</Text>
+                            </View>
+                            <View style={[htpStyles.tableRow, { borderBottomColor: colors.border }]}>
+                                <Text style={[htpStyles.tableCellLabel, { color: colors.textSecondary }]}>Clean Solve Bonus</Text>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.success }]}>+5 coins (0 mistakes, 0 hints)</Text>
+                            </View>
+                            <View style={htpStyles.tableRowLast}>
+                                <Text style={[htpStyles.tableCellLabel, { color: colors.textSecondary }]}>Guaranteed Floor</Text>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.primary }]}>Minimum 15 coins for regular solves</Text>
+                            </View>
+                        </View>
+                    </View>
+
+                    {/* Section 5: Master Key */}
+                    <View style={htpStyles.section}>
+                        <View style={htpStyles.sectionHeaderRow}>
+                            <Icon name="masterkey" size={20} color={colors.primary} />
+                            <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>Master Key</Text>
+                        </View>
+                        <Text style={[htpStyles.bodyText, { color: colors.textSecondary }]}>
+                            When completely stuck on a puzzle, unlock the Master Key by watching a rewarded ad to instantly reveal the solved cryptogram.
+                        </Text>
+                        <View style={[htpStyles.calloutCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <View style={htpStyles.specRow}>
+                                <Text style={[htpStyles.specLabel, { color: colors.textSecondary }]}>Payout:</Text>
+                                <Text style={[htpStyles.specValue, { color: colors.text }]}>Small flat 10 coins</Text>
+                            </View>
+                            <View style={htpStyles.specRow}>
+                                <Text style={[htpStyles.specLabel, { color: colors.textSecondary }]}>Solve Grade:</Text>
+                                <Text style={[htpStyles.specValue, { color: colors.text }]}>Grade D (1 Star, 0 pts)</Text>
+                            </View>
+                            <View style={htpStyles.specRow}>
+                                <Text style={[htpStyles.specLabel, { color: colors.textSecondary }]}>Streaks & Bonus:</Text>
+                                <Text style={[htpStyles.specValue, { color: colors.error }]}>No win streak advance, no bonus round</Text>
+                            </View>
+                        </View>
+                    </View>
+
+                    {/* Section 6: Double or Nothing Bonus */}
+                    <View style={htpStyles.section}>
+                        <View style={htpStyles.sectionHeaderRow}>
+                            <Icon name="bolt" size={20} color={colors.gold} />
+                            <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>Double or Nothing Bonus</Text>
+                        </View>
+                        <Text style={[htpStyles.bodyText, { color: colors.textSecondary }]}>
+                            Right after solving a puzzle, Double or Nothing appears first: identify the scientific term described by the definition from 4 options, or tap Skip. The results breakdown with the revealed term appears only after that.
+                        </Text>
+                        <View style={[htpStyles.bonusOutcomeCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <View style={htpStyles.bonusCol}>
+                                <Text style={[htpStyles.bonusBadgeTitle, { color: colors.success }]}>CORRECT GUESS</Text>
+                                <Text style={[htpStyles.bonusBadgeDesc, { color: colors.textSecondary }]}>
+                                    Doubles both your earned coins and score points.
+                                </Text>
+                            </View>
+                            <View style={[htpStyles.bonusDivider, { backgroundColor: colors.border }]} />
+                            <View style={htpStyles.bonusCol}>
+                                <Text style={[htpStyles.bonusBadgeTitle, { color: colors.textMuted }]}>WRONG OR SKIP</Text>
+                                <Text style={[htpStyles.bonusBadgeDesc, { color: colors.textSecondary }]}>
+                                    Costs nothing—keep 100% of your earned coins and points.
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+
+                    {/* Section 7: Grades, Combos, Streaks & Modes */}
+                    <View style={htpStyles.section}>
+                        <View style={htpStyles.sectionHeaderRow}>
+                            <Icon name="trophy" size={20} color={colors.gold} />
+                            <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>Grades, Combos & Modes</Text>
+                        </View>
+
+                        {/* Grades */}
+                        <View style={[htpStyles.tableCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <Text style={[htpStyles.cardInnerHeading, { color: colors.text }]}>Solve Grades & Stars</Text>
+                            <View style={[htpStyles.tableRow, { borderBottomColor: colors.border }]}>
+                                <Text style={[htpStyles.gradeBadge, { color: colors.gold }]}>Grade S (★★★)</Text>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.textSecondary }]}>95%+ accuracy and 0 hints used</Text>
+                            </View>
+                            <View style={[htpStyles.tableRow, { borderBottomColor: colors.border }]}>
+                                <Text style={[htpStyles.gradeBadge, { color: colors.primary }]}>Grade A (★★★)</Text>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.textSecondary }]}>85%+ accuracy, ≤1 hint</Text>
+                            </View>
+                            <View style={[htpStyles.tableRow, { borderBottomColor: colors.border }]}>
+                                <Text style={[htpStyles.gradeBadge, { color: colors.text }]}>Grade B (★★☆)</Text>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.textSecondary }]}>70%+ accuracy, ≤2 hints</Text>
+                            </View>
+                            <View style={[htpStyles.tableRow, { borderBottomColor: colors.border }]}>
+                                <Text style={[htpStyles.gradeBadge, { color: colors.textSecondary }]}>Grade C (★☆☆)</Text>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.textSecondary }]}>50%+ accuracy</Text>
+                            </View>
+                            <View style={htpStyles.tableRowLast}>
+                                <Text style={[htpStyles.gradeBadge, { color: colors.error }]}>Grade D (★☆☆)</Text>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.textSecondary }]}>&lt;50% accuracy or Master Key</Text>
+                            </View>
+                        </View>
+
+                        {/* Combos & Streaks */}
+                        <View style={[htpStyles.tableCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <Text style={[htpStyles.cardInnerHeading, { color: colors.text }]}>Combos & Daily Streaks</Text>
+                            <View style={[htpStyles.tableRow, { borderBottomColor: colors.border }]}>
+                                <View style={htpStyles.specRowItem}>
+                                    <Icon name="combo" size={18} color={colors.gold} />
+                                    <Text style={[htpStyles.specLabel, { color: colors.text }]}>Combo Multiplier</Text>
+                                </View>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.textSecondary }]}>
+                                    Placing correct letters in succession without errors scales your score up to 2.5x.
+                                </Text>
+                            </View>
+                            <View style={htpStyles.tableRowLast}>
+                                <View style={htpStyles.specRowItem}>
+                                    <Icon name="flame" size={18} color={colors.error} />
+                                    <Text style={[htpStyles.specLabel, { color: colors.text }]}>Daily Streak</Text>
+                                </View>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.textSecondary }]}>
+                                    Solve the Daily Challenge each calendar day to grow your consecutive streak.
+                                </Text>
+                            </View>
+                        </View>
+
+                        {/* Game Modes */}
+                        <View style={[htpStyles.tableCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                            <Text style={[htpStyles.cardInnerHeading, { color: colors.text }]}>Daily vs. Blitz Rush</Text>
+                            <View style={[htpStyles.tableRow, { borderBottomColor: colors.border }]}>
+                                <View style={htpStyles.specRowItem}>
+                                    <Icon name="calendar" size={18} color={colors.primary} />
+                                    <Text style={[htpStyles.specLabel, { color: colors.text }]}>Daily Challenge</Text>
+                                </View>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.textSecondary }]}>
+                                    One uniform puzzle every day. Builds your streak and pays full base coins (50 + length tier).
+                                </Text>
+                            </View>
+                            <View style={htpStyles.tableRowLast}>
+                                <View style={htpStyles.specRowItem}>
+                                    <Icon name="timer" size={18} color={colors.primary} />
+                                    <Text style={[htpStyles.specLabel, { color: colors.text }]}>Blitz Rush</Text>
+                                </View>
+                                <Text style={[htpStyles.tableCellValue, { color: colors.textSecondary }]}>
+                                    A fast-paced 90-second sprint. Solve definitions back-to-back; points convert to coins at 50:1 (minimum 5, capped at 100 coins).
+                                </Text>
+                            </View>
+                        </View>
                     </View>
                 </ScrollView>
             </SafeAreaView>
@@ -89,38 +323,258 @@ const HowToPlayModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ v
 const htpStyles = StyleSheet.create({
     container: { flex: 1 },
     header: {
-        padding: 16,
+        paddingHorizontal: 20,
+        paddingVertical: 14,
         borderBottomWidth: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 16,
+        justifyContent: 'space-between',
     },
     closeBtn: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: 48,
+        height: 48,
+        minWidth: 48,
+        minHeight: 48,
+        borderRadius: 24,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    closeBtnText: { fontSize: 24, fontWeight: '800', marginTop: -2 },
-    headerTitle: { fontSize: 20, fontWeight: '900', fontFamily: 'serif' },
-    content: { padding: 20, gap: 24, paddingBottom: 40 },
-    section: { gap: 10 },
-    sectionTitle: { fontSize: 18, fontWeight: '800' },
-    bodyText: { fontSize: 14, lineHeight: 22 },
-    exampleBox: {
-        padding: 18,
-        borderRadius: 16,
+    headerTitle: { fontSize: 20, fontWeight: '800' },
+    content: {
+        paddingHorizontal: 20,
+        paddingTop: 20,
+        paddingBottom: 48,
+        gap: 28,
+    },
+    section: {
+        gap: 12,
+    },
+    sectionHeaderRow: {
+        flexDirection: 'row',
         alignItems: 'center',
+        gap: 10,
+    },
+    sectionTitle: {
+        fontSize: 17,
+        fontWeight: '800',
+        letterSpacing: 0.2,
+    },
+    bodyText: {
+        fontSize: 14,
+        lineHeight: 21,
+    },
+    flowCard: {
+        padding: 16,
+        borderRadius: 14,
         borderWidth: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    flowStep: {
+        flex: 1,
         gap: 4,
     },
-    exampleCipher: { fontFamily: 'monospace', fontSize: 18, fontWeight: '800', letterSpacing: 2 },
-    exampleArrow: { fontSize: 18 },
-    exampleSolved: { fontFamily: 'monospace', fontSize: 18, fontWeight: '800', letterSpacing: 2 },
-    tipCard: { padding: 14, borderRadius: 12, gap: 4 },
-    tipTitle: { fontSize: 14, fontWeight: '800' },
-    tipText: { fontSize: 13, lineHeight: 18 },
+    flowArrowCol: {
+        paddingHorizontal: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    flowLabel: {
+        fontSize: 11,
+        fontWeight: '700',
+        letterSpacing: 0.8,
+    },
+    flowCipher: {
+        fontSize: 15,
+        fontWeight: '800',
+        fontFamily: 'monospace',
+        letterSpacing: 2,
+    },
+    flowSolved: {
+        fontSize: 15,
+        fontWeight: '800',
+        fontFamily: 'monospace',
+        letterSpacing: 2,
+    },
+    stateRowContainer: {
+        flexDirection: 'row',
+        gap: 10,
+    },
+    stateCard: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 14,
+        borderWidth: 1,
+        alignItems: 'center',
+        gap: 6,
+    },
+    miniCell: {
+        width: 38,
+        height: 42,
+        borderRadius: 8,
+        borderWidth: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 2,
+    },
+    miniCellText: {
+        fontSize: 18,
+        fontWeight: '700',
+    },
+    stateTitle: {
+        fontSize: 12,
+        fontWeight: '800',
+        textAlign: 'center',
+    },
+    stateDesc: {
+        fontSize: 11,
+        lineHeight: 15,
+        textAlign: 'center',
+    },
+    keyboardDiagram: {
+        padding: 12,
+        borderRadius: 14,
+        borderWidth: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 6,
+    },
+    diagramKeyAction: {
+        paddingHorizontal: 8,
+        paddingVertical: 10,
+        borderRadius: 8,
+        alignItems: 'center',
+        gap: 4,
+        minWidth: 44,
+    },
+    diagramKeyLabel: {
+        fontSize: 10,
+        fontWeight: '800',
+        letterSpacing: 0.5,
+    },
+    diagramLetterGroup: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 4,
+    },
+    diagramKeyLetter: {
+        width: 26,
+        height: 34,
+        borderRadius: 6,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    diagramLetterText: {
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    calloutCard: {
+        padding: 14,
+        borderRadius: 14,
+        borderWidth: 1,
+        gap: 8,
+    },
+    calloutHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    calloutTitle: {
+        fontSize: 14,
+        fontWeight: '800',
+    },
+    calloutBody: {
+        fontSize: 13,
+        lineHeight: 19,
+    },
+    tableCard: {
+        padding: 16,
+        borderRadius: 14,
+        borderWidth: 1,
+        gap: 10,
+    },
+    cardInnerHeading: {
+        fontSize: 14,
+        fontWeight: '800',
+        marginBottom: 2,
+    },
+    tableRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 8,
+        borderBottomWidth: StyleSheet.hairlineWidth,
+        gap: 12,
+    },
+    tableRowLast: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingTop: 8,
+        gap: 12,
+    },
+    tableCellLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        flex: 1,
+    },
+    tableCellValue: {
+        fontSize: 13,
+        fontWeight: '600',
+        flex: 1.5,
+        textAlign: 'right',
+    },
+    specRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    specLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    specValue: {
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    bonusOutcomeCard: {
+        padding: 16,
+        borderRadius: 14,
+        borderWidth: 1,
+        flexDirection: 'row',
+        gap: 12,
+    },
+    bonusCol: {
+        flex: 1,
+        gap: 4,
+    },
+    bonusDivider: {
+        width: StyleSheet.hairlineWidth,
+        height: '100%',
+    },
+    bonusBadgeTitle: {
+        fontSize: 12,
+        fontWeight: '800',
+        letterSpacing: 0.5,
+    },
+    bonusBadgeDesc: {
+        fontSize: 12,
+        lineHeight: 17,
+    },
+    gradeBadge: {
+        fontSize: 13,
+        fontWeight: '800',
+        flex: 1,
+    },
+    specRowItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        flex: 1,
+    },
 });
 
 // ==================== SETTINGS SCREEN ====================
@@ -150,17 +604,6 @@ export const SettingsScreen = () => {
     const fontFamilies: FontFamily[] = ['system', 'sans', 'serif', 'mono', 'cursive', 'handwritten'];
     const fontSizeLabel = (size: FontSize) =>
         size === 'system' ? 'System' : size === 'small' ? 'Compact' : size === 'medium' ? 'Standard' : 'Large';
-
-    const getFontFamilyNative = (font: FontFamily) => {
-        switch (font) {
-            case 'mono': return 'monospace';
-            case 'serif': return 'serif';
-            case 'cursive': return 'serif';
-            case 'handwritten': return 'sans-serif-condensed';
-            case 'sans':
-            default: return 'System';
-        }
-    };
 
     const handleResetAll = () => {
         triggerHaptic('heavy');
@@ -311,7 +754,7 @@ export const SettingsScreen = () => {
                     <View style={styles.switchRow}>
                         <View>
                             <Text style={[styles.switchLabel, { color: colors.text }]}>Frequency Hints</Text>
-                            <Text style={[styles.switchSub, { color: colors.textMuted }]}>Shade keyboard keys by how common the letter is in English</Text>
+                            <Text style={[styles.switchSub, { color: colors.textMuted }]}>Shade keyboard keys by frequency for letters you have decoded</Text>
                         </View>
                         <Switch
                             value={settings.showFrequencyBar}

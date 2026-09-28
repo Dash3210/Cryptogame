@@ -9,6 +9,7 @@ import { SPRING_PRESETS, generateEnigmaShareCard } from '../utils/physics';
 import { CipherTransition } from './CipherTransition';
 import { Icon } from './Icon';
 import { calculateCoinReward } from '../utils/cipher';
+import { getLevelId } from '../services/quoteService';
 
 interface WinCelebrationModalProps {
     quoteData: LevelData;
@@ -29,7 +30,9 @@ interface WinCelebrationModalProps {
     isBlitzTimeout?: boolean;
     /** A replayed daily cipher: graded, but pays nothing. */
     isPractice?: boolean;
-    /** True when the double-or-nothing bonus is still available. */
+    /** Extra coins won from Double or Nothing bonus. */
+    bonusCoins?: number;
+    /** True when the double-or-nothing bonus is still available (deprecated). */
     bonusAvailable?: boolean;
     onOpenBonus?: () => void;
     userMap?: Record<string, string>;
@@ -42,6 +45,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
     score = 0,
     coinsEarned = 0,
     coinReward,
+    bonusCoins = 0,
     timer,
     hintsUsed,
     mistakesCount,
@@ -53,28 +57,29 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
     isBlitz,
     isBlitzTimeout,
     isPractice = false,
-    bonusAvailable = false,
-    onOpenBonus,
+    bonusAvailable: _bonusAvailable = false,
+    onOpenBonus: _onOpenBonus,
     userMap,
     cipherMap,
 }) => {
     const { colors, isFavorite, toggleFavorite, triggerHaptic } = useGame();
-    const qId = quoteData.id || `${genreLabel}-${quoteData.author}`;
+    const qId = getLevelId(genreLabel, quoteData);
     const liked = isFavorite(qId);
     const [isReducedMotion, setIsReducedMotion] = useState(false);
 
     const reward: CoinRewardBreakdown = coinReward || calculateCoinReward({
-        difficulty: 'Normal',
+        difficulty: quoteData?.difficulty || 'Normal',
         timerSeconds: timer,
         hintsUsed,
         mistakesCount,
         accuracy,
         mode: isDaily ? 'daily' : isBlitz ? 'blitz' : 'standard',
+        quoteText: quoteData?.text,
     });
 
     // What the player actually receives. A Blitz run pays out once, at the end,
     // from accumulated points; showing the per-round reward here was misleading.
-    const displayCoins = isBlitz && isBlitzTimeout ? coinsEarned : isPractice ? 0 : reward.netCoins;
+    const displayCoins = isBlitz && isBlitzTimeout ? coinsEarned : isPractice ? 0 : (reward.netCoins + bonusCoins);
 
     const entranceScale = useRef(new Animated.Value(0.96)).current;
     const entranceOpacity = useRef(new Animated.Value(0)).current;
@@ -203,7 +208,7 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         </View>
                         <View style={[styles.netCoinPill, { backgroundColor: colors.goldBg, borderColor: colors.gold }]}>
                             <Icon name="coin" size={16} color={colors.gold} />
-                            <Text style={[styles.netCoinVal, { color: colors.gold }]}>+{displayCoins}</Text>
+                            <Text style={[styles.netCoinVal, { color: colors.gold }]}>{`+${displayCoins}`}</Text>
                         </View>
                     </View>
 
@@ -221,11 +226,11 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                             <View style={styles.ledgerHeaderRow}>
                                 <Text style={[styles.ledgerHeaderTitle, { color: colors.textMuted }]}>BLITZ PAYOUT</Text>
                                 <Text style={[styles.ledgerHeaderRatio, { color: colors.primary }]}>
-                                    {score.toLocaleString()} pts → {coinsEarned} coins
+                                    {`${score.toLocaleString()} pts → ${coinsEarned} coins`}
                                 </Text>
                             </View>
                             <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
-                                Points convert to coins at 20:1, with a minimum of 5 coins for finishing the run.
+                                Points convert to coins at 50:1 (minimum 5, capped at 100 coins).
                             </Text>
                         </View>
                     ) : isBlitz && !isBlitzTimeout ? (
@@ -245,12 +250,17 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         <View style={styles.ledgerHeaderRow}>
                             <Text style={[styles.ledgerHeaderTitle, { color: colors.textMuted }]}>COINS LEDGER</Text>
                             <Text style={[styles.ledgerHeaderRatio, { color: colors.primary }]}>
-                                {reward.netCoins} / {reward.baseCoins} Coins Gained
+                                {`${reward.netCoins + bonusCoins} / ${reward.baseCoins} Coins Gained`}
                             </Text>
                         </View>
 
-                        <View style={styles.ledgerRow}>
-                            <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>• Base Level Reward</Text>
+                        <View
+                            style={styles.ledgerRow}
+                            accessibilityLabel={`${reward.baseLabel || 'Base Level Reward'}: +${reward.baseCoins}`}
+                        >
+                            <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
+                                • {reward.baseLabel || 'Base Level Reward'}
+                            </Text>
                             <Text style={[styles.ledgerRowValuePositive, { color: colors.primary }]}>+{reward.baseCoins}</Text>
                         </View>
 
@@ -308,6 +318,20 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                                 </Text>
                             </View>
                         )}
+
+                        {bonusCoins > 0 && (
+                            <View
+                                style={styles.ledgerRow}
+                                accessibilityLabel={`Double or Nothing Bonus: +${bonusCoins}`}
+                            >
+                                <Text style={[styles.ledgerRowLabel, { color: colors.gold }]}>
+                                    • Double or Nothing Bonus
+                                </Text>
+                                <Text style={[styles.ledgerRowValuePositive, { color: colors.gold }]}>
+                                    +{bonusCoins}
+                                </Text>
+                            </View>
+                        )}
                     </View>
                     )}
                 </View>
@@ -344,10 +368,22 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         style={[styles.quoteText, { color: colors.text }]}
                     />
 
-                    <View style={[styles.answerBadge, { backgroundColor: colors.primaryBg, borderColor: colors.primaryBorder }]}>
-                        <Text style={[styles.answerLabel, { color: colors.primary }]}>TERM / ANSWER</Text>
+                    <View
+                        style={[
+                            styles.answerBadge,
+                            {
+                                backgroundColor: colors.primaryBg,
+                                borderColor: colors.primaryBorder,
+                            },
+                        ]}
+                    >
+                        <View style={styles.answerHeaderRow}>
+                            <Text style={[styles.answerLabel, { color: colors.primary }]}>
+                                TERM / ANSWER
+                            </Text>
+                        </View>
                         <CipherTransition
-                            text={quoteData.author}
+                            text={quoteData?.author || 'UNKNOWN'}
                             durationMs={400}
                             style={[styles.answerText, { color: colors.primary }]}
                         />
@@ -356,26 +392,6 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
 
                 {/* Action Buttons */}
                 <View style={styles.buttonStack}>
-                    {bonusAvailable && onOpenBonus && (
-                        <Pressable
-                            onPress={() => {
-                                triggerHaptic('medium');
-                                onOpenBonus();
-                            }}
-                            accessibilityRole="button"
-                            accessibilityLabel="Try the double reward bonus"
-                            style={({ pressed }) => [
-                                styles.bonusBtn,
-                                { backgroundColor: colors.goldBg, borderColor: colors.gold },
-                                pressed && { opacity: 0.9, transform: [{ scale: 0.97 }] },
-                            ]}
-                        >
-                            <Icon name="sparkle-burst" size={18} color={colors.gold} />
-                            <Text style={[styles.bonusBtnText, { color: colors.gold }]}>
-                                Double your reward
-                            </Text>
-                        </Pressable>
-                    )}
                     <Pressable
                         onPress={() => {
                             triggerHaptic('medium');
@@ -642,11 +658,16 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
     },
+    answerHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 2,
+    },
     answerLabel: {
         fontSize: 9,
         fontWeight: '800',
         letterSpacing: 1.5,
-        marginBottom: 2,
     },
     answerText: {
         fontSize: 20,

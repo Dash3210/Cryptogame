@@ -306,4 +306,60 @@ describe('Hard Metrics: GameContext State Machine & Resilience', () => {
       renderer.unmount();
     });
   });
+
+  test('Master-Key Economy: Flat 10 coins, 0 points, no streak increment, excluded from speed/accuracy achievements, counts only to cumulative solves', async () => {
+    let ctx: ReturnType<typeof useGame> | null = null;
+    let renderer: any;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <GameProvider>
+          <TestComponent onContext={(c) => { ctx = c; }} />
+        </GameProvider>
+      );
+      jest.runAllTimers();
+    });
+
+    const initialCoins = ctx!.coins;
+    const initialPoints = ctx!.totalPoints;
+
+    // Execute a Master Key solve on Daily challenge
+    await ReactTestRenderer.act(async () => {
+      ctx!.recordPuzzleCompletion({
+        category: 'Physics',
+        timeSeconds: 10, // Normally qualifies for lightning_fast (<15s) and speed_demon (<30s)
+        hintsUsed: 0,    // Normally qualifies for clean_solve and flawless_5
+        mistakesCount: 0,
+        isDaily: true,
+        difficulty: 'Legendary', // Normally qualifies for legendary_solver
+        score: 0,        // Ratified: 0 points
+        coins: 10,       // Ratified: flat 10 coins
+        grade: 'D',      // Ratified: grade D
+        usedMasterKey: true
+      });
+    });
+
+    // 1. Points and Coins
+    expect(ctx!.totalPoints).toBe(initialPoints); // 0 points gained
+    expect(ctx!.coins).toBe(initialCoins + 10);   // exactly 10 coins gained
+
+    // 2. Cumulative solve counters DO increment
+    expect(ctx!.stats.puzzlesSolved).toBe(1);
+    const getAch = (id: string) => ctx!.achievements.find(a => a.id === id);
+    expect(getAch('first_cipher')?.isUnlocked).toBe(true);
+
+    // 3. Streak does NOT increment
+    expect(ctx!.stats.currentStreak).toBe(0);
+
+    // 4. Excluded from accuracy/speed achievements
+    expect(getAch('clean_solve')?.isUnlocked).toBe(false);
+    expect(getAch('flawless_5')?.isUnlocked).toBe(false);
+    expect(getAch('speed_demon')?.isUnlocked).toBe(false);
+    expect(getAch('lightning_fast')?.isUnlocked).toBe(false);
+    expect(getAch('legendary_solver')?.isUnlocked).toBe(false);
+
+    await ReactTestRenderer.act(async () => {
+      renderer.unmount();
+    });
+  });
 });

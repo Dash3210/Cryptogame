@@ -13,21 +13,26 @@ import {
     getPreviousCellIndex,
     calculateAccuracy,
     getComboMultiplier,
-    calculateCoinReward
+    calculateCoinReward,
+    calculateDynamicPoints,
+    convertBlitzPointsToCoins,
+    getBoardHintWeights
 } from '../utils/cipher';
-import { getNextQuote, getDailyQuote, getRandomBlitzQuote, getAnswerOptions } from '../services/quoteService';
+import { getNextQuote, getDailyQuote, getRandomBlitzQuote, getAnswerOptions, getLevelId, getBranchById } from '../services/quoteService';
 import { todayKey } from '../utils/date';
 import { adService } from '../services/adService';
-import { GameStatus, LevelData, CellData, GameMode, SolveGrade, CoinRewardBreakdown } from '../types';
+import { GameStatus, QuoteData, CellData, GameMode, SolveGrade, CoinRewardBreakdown } from '../types';
 import { useGame } from '../context/GameContext';
 
 type GameScreenRouteProp = RouteProp<{
     Game: {
-        genreId: string;
+        genreId?: string;
+        branchId?: string;
         mode?: GameMode;
         dateStr?: string;
     }
 }, 'Game'>;
+
 
 const GENRE_LABELS: Record<string, string> = {
     biology: 'Biology',
@@ -49,7 +54,8 @@ const GENRE_LABELS: Record<string, string> = {
 export const GameScreen = () => {
     const route = useRoute<GameScreenRouteProp>();
     const navigation = useNavigation<any>();
-    const { genreId = 'biology', mode = 'standard', dateStr } = route.params || {};
+    const genreId = route.params?.branchId || route.params?.genreId || 'biology';
+    const { mode = 'standard', dateStr } = route.params || {};
 
     const {
         solvedQuotes,
@@ -67,10 +73,12 @@ export const GameScreen = () => {
         addPoints,
     } = useGame();
 
-    const genreLabel = GENRE_LABELS[genreId] || genreId;
+    const branch = getBranchById(genreId);
+    const genreLabel = branch?.label || GENRE_LABELS[genreId] || genreId;
+
 
     const [status, setStatus] = useState<'playing' | 'won' | 'completed'>('playing');
-    const [quoteData, setQuoteData] = useState<LevelData | null>(null);
+    const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
     const [cipherMap, setCipherMap] = useState<Record<string, string>>({});
     const [userMap, setUserMap] = useState<Record<string, string>>({});
     const [selectedCellIndex, setSelectedCellIndex] = useState<number | null>(null);
@@ -78,6 +86,11 @@ export const GameScreen = () => {
     const [hintsUsed, setHintsUsed] = useState(0);
     const [mistakes, setMistakes] = useState<string[]>([]);
     const [freeHints, setFreeHints] = useState(2);
+    const [starterHints, setStarterHints] = useState<Set<string>>(new Set());
+    const starterHintsRef = useRef<Set<string>>(new Set());
+    useEffect(() => {
+        starterHintsRef.current = starterHints;
+    }, [starterHints]);
     const [timer, setTimer] = useState(0);
     const [isAdPaused, setIsAdPaused] = useState(false);
     // A replayed daily cipher is a practice run: it is graded but pays nothing.
@@ -85,6 +98,8 @@ export const GameScreen = () => {
     // Post-solve "double or nothing" bonus round.
     const [bonusOptions, setBonusOptions] = useState<string[] | null>(null);
     const [bonusAwarded, setBonusAwarded] = useState(false);
+    const [_bonusResolved, setBonusResolved] = useState(false);
+    const [bonusWon, setBonusWon] = useState(false);
     const [showBonus, setShowBonus] = useState(false);
     const [showFrequencyBar, setShowFrequencyBar] = useState(settings.showFrequencyBar);
 
@@ -119,14 +134,14 @@ export const GameScreen = () => {
 
     // State Ref for background saving
     const gameStateRef = useRef({
-        status, quoteData, userMap, cipherMap, timer, hintsUsed, freeHints, mistakes, totalCount, correctCount
+        status, quoteData, userMap, cipherMap, starterHints, timer, hintsUsed, freeHints, mistakes, totalCount, correctCount
     });
 
     useEffect(() => {
         gameStateRef.current = {
-            status, quoteData, userMap, cipherMap, timer, hintsUsed, freeHints, mistakes, totalCount, correctCount
+            status, quoteData, userMap, cipherMap, starterHints, timer, hintsUsed, freeHints, mistakes, totalCount, correctCount
         };
-    }, [status, quoteData, userMap, cipherMap, timer, hintsUsed, freeHints, mistakes, totalCount, correctCount]);
+    }, [status, quoteData, userMap, cipherMap, starterHints, timer, hintsUsed, freeHints, mistakes, totalCount, correctCount]);
 
     // Derived Selection State
     const selectedCipherChar = useMemo(() => {
@@ -147,9 +162,10 @@ export const GameScreen = () => {
             const state = gameStateRef.current;
             if (state.status === 'playing' && state.quoteData && mode === 'standard') {
                 saveGameStateRef.current(genreId, {
-                    quoteId: state.quoteData.id || `${genreId}-${state.quoteData.author}`,
+                    quoteId: getLevelId(genreId, state.quoteData),
                     userMap: state.userMap,
                     cipherMap: state.cipherMap,
+                    starterHints: Array.from(state.starterHints),
                     timer: state.timer,
                     hintsUsed: state.hintsUsed,
                     freeHints: state.freeHints,
@@ -170,9 +186,10 @@ export const GameScreen = () => {
                 const state = gameStateRef.current;
                 if (state.status === 'playing' && state.quoteData && mode === 'standard') {
                     saveGameStateRef.current(genreId, {
-                        quoteId: state.quoteData.id || `${genreId}-${state.quoteData.author}`,
+                        quoteId: getLevelId(genreId, state.quoteData),
                         userMap: state.userMap,
                         cipherMap: state.cipherMap,
+                        starterHints: Array.from(state.starterHints),
                         timer: state.timer,
                         hintsUsed: state.hintsUsed,
                         freeHints: state.freeHints,
@@ -247,10 +264,10 @@ export const GameScreen = () => {
         setSolveGrade(finalGrade);
 
         // Blitz currency is points; convert to coins at a single, visible rate
-        // (20 points = 1 coin, minimum 5) so the payout matches the HUD.
+        // (50 points = 1 coin, minimum 5, capped at 100) so the payout matches the HUD.
         const finalPoints = blitzScoreRef.current;
         setEarnedScore(finalPoints);
-        const coinsAwarded = Math.max(5, Math.round(finalPoints / 20));
+        const coinsAwarded = convertBlitzPointsToCoins(finalPoints);
         setCoinsEarned(coinsAwarded);
         addCoins(coinsAwarded);
 
@@ -274,7 +291,7 @@ export const GameScreen = () => {
     }, [userMap, quoteData, cipherMap, status]);
 
     const initLevel = useCallback((solvedOverride?: Set<string>) => {
-        let nextQuote: LevelData | null = null;
+        let nextQuote: QuoteData | null = null;
 
         if (mode === 'daily') {
             const today = dateStr || todayKey();
@@ -300,15 +317,20 @@ export const GameScreen = () => {
         finishedRef.current = false;
         setBonusOptions(null);
         setBonusAwarded(false);
+        setBonusResolved(false);
+        setBonusWon(false);
         setShowBonus(false);
 
-        const qId = nextQuote.id || `${genreId}-${nextQuote.author}`;
+        const qId = getLevelId(genreId, nextQuote);
         const savedData = mode === 'standard' ? savedGames[genreId] : undefined;
 
         if (savedData && savedData.quoteId === qId) {
             setQuoteData(nextQuote);
             setCipherMap(savedData.cipherMap);
             setUserMap(savedData.userMap);
+            const restoredStarters = new Set(savedData.starterHints || []);
+            setStarterHints(restoredStarters);
+            starterHintsRef.current = restoredStarters;
             setMistakes(savedData.mistakes || []);
             setHintsUsed(savedData.hintsUsed || 0);
             setFreeHints(savedData.freeHints ?? 2);
@@ -341,6 +363,9 @@ export const GameScreen = () => {
 
         const initialHints = generateHints(nextQuote.text, newCipher, mode === 'blitz' ? 'Easy' : settings.difficulty);
         setUserMap(initialHints);
+        const starterSet = new Set(Object.keys(initialHints));
+        setStarterHints(starterSet);
+        starterHintsRef.current = starterSet;
 
         const firstIdx = getNextUnsolvedIndex(nextQuote.text, newCipher, initialHints, -1);
         setSelectedCellIndex(firstIdx);
@@ -368,7 +393,8 @@ export const GameScreen = () => {
             hintsUsed,
             mistakesCount: mistakes.length,
             accuracy,
-            mode
+            mode,
+            quoteText: quoteData.text
         });
         setCoinReward(reward);
         setSolveGrade({
@@ -377,30 +403,45 @@ export const GameScreen = () => {
             stars: reward.stars
         });
 
-        // The combo multiplier the HUD advertises is applied to the points score,
-        // using the best combo of the solve.
-        const rewardMultiplier = getComboMultiplier(maxCombo);
-        const points = Math.round(reward.netCoins * 10 * rewardMultiplier);
+        const scoring = calculateDynamicPoints({
+            quoteText: quoteData.text,
+            difficulty: mode === 'blitz' ? 'Normal' : settings.difficulty,
+            timerSeconds: timer,
+            hintsUsed,
+            mistakesCount: mistakes.length,
+            accuracy,
+            comboMax: maxCombo,
+            usedMasterKey: false,
+            mode
+        });
 
+        const points = scoring.score;
         setEarnedScore(points);
-        setMaxScore(reward.baseCoins * 10);
+        setMaxScore(scoring.maxScore);
         setCoinsEarned(isPracticeRun ? 0 : reward.netCoins);
 
         if (mode === 'blitz') {
             const bonusTime = 15;
             setBlitzTimeLeft(prev => prev + bonusTime);
-            setBlitzScore(prev => prev + Math.round(reward.netCoins * rewardMultiplier));
+            setBlitzScore(prev => prev + points);
             setBlitzSolves(prev => prev + 1);
+            setBonusOptions(null);
+            setShowBonus(false);
+            setBonusWon(false);
+        } else if (isPracticeRun) {
+            // Replaying a solved daily pays nothing and does not touch stats.
+            setBonusOptions(null);
+            setShowBonus(false);
+            setBonusWon(false);
+            return;
         } else {
-            const qId = quoteData.id || `${genreId}-${quoteData.author}`;
-            if (isPracticeRun) {
-                // Replaying a solved daily pays nothing and does not touch stats.
-                return;
-            }
-            // Offer the optional double-or-nothing bonus for a real solve.
+            // Immediately show the double-or-nothing bonus for standard + real daily solves.
             setBonusOptions(getAnswerOptions(genreId, quoteData.author, 4));
             setBonusAwarded(false);
-            setShowBonus(false);
+            setBonusResolved(false);
+            setBonusWon(false);
+            setShowBonus(true);
+            const qId = getLevelId(genreId, quoteData);
             markQuoteSolved(qId, genreId);
             recordPuzzleCompletion({
                 quoteId: qId,
@@ -449,6 +490,9 @@ export const GameScreen = () => {
         const cipherChar = cipherMap[cellChar];
         if (!cipherChar) return;
 
+        // Starter-hint letters must never be overwritten
+        if (starterHints.has(cipherChar)) return;
+
         // Ignore re-entry on an already-correct cell; otherwise hammering the same
         // key floods the accuracy stat and the combo counter.
         if (userMap[cipherChar] === cellChar) return;
@@ -479,12 +523,15 @@ export const GameScreen = () => {
             const nextIdx = getNextUnsolvedIndex(quoteData.text, cipherMap, nextUserMap, selectedCellIndex);
             setSelectedCellIndex(nextIdx);
         }
-    }, [status, selectedCellIndex, cipherMap, quoteData, userMap, settings.autoAdvance, triggerHaptic]);
+    }, [status, selectedCellIndex, cipherMap, quoteData, userMap, starterHints, settings.autoAdvance, triggerHaptic]);
 
     const handleDelete = useCallback(() => {
         if (status !== 'playing' || selectedCellIndex === null || !quoteData) return;
         const cellChar = quoteData.text[selectedCellIndex]?.toUpperCase();
-        const cipherChar = cipherMap[cellChar];
+        const cipherChar = cellChar ? cipherMap[cellChar] : undefined;
+
+        // Backspace must never delete starter-hint letters
+        if (cipherChar && starterHints.has(cipherChar)) return;
 
         if (cipherChar && userMap[cipherChar]) {
             // Clear current letter
@@ -494,22 +541,25 @@ export const GameScreen = () => {
                 return next;
             });
         } else {
-            // Backtrack to previous cell
-            const prevIdx = getPreviousCellIndex(quoteData.text, selectedCellIndex);
-            if (prevIdx !== null) {
-                setSelectedCellIndex(prevIdx);
+            // Backtrack to previous editable cell, skipping starter-hint letters
+            let prevIdx: number | null = selectedCellIndex;
+            while (true) {
+                prevIdx = getPreviousCellIndex(quoteData.text, prevIdx);
+                if (prevIdx === null) break;
                 const prevChar = quoteData.text[prevIdx]?.toUpperCase();
-                const prevCipher = cipherMap[prevChar];
-                if (prevCipher) {
+                const prevCipher = prevChar ? cipherMap[prevChar] : undefined;
+                if (prevCipher && !starterHints.has(prevCipher)) {
+                    setSelectedCellIndex(prevIdx);
                     setUserMap(prev => {
                         const next = { ...prev };
                         delete next[prevCipher];
                         return next;
                     });
+                    break;
                 }
             }
         }
-    }, [status, selectedCellIndex, quoteData, cipherMap, userMap]);
+    }, [status, selectedCellIndex, quoteData, cipherMap, userMap, starterHints]);
 
     const handleNext = useCallback(() => {
         if (status !== 'playing' || !quoteData) return;
@@ -574,6 +624,7 @@ export const GameScreen = () => {
                     onPress: () => {
                         adService.show(() => {
                             setIsAdPaused(false);
+                            finishedRef.current = true;
                             const fullMap: Record<string, string> = {};
                             for (const [original, cipher] of Object.entries(cipherMap)) {
                                 fullMap[cipher] = original;
@@ -582,24 +633,44 @@ export const GameScreen = () => {
                             setStatus('won');
                             setSelectedCellIndex(null);
 
+                            const accuracy = calculateAccuracy(correctCount, totalCount, mistakes.length);
+                            const displayAccuracy = totalCount > 0 ? accuracy : 0;
+                            setAccuracyPercent(displayAccuracy);
+
                             const reward = calculateCoinReward({
                                 difficulty: mode === 'blitz' ? 'Normal' : settings.difficulty,
                                 timerSeconds: timer,
                                 hintsUsed,
                                 mistakesCount: mistakes.length,
-                                accuracy: 100,
+                                accuracy: displayAccuracy,
+                                usedMasterKey: true,
+                                mode,
+                                quoteText: quoteData.text
+                            });
+                            setCoinReward(reward);
+                            setEarnedScore(0);
+                            const scoring = calculateDynamicPoints({
+                                quoteText: quoteData.text,
+                                difficulty: mode === 'blitz' ? 'Normal' : settings.difficulty,
+                                timerSeconds: timer,
+                                hintsUsed,
+                                mistakesCount: mistakes.length,
+                                accuracy: displayAccuracy,
+                                comboMax: 0,
                                 usedMasterKey: true,
                                 mode
                             });
-                            const points = reward.netCoins * 10;
-                            setCoinReward(reward);
-                            setEarnedScore(points);
-                            setMaxScore(reward.baseCoins * 10);
-                            setCoinsEarned(isPracticeRun ? 0 : reward.netCoins);
-                            setSolveGrade({ grade: reward.grade, title: reward.gradeTitle, stars: reward.stars });
+                            setMaxScore(scoring.maxScore);
+                            setCoinsEarned(isPracticeRun ? 0 : 10);
+                            setSolveGrade({ grade: 'D', title: reward.gradeTitle, stars: 1 });
+                            setBonusOptions(null);
+                            setBonusAwarded(false);
+                            setBonusResolved(true);
+                            setBonusWon(false);
+                            setShowBonus(false);
 
                             if (mode === 'blitz') {
-                                setBlitzScore(prev => prev + reward.netCoins);
+                                setBlitzScore(prev => prev + 0);
                                 setBlitzSolves(prev => prev + 1);
                                 return;
                             }
@@ -608,7 +679,7 @@ export const GameScreen = () => {
                             // Route the master key through the normal completion path so
                             // progress, stats and achievements are recorded (this used to
                             // be skipped, leaving the puzzle unsolved and re-served).
-                            const qId = quoteData.id || `${genreId}-${quoteData.author}`;
+                            const qId = getLevelId(genreId, quoteData);
                             markQuoteSolved(qId, genreId);
                             recordPuzzleCompletion({
                                 quoteId: qId,
@@ -618,11 +689,12 @@ export const GameScreen = () => {
                                 mistakesCount: mistakes.length,
                                 isDaily: mode === 'daily',
                                 difficulty: settings.difficulty,
-                                score: points,
-                                coins: reward.netCoins,
-                                grade: reward.grade,
+                                score: 0,
+                                coins: 10,
+                                grade: 'D',
                                 totalGuesses: totalCount,
-                                correctGuesses: correctCount
+                                correctGuesses: correctCount,
+                                usedMasterKey: true
                             });
                         }, () => setIsAdPaused(false));
                     }
@@ -674,6 +746,11 @@ export const GameScreen = () => {
         }));
     }, [quoteData, cipherMap, userMap]);
 
+    const boardFrequencyWeights = useMemo(() => {
+        if (!showFrequencyBar || !quoteData) return {};
+        return getBoardHintWeights(quoteData.text, cipherMap, userMap);
+    }, [showFrequencyBar, quoteData, cipherMap, userMap]);
+
     // ===== GENRE COMPLETED VIEW =====
     if (status === 'completed') {
         return (
@@ -715,58 +792,65 @@ export const GameScreen = () => {
     // ===== WIN VIEW =====
     if (status === 'won') {
         const isBlitzTimeout = mode === 'blitz' && blitzTimeLeft === 0;
-        const bonusAvailable = !!bonusOptions && !bonusAwarded;
+        const hasActiveBonus = showBonus && !!bonusOptions;
         return (
             <>
-            <WinCelebrationModal
-                quoteData={quoteData}
-                genreLabel={genreLabel}
-                score={mode === 'blitz' ? (isBlitzTimeout ? earnedScore : blitzScore) : earnedScore}
-                maxScore={maxScore}
-                coinsEarned={coinsEarned}
-                coinReward={coinReward || undefined}
-                timer={timer}
-                hintsUsed={hintsUsed}
-                mistakesCount={mistakes.length}
-                grade={solveGrade}
-                accuracy={accuracyPercent}
-                onNextPuzzle={() => {
-                    if (mode === 'daily') {
-                        goBack();
-                    } else if (mode === 'blitz' && blitzTimeLeft === 0) {
-                        setBlitzScore(0);
-                        setBlitzSolves(0);
-                        setBlitzTimeLeft(90);
-                        initLevel();
-                    } else {
-                        initLevel();
-                    }
-                }}
-                onBack={goBack}
-                isDaily={mode === 'daily'}
-                isBlitz={mode === 'blitz'}
-                isBlitzTimeout={isBlitzTimeout}
-                isPractice={isPracticeRun}
-                userMap={userMap}
-                cipherMap={cipherMap}
-                bonusAvailable={bonusAvailable}
-                onOpenBonus={() => setShowBonus(true)}
-            />
-            {bonusOptions && (
+            {hasActiveBonus && <View style={[styles.container, { backgroundColor: colors.background }]} />}
+            {!hasActiveBonus && (
+                <WinCelebrationModal
+                    quoteData={quoteData}
+                    genreLabel={genreLabel}
+                    score={bonusWon ? earnedScore * 2 : (mode === 'blitz' ? (isBlitzTimeout ? earnedScore : blitzScore) : earnedScore)}
+                    maxScore={maxScore}
+                    coinsEarned={bonusWon ? coinsEarned * 2 : coinsEarned}
+                    coinReward={coinReward || undefined}
+                    bonusCoins={bonusWon ? (coinReward?.netCoins ?? coinsEarned) : 0}
+                    timer={timer}
+                    hintsUsed={hintsUsed}
+                    mistakesCount={mistakes.length}
+                    grade={solveGrade}
+                    accuracy={accuracyPercent}
+                    onNextPuzzle={() => {
+                        if (mode === 'daily') {
+                            goBack();
+                        } else if (mode === 'blitz' && blitzTimeLeft === 0) {
+                            setBlitzScore(0);
+                            setBlitzSolves(0);
+                            setBlitzTimeLeft(90);
+                            initLevel();
+                        } else {
+                            initLevel();
+                        }
+                    }}
+                    onBack={goBack}
+                    isDaily={mode === 'daily'}
+                    isBlitz={mode === 'blitz'}
+                    isBlitzTimeout={isBlitzTimeout}
+                    isPractice={isPracticeRun}
+                    userMap={userMap}
+                    cipherMap={cipherMap}
+                />
+            )}
+            {hasActiveBonus && (
                 <BonusGuessModal
-                    visible={showBonus}
+                    visible={hasActiveBonus}
                     definition={quoteData.text}
                     options={bonusOptions}
                     correctAnswer={quoteData.author}
                     onResolved={(correct) => {
+                        setBonusResolved(true);
                         if (correct && !bonusAwarded) {
                             setBonusAwarded(true);
+                            setBonusWon(true);
                             addCoins(coinsEarned);
                             addPoints(earnedScore);
                             triggerHaptic('success');
                         }
                     }}
-                    onClose={() => setShowBonus(false)}
+                    onClose={() => {
+                        setBonusResolved(true);
+                        setShowBonus(false);
+                    }}
                 />
             )}
             </>
@@ -814,6 +898,7 @@ export const GameScreen = () => {
                     onNext={handleNext}
                     blockUsedLetters={settings.blockUsedLetters}
                     frequencyHints={showFrequencyBar}
+                    letterWeights={boardFrequencyWeights}
                 />
             </View>
         </SafeAreaView>

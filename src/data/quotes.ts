@@ -1,11 +1,11 @@
-import { LevelData } from '../types';
+import { LevelData, Track, Branch, DailyQuote } from '../types';
 
 // ============================================================================
-// SUBJECT CATEGORIES
+// SUBJECT CATEGORIES (CORE TRACKS)
 // ============================================================================
 
 // `icon` is an icon-kit slug rendered by the Icon component.
-export const SUBJECTS = [
+export const SUBJECTS: Track[] = [
   { id: 'biology', label: 'Biology', icon: 'subject-biology', description: 'Life & Cells' },
   { id: 'physics', label: 'Physics', icon: 'subject-physics', description: 'Matter & Energy' },
   { id: 'chemistry', label: 'Chemistry', icon: 'subject-chemistry', description: 'Elements & Reactions' },
@@ -13,13 +13,14 @@ export const SUBJECTS = [
   { id: 'geography', label: 'Geography', icon: 'subject-geography', description: 'Earth & Places' },
   { id: 'history', label: 'History', icon: 'subject-history', description: 'Past Events' },
   { id: 'literature', label: 'Literature', icon: 'subject-literature', description: 'Books & Terms' },
+  { id: 'lexicon', label: 'Lexicon', icon: 'subject-lexicon', description: 'Words & Meanings' },
 ];
 
 // ============================================================================
-// EXTENSION CATEGORIES
+// EXTENSION CATEGORIES (EXTENSION TRACKS)
 // ============================================================================
 
-export const EXTENSIONS = [
+export const EXTENSIONS: Track[] = [
   { id: 'compsci', label: 'Comp Sci', icon: 'subject-compsci', description: 'Bits, Algorithms & Logic', isExtension: true, isDownloaded: false, coinPrice: 100 },
   { id: 'anatomy', label: 'Anatomy', icon: 'subject-anatomy', description: 'The Human Machine', isExtension: true, isDownloaded: false, coinPrice: 100 },
   { id: 'music', label: 'Music Theory', icon: 'subject-music', description: 'Harmony, Notes & Rhythm', isExtension: true, isDownloaded: false, coinPrice: 120 },
@@ -27,31 +28,174 @@ export const EXTENSIONS = [
   { id: 'mythology', label: 'Mythology', icon: 'subject-mythology', description: 'Legends, Gods & Lore', isExtension: true, isDownloaded: false, coinPrice: 150 },
 ];
 
+// All top-level tracks
+export const TRACKS: Track[] = [...SUBJECTS, ...EXTENSIONS];
+
+// ============================================================================
+// CURRICULUM BRANCHES
+// ============================================================================
+// Each branch belongs to one or more tracks (via `tracks` array).
+// Levels are authored once in QUOTE_DB keyed strictly by branch id.
+export const BRANCHES: Branch[] = [
+  // Core initial curriculum branches (1:1 migration mapping)
+  { id: 'biology', label: 'Biology', description: 'Life & Cells', tracks: ['biology'], icon: 'subject-biology', order: 1 },
+  { id: 'physics', label: 'Physics', description: 'Matter & Energy', tracks: ['physics'], icon: 'subject-physics', order: 1 },
+  { id: 'chemistry', label: 'Chemistry', description: 'Elements & Reactions', tracks: ['chemistry'], icon: 'subject-chemistry', order: 1 },
+  { id: 'astronomy', label: 'Astronomy', description: 'Stars & Space', tracks: ['astronomy'], icon: 'subject-astronomy', order: 1 },
+  { id: 'geography', label: 'Geography', description: 'Earth & Places', tracks: ['geography'], icon: 'subject-geography', order: 1 },
+  { id: 'history', label: 'History', description: 'Past Events', tracks: ['history'], icon: 'subject-history', order: 1 },
+  { id: 'literature', label: 'Literature', description: 'Books & Terms', tracks: ['literature'], icon: 'subject-literature', order: 1 },
+  { id: 'lexicon', label: 'Lexicon', description: 'Words & Meanings', tracks: ['lexicon'], icon: 'subject-lexicon', order: 1 },
+
+  // Extension initial curriculum branches (1:1 migration mapping)
+  { id: 'compsci', label: 'Comp Sci', description: 'Bits, Algorithms & Logic', tracks: ['compsci'], icon: 'subject-compsci', order: 1 },
+  { id: 'anatomy', label: 'Anatomy', description: 'The Human Machine', tracks: ['anatomy'], icon: 'subject-anatomy', order: 1 },
+  { id: 'music', label: 'Music Theory', description: 'Harmony, Notes & Rhythm', tracks: ['music'], icon: 'subject-music', order: 1 },
+  { id: 'economics', label: 'Economics', description: 'Markets, Capital & Wealth', tracks: ['economics'], icon: 'subject-economics', order: 1 },
+  { id: 'mythology', label: 'Mythology', description: 'Legends, Gods & Lore', tracks: ['mythology'], icon: 'subject-mythology', order: 1 },
+
+  // Cross-disciplinary shared curriculum branch (belongs to both Biology and Chemistry)
+  { id: 'biochemistry', label: 'Biochemistry', description: 'Chemical processes within living organisms', tracks: ['biology', 'chemistry'], icon: 'subject-chemistry', order: 2 },
+
+  // Scientific Foundations cross-disciplinary curriculum branch
+  { id: 'scientific-foundations', label: 'Scientific Foundations', description: 'Scientific Inquiry, Methods & Core Principles', tracks: ['physics', 'chemistry', 'biology', 'astronomy'], icon: 'subject-physics', order: 0 },
+
+  // Physics curriculum branches
+  { id: 'physics-mechanics', label: 'Mechanics', description: 'Motion, Forces, Energy & Momentum', tracks: ['physics'], icon: 'subject-physics', order: 1 },
+  { id: 'physics-fluids', label: 'Fluids', description: 'Fluid Dynamics, Pressure & Buoyancy', tracks: ['physics'], icon: 'subject-physics', order: 2 },
+  { id: 'physics-thermodynamics', label: 'Thermodynamics', description: 'Heat, Temperature, Work & Entropy', tracks: ['physics'], icon: 'subject-physics', order: 3 },
+  { id: 'physics-waves-sound', label: 'Waves & Sound', description: 'Oscillations, Wave Mechanics & Acoustics', tracks: ['physics'], icon: 'subject-physics', order: 4 },
+  { id: 'physics-electromagnetism', label: 'Electromagnetism', description: 'Electric Charges, Fields, Magnetism & Currents', tracks: ['physics'], icon: 'subject-physics', order: 5 },
+  { id: 'physics-optics', label: 'Optics', description: 'Light, Reflection, Refraction & Optical Systems', tracks: ['physics'], icon: 'subject-physics', order: 6 },
+  { id: 'physics-modern', label: 'Modern Physics', description: 'Special Relativity & Quantum Phenomena', tracks: ['physics'], icon: 'subject-physics', order: 7 },
+  { id: 'physics-nuclear-particle', label: 'Nuclear & Particle', description: 'Nuclear Reactions, Radioactivity & Fundamental Particles', tracks: ['physics'], icon: 'subject-physics', order: 8 },
+];
+
 // ============================================================================
 // DAILY CHALLENGE QUOTES POOL
 // ============================================================================
-
-export const DAILY_QUOTES = [
-  { text: "The power of imagination makes us infinite.", author: "John Muir" },
-  { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
-  { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
-  { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
-  { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
-  { text: "Success is not final, failure is not fatal: It is the courage to continue that counts.", author: "Winston Churchill" },
-  { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
-  { text: "Your time is limited, so don't waste it living someone else's life.", author: "Steve Jobs" },
-  { text: "I have not failed. I've just found 10,000 ways that won't work.", author: "Thomas Edison" },
-  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
-  { text: "Imagination is more important than knowledge. Knowledge is limited. Imagination encircles the world.", author: "Albert Einstein" },
-  { text: "Simplicity is the prerequisite for reliability.", author: "Edsger W. Dijkstra" },
-  { text: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
-  { text: "An unexamined life is not worth living.", author: "Socrates" },
-  { text: "To know, is to know that you know nothing. That is the meaning of true knowledge.", author: "Confucius" },
-  { text: "Curiosity is the engine of achievement.", author: "Ken Robinson" },
-  { text: "What we know is a drop, what we don't know is an ocean.", author: "Isaac Newton" },
-  { text: "The important thing is not to stop questioning.", author: "Albert Einstein" },
-  { text: "Education is not the learning of facts, but the training of the mind to think.", author: "Albert Einstein" },
-  { text: "Do not go where the path may lead, go instead where there is no path and leave a trail.", author: "Ralph Waldo Emerson" },
+// All quotes strictly vetted for Public Domain compliance: first published 1930 or earlier.
+export const DAILY_QUOTES: DailyQuote[] = [
+  {
+    text: "This above all: to thine own self be true.",
+    author: "William Shakespeare",
+    source: "Hamlet",
+    year: 1603,
+  },
+  {
+    text: "Waste no more time arguing what a good man should be. Be one.",
+    author: "Marcus Aurelius",
+    source: "Meditations",
+    year: 180,
+  },
+  {
+    text: "If you know the enemy and know yourself, you need not fear the result of a hundred battles.",
+    author: "Sun Tzu",
+    source: "The Art of War",
+    year: 1910,
+  },
+  {
+    text: "There is no charm equal to tenderness of heart.",
+    author: "Jane Austen",
+    source: "Emma",
+    year: 1815,
+  },
+  {
+    text: "It was the best of times, it was the worst of times.",
+    author: "Charles Dickens",
+    source: "A Tale of Two Cities",
+    year: 1859,
+  },
+  {
+    text: "Work consists of whatever a body is obliged to do, and play consists of whatever a body is not obliged to do.",
+    author: "Mark Twain",
+    source: "The Adventures of Tom Sawyer",
+    year: 1876,
+  },
+  {
+    text: "Ignorance more frequently begets confidence than does knowledge.",
+    author: "Charles Darwin",
+    source: "The Descent of Man",
+    year: 1871,
+  },
+  {
+    text: "An investment in knowledge pays the best interest.",
+    author: "Benjamin Franklin",
+    source: "The Way to Wealth",
+    year: 1758,
+  },
+  {
+    text: "No man is good enough to govern another man without that other's consent.",
+    author: "Abraham Lincoln",
+    source: "Peoria Speech",
+    year: 1854,
+  },
+  {
+    text: "A foolish consistency is the hobgoblin of little minds.",
+    author: "Ralph Waldo Emerson",
+    source: "Self-Reliance",
+    year: 1841,
+  },
+  {
+    text: "Do I contradict myself? Very well then I contradict myself, I am large, I contain multitudes.",
+    author: "Walt Whitman",
+    source: "Song of Myself",
+    year: 1855,
+  },
+  {
+    text: "Our life is frittered away by detail. Simplify, simplify.",
+    author: "Henry David Thoreau",
+    source: "Walden",
+    year: 1854,
+  },
+  {
+    text: "Beware; for I am fearless, and therefore powerful.",
+    author: "Mary Shelley",
+    source: "Frankenstein",
+    year: 1818,
+  },
+  {
+    text: "It is not down in any map; true places never are.",
+    author: "Herman Melville",
+    source: "Moby-Dick",
+    year: 1851,
+  },
+  {
+    text: "If there is no struggle, there is no progress.",
+    author: "Frederick Douglass",
+    source: "West India Emancipation Address",
+    year: 1857,
+  },
+  {
+    text: "All happy families are alike; each unhappy family is unhappy in its own way.",
+    author: "Leo Tolstoy",
+    source: "Anna Karenina",
+    year: 1878,
+  },
+  {
+    text: "Knowledge is power.",
+    author: "Francis Bacon",
+    source: "Meditationes Sacrae",
+    year: 1597,
+  },
+  {
+    text: "If I have seen further it is by standing on the shoulders of Giants.",
+    author: "Isaac Newton",
+    source: "Letter to Robert Hooke",
+    year: 1675,
+  },
+  {
+    text: "I am no bird; and no net ensnares me; I am a free human being with an independent will.",
+    author: "Charlotte Brontë",
+    source: "Jane Eyre",
+    year: 1847,
+  },
+  {
+    text: "All human wisdom is contained in these two words: Wait and hope.",
+    author: "Alexandre Dumas",
+    source: "The Count of Monte Cristo",
+    year: 1846,
+  },
 ];
 
 // ============================================================================
@@ -80,7 +224,7 @@ export const BLITZ_QUOTES: Omit<LevelData, 'category' | 'id'>[] = [
 // QUOTE DATABASE
 // ============================================================================
 
-export const QUOTE_DB: Record<string, Omit<LevelData, 'category' | 'id'>[]> = {
+export const QUOTE_DB: Record<string, Omit<LevelData, 'category'>[]> = {
 
   // --------------------------------------------------------------------------
   // BIOLOGY - Life & Cells
@@ -332,5 +476,19 @@ export const QUOTE_DB: Record<string, Omit<LevelData, 'category' | 'id'>[]> = {
     { text: "The ancient Egyptian god of the afterlife, death, and resurrection.", author: "Osiris" },
     { text: "The mythological Greek monster with venomous snakes in place of hair whose gaze turned onlookers to stone.", author: "Medusa" },
     { text: "A riddling winged monster of Thebes with the body of a lion and the face of a woman.", author: "Sphinx" }
-  ]
+  ],
+
+  // --------------------------------------------------------------------------
+  // LEXICON - Words & Meanings (Free Core Subject)
+  // --------------------------------------------------------------------------
+  lexicon: []
 };
+
+/**
+ * Returns core subjects (tracks) that have active playable content authored in QUOTE_DB.
+ */
+export const getMasterableCoreTracks = (): Track[] =>
+  SUBJECTS.filter(s =>
+    BRANCHES.filter(b => b.tracks.includes(s.id)).some(b => (QUOTE_DB[b.id]?.length ?? 0) > 0)
+  );
+

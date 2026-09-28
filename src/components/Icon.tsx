@@ -18,6 +18,82 @@ export interface IconProps {
     accessibilityLabel?: string;
 }
 
+export interface IconBaseProps {
+    /** Slug from the icon kit (see src/assets/icons). */
+    name: IconName;
+    /** Square size in dp. Icons are authored on a 24x24 grid. */
+    size?: number;
+    /** Resolved colour string to tint the icon. */
+    resolvedColor: string;
+    style?: StyleProp<ViewStyle>;
+    accessibilityLabel?: string;
+}
+
+export interface ThemedIconProps {
+    /** Slug from the icon kit (see src/assets/icons). */
+    name: IconName;
+    /** Square size in dp. Icons are authored on a 24x24 grid. */
+    size?: number;
+    /** Tint. When omitted or falsy, defaults to the theme text colour. */
+    color?: string;
+    style?: StyleProp<ViewStyle>;
+    accessibilityLabel?: string;
+}
+
+/**
+ * Presentational icon primitive rendering SvgXml from ICON_XML.
+ * Does NOT subscribe to GameContext; requires an explicit resolvedColor.
+ */
+export const IconBase: React.FC<IconBaseProps> = React.memo(({
+    name,
+    size = 24,
+    resolvedColor,
+    style,
+    accessibilityLabel,
+}) => {
+    const xml = ICON_XML[name];
+    if (!xml) return null;
+
+    return (
+        <SvgXml
+            xml={xml}
+            width={size}
+            height={size}
+            color={resolvedColor}
+            style={style}
+            accessible={!!accessibilityLabel}
+            accessibilityRole="image"
+            accessibilityLabel={accessibilityLabel}
+        />
+    );
+});
+
+IconBase.displayName = 'IconBase';
+
+/**
+ * Themed icon wrapper that subscribes to useGame() and resolves the theme text colour.
+ */
+export const ThemedIcon: React.FC<ThemedIconProps> = React.memo(({
+    name,
+    size = 24,
+    color,
+    style,
+    accessibilityLabel,
+}) => {
+    const { colors } = useGame();
+    return (
+        <IconBase
+            name={name}
+            size={size}
+            resolvedColor={color || colors.text}
+            style={style}
+            accessibilityLabel={accessibilityLabel}
+        />
+    );
+});
+
+ThemedIcon.displayName = 'ThemedIcon';
+
 /**
  * Monochrome icon from the BrainCipher icon kit.
  *
@@ -31,19 +107,24 @@ export const Icon: React.FC<IconProps> = React.memo(({
     style,
     accessibilityLabel,
 }) => {
-    const { colors } = useGame();
-    const xml = ICON_XML[name];
-    if (!xml) return null;
+    if (color) {
+        return (
+            <IconBase
+                name={name}
+                size={size}
+                resolvedColor={color}
+                style={style}
+                accessibilityLabel={accessibilityLabel}
+            />
+        );
+    }
 
     return (
-        <SvgXml
-            xml={xml}
-            width={size}
-            height={size}
-            color={color ?? colors.text}
+        <ThemedIcon
+            name={name}
+            size={size}
+            color={color}
             style={style}
-            accessible={!!accessibilityLabel}
-            accessibilityRole="image"
             accessibilityLabel={accessibilityLabel}
         />
     );

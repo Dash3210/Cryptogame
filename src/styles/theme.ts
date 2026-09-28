@@ -302,9 +302,9 @@ export const getFontFamilyNative = (font: string): string | undefined => {
     switch (font) {
         case 'mono': return 'monospace';
         case 'serif': return 'serif';
-        case 'cursive': return 'serif';
+        case 'cursive': return 'cursive';
         case 'handwritten': return 'sans-serif-condensed';
-        case 'sans':
+        case 'sans': return 'sans-serif';
         case 'system':
         default: return undefined;
     }

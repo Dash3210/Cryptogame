@@ -3,9 +3,10 @@ import { View, StyleSheet, ScrollView, Pressable, TextInput } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { AppText as Text } from '../components/AppText';
+import { Track } from '../types';
 import { useGame } from '../context/GameContext';
 import { SUBJECTS, EXTENSIONS } from '../data/quotes';
-import { getGenreProgress } from '../services/quoteService';
+import { getTrackProgress, getBranchesForTrack, getBranchProgress } from '../services/quoteService';
 import { DailyQuoteModal } from '../components/DailyQuoteModal';
 import { UnifiedOperationsStrip } from '../components/UnifiedOperationsStrip';
 import { Icon, IconName } from '../components/Icon';
@@ -19,9 +20,9 @@ export const LibraryScreen = () => {
     const today = new Date().toISOString().split('T')[0];
     const isTodayDailySolved = stats.dailySolvedDates.includes(today);
 
-    const handleSelectGenre = (genreId: string) => {
+    const handleSelectBranch = (branchId: string) => {
         triggerHaptic('light');
-        navigation.navigate('Game', { genreId });
+        navigation.navigate('Game', { genreId: branchId });
     };
 
     const handleOpenDaily = () => {
@@ -34,35 +35,45 @@ export const LibraryScreen = () => {
         navigation.navigate('Blitz');
     };
 
-    const allSubjects = [
+    const allSubjects: Track[] = [
         ...SUBJECTS,
         ...EXTENSIONS.filter(ext => myExtensions.has(ext.id))
     ];
 
-    const filteredSubjects = allSubjects.filter(sub =>
-        sub.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        sub.description.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredSubjects = allSubjects.filter(sub => {
+        if (!searchQuery.trim()) return true;
+        const query = searchQuery.toLowerCase();
+        if (sub.label.toLowerCase().includes(query) || sub.description.toLowerCase().includes(query)) {
+            return true;
+        }
+        const branches = getBranchesForTrack(sub.id).filter(b => {
+            const bProgress = getBranchProgress(b.id, solvedQuotes || new Set());
+            return bProgress.total > 0;
+        });
+        return branches.some(b =>
+            b.label.toLowerCase().includes(query) || (b.description && b.description.toLowerCase().includes(query))
+        );
+    });
 
-    const renderCard = (subject: any) => {
+    const renderCard = (subject: Track) => {
         if (!subject || !subject.id) return null;
-        const progress = getGenreProgress(subject.id, solvedQuotes || new Set());
-        const percent = progress.total > 0 ? (progress.completed / progress.total) * 100 : 0;
-        const isMastered = percent >= 100;
+        const progress = getTrackProgress(subject.id, solvedQuotes || new Set());
+        const hasLevels = progress.total > 0;
+        const percent = hasLevels ? (progress.completed / progress.total) * 100 : 0;
+        const isMastered = hasLevels && progress.completed >= progress.total;
         // Keep the archive numbering stable while searching.
         const sectionIndex = allSubjects.findIndex(s => s.id === subject.id) + 1;
+        const branches = getBranchesForTrack(subject.id).filter(b => {
+            const bProgress = getBranchProgress(b.id, solvedQuotes || new Set());
+            return bProgress.total > 0;
+        });
 
         return (
-            <Pressable
+            <View
                 key={subject.id}
-                style={({ pressed }) => [
-                    styles.gridItem,
-                    pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] }
-                ]}
-                onPress={() => handleSelectGenre(subject.id)}
-                android_ripple={{ color: `${colors.primary}14` }}
-                accessibilityRole="button"
-                accessibilityLabel={`${subject.label} subject archive`}
+                style={styles.gridItem}
+                accessibilityRole="summary"
+                accessibilityLabel={`${subject.label} subject track`}
             >
                 <View style={[
                     styles.card,
@@ -80,9 +91,11 @@ export const LibraryScreen = () => {
                                 {`No. ${sectionIndex.toString().padStart(2, '0')}`}
                             </Text>
                             <Text style={[styles.cardRatio, { color: isMastered ? colors.primary : colors.textMuted }]}>
-                                {isMastered
-                                    ? 'MASTERED'
-                                    : `${progress.completed.toString().padStart(2, '0')}/${progress.total.toString().padStart(2, '0')} [${Math.round(percent)}%]`}
+                                {!hasLevels
+                                    ? 'AVAILABLE SOON'
+                                    : isMastered
+                                        ? 'MASTERED'
+                                        : `${progress.completed.toString().padStart(2, '0')}/${progress.total.toString().padStart(2, '0')} [${Math.round(percent)}%]`}
                             </Text>
                         </View>
                     </View>
@@ -96,22 +109,97 @@ export const LibraryScreen = () => {
                         </Text>
                     </View>
 
-                    {/* Minimal Cryptographic Progress Track */}
+                    {/* Track Overall Progress Track */}
                     <View style={[styles.progressTrack, { backgroundColor: colors.surfaceHighlight }]}>
                         <View
                             style={[
                                 styles.progressBar,
                                 {
-                                    width: `${Math.max(4, percent)}%`,
+                                    width: hasLevels ? `${Math.max(4, percent)}%` : '0%',
                                     backgroundColor: isMastered ? colors.primary : colors.matching
                                 }
                             ]}
                         />
                     </View>
+
+                    {/* Curriculum Branches List */}
+                    {branches.length > 0 && (
+                        <View style={[styles.branchListContainer, { borderTopColor: colors.border }]}>
+                            <View style={styles.branchListHeaderRow}>
+                                <Text style={[styles.branchListSectionTitle, { color: colors.textMuted }]}>
+                                    {branches.length === 1 ? 'CURRICULUM BRANCH' : `CURRICULUM BRANCHES (${branches.length})`}
+                                </Text>
+                            </View>
+                            {branches.map((branch, bIdx) => {
+                                const bProgress = getBranchProgress(branch.id, solvedQuotes || new Set());
+                                const bHasLevels = bProgress.total > 0;
+                                const bPercent = bHasLevels ? (bProgress.completed / bProgress.total) * 100 : 0;
+                                const bMastered = bHasLevels && bProgress.completed >= bProgress.total;
+
+                                if (!bHasLevels) {
+                                    return null;
+                                }
+
+                                return (
+                                    <Pressable
+                                        key={branch.id}
+                                        style={({ pressed }) => [
+                                            styles.branchRow,
+                                            { borderTopColor: colors.border },
+                                            pressed && { backgroundColor: `${colors.primary}10`, opacity: 0.85 }
+                                        ]}
+                                        onPress={() => handleSelectBranch(branch.id)}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={`Play ${branch.label} branch, ${bProgress.completed} of ${bProgress.total} solved`}
+                                        android_ripple={{ color: `${colors.primary}14` }}
+                                    >
+                                        <View style={styles.branchLeft}>
+                                            <Text style={[styles.branchOrderText, { color: colors.textMuted }]}>
+                                                {(bIdx + 1).toString().padStart(2, '0')}
+                                            </Text>
+                                            <View style={styles.branchInfo}>
+                                                <Text style={[styles.branchLabel, { color: colors.text }]}>
+                                                    {branch.label}
+                                                </Text>
+                                                {branch.description ? (
+                                                    <Text style={[styles.branchDescription, { color: colors.textSecondary }]} numberOfLines={1}>
+                                                        {branch.description}
+                                                    </Text>
+                                                ) : null}
+                                            </View>
+                                        </View>
+                                        <View style={styles.branchRight}>
+                                            <Text style={[
+                                                styles.branchTelemetry,
+                                                { color: bMastered ? colors.primary : colors.textMuted }
+                                            ]}>
+                                                {bMastered
+                                                    ? 'MASTERED'
+                                                    : `${bProgress.completed}/${bProgress.total}`}
+                                            </Text>
+                                            <View style={[styles.branchMiniProgressBg, { backgroundColor: colors.surfaceHighlight }]}>
+                                                <View
+                                                    style={[
+                                                        styles.branchMiniProgressFill,
+                                                        {
+                                                            width: `${Math.max(4, bPercent)}%`,
+                                                            backgroundColor: bMastered ? colors.primary : colors.matching
+                                                        }
+                                                    ]}
+                                                />
+                                            </View>
+                                            <Text style={[styles.branchChevron, { color: colors.textMuted }]}>›</Text>
+                                        </View>
+                                    </Pressable>
+                                );
+                            })}
+                        </View>
+                    )}
                 </View>
-            </Pressable>
+            </View>
         );
     };
+
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -344,14 +432,10 @@ const styles = StyleSheet.create({
         fontFamily: 'monospace',
     },
     grid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 10,
+        gap: 12,
     },
     gridItem: {
-        // 48% + gap fits two columns on 320-360dp screens; 48.5% overflowed by a
-        // fraction of a pixel and wrapped to a broken single column.
-        width: '48%',
+        width: '100%',
     },
     emptyResults: {
         padding: 20,
@@ -371,12 +455,11 @@ const styles = StyleSheet.create({
         lineHeight: 18,
     },
     card: {
-        padding: 12,
+        padding: 14,
         borderRadius: RADIUS.card,
         borderWidth: 1,
         gap: 10,
         minHeight: 120,
-        justifyContent: 'space-between',
     },
     cardHeaderRow: {
         flexDirection: 'row',
@@ -412,12 +495,12 @@ const styles = StyleSheet.create({
         gap: 2,
     },
     label: {
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '700',
     },
     description: {
-        fontSize: 11,
-        lineHeight: 15,
+        fontSize: 12,
+        lineHeight: 16,
     },
     progressTrack: {
         height: 4,
@@ -429,4 +512,92 @@ const styles = StyleSheet.create({
         height: '100%',
         borderRadius: RADIUS.micro,
     },
+    branchListContainer: {
+        marginTop: 6,
+        borderTopWidth: 1,
+        paddingTop: 8,
+    },
+    branchListHeaderRow: {
+        paddingHorizontal: 2,
+        paddingBottom: 4,
+    },
+    branchListSectionTitle: {
+        fontSize: 10,
+        fontWeight: '800',
+        fontFamily: 'monospace',
+        letterSpacing: 0.8,
+    },
+    branchRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 10,
+        paddingHorizontal: 4,
+        minHeight: 48,
+        borderTopWidth: StyleSheet.hairlineWidth,
+    },
+    branchRowDisabled: {
+        opacity: 0.65,
+    },
+    branchLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        flex: 1,
+    },
+    branchOrderText: {
+        fontSize: 11,
+        fontWeight: '700',
+        fontFamily: 'monospace',
+        width: 20,
+    },
+    branchInfo: {
+        flex: 1,
+    },
+    branchLabel: {
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    branchDescription: {
+        fontSize: 11,
+        marginTop: 1,
+    },
+    branchRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        marginLeft: 8,
+    },
+    branchTelemetry: {
+        fontSize: 11,
+        fontWeight: '700',
+        fontFamily: 'monospace',
+    },
+    branchMiniProgressBg: {
+        width: 44,
+        height: 4,
+        borderRadius: 2,
+        overflow: 'hidden',
+    },
+    branchMiniProgressFill: {
+        height: 4,
+        borderRadius: 2,
+    },
+    branchChevron: {
+        fontSize: 16,
+        fontWeight: '700',
+        marginLeft: 2,
+    },
+    unavailableBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4,
+    },
+    unavailableBadgeText: {
+        fontSize: 9,
+        fontWeight: '800',
+        fontFamily: 'monospace',
+        letterSpacing: 0.5,
+    },
+
 });

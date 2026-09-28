@@ -16,6 +16,7 @@ import {
   getNextQuote,
   isGenreComplete,
   getGenreProgress,
+  getCategoryQuoteIds,
   getDailyQuote,
   getRandomBlitzQuote,
 } from '../src/services/quoteService';
@@ -121,16 +122,39 @@ describe('Cipher Algorithms & Math Engine', () => {
     expect(xItem?.solved).toBe(false);
   });
 
-  test('getNextUnsolvedIndex navigates to the next empty/incorrect cell with wrap-around', () => {
-    const text = "ABC";
-    const cipher = { A: 'X', B: 'Y', C: 'Z' };
-    const userMap = { X: 'A', Z: 'C' }; // only B (index 1) is unsolved
+  // Item 6: Consecutive-gap navigation & strict forward auto-advance
+  // Rules:
+  // - "Next" and correct-letter auto-advance move STRICTLY FORWARD from current cell, skipping non-letters.
+  // - Wrap to earliest unsolved gap ONLY when nothing ahead is unsolved.
+  // - Two consecutive gaps must advance forward from the current gap without getting stuck or jumping backwards.
+  test('getNextUnsolvedIndex navigates strictly forward across consecutive gaps and wraps only when end reached', () => {
+    const text = "A BC DE";
+    // Indices: 0:'A', 1:' ', 2:'B', 3:'C', 4:' ', 5:'D', 6:'E'
+    const cipher = { A: '1', B: '2', C: '3', D: '4', E: '5' };
+    // 'A' and 'E' are solved. Consecutive gaps 'B' (idx 2) and 'C' (idx 3), plus 'D' (idx 5) are unsolved.
+    const userMap = { '1': 'A', '5': 'E' };
 
-    const nextIdx = getNextUnsolvedIndex(text, cipher, userMap, 0);
-    expect(nextIdx).toBe(1);
+    // From 0 ('A'), moves strictly forward skipping space at 1 to 'B' at 2
+    expect(getNextUnsolvedIndex(text, cipher, userMap, 0)).toBe(2);
 
-    const wrapIdx = getNextUnsolvedIndex(text, cipher, userMap, 2);
-    expect(wrapIdx).toBe(1);
+    // From consecutive gap 2 ('B'), moves strictly forward to consecutive gap 3 ('C')
+    // Previously, consecutive gaps could cause cursor to get stuck or jump back; here it must be strictly forward
+    expect(getNextUnsolvedIndex(text, cipher, userMap, 2)).toBe(3);
+
+    // From 3 ('C'), moves strictly forward skipping space at 4 to 'D' at 5
+    expect(getNextUnsolvedIndex(text, cipher, userMap, 3)).toBe(5);
+
+    // From 5 ('D'), nothing ahead is unsolved ('E' at 6 is solved), so it wraps to earliest unsolved gap ('B' at 2)
+    expect(getNextUnsolvedIndex(text, cipher, userMap, 5)).toBe(2);
+
+    // When everything is solved, returns null
+    const allSolvedUserMap = { '1': 'A', '2': 'B', '3': 'C', '4': 'D', '5': 'E' };
+    expect(getNextUnsolvedIndex(text, cipher, allSolvedUserMap, 2)).toBeNull();
+
+    // Edge cases: empty text and out-of-bounds start
+    expect(getNextUnsolvedIndex('', cipher, userMap, 0)).toBeNull();
+    expect(getNextUnsolvedIndex(text, cipher, userMap, -1)).toBe(2);
+    expect(getNextUnsolvedIndex(text, cipher, userMap, 99)).toBe(2);
   });
 
   test('getPreviousCellIndex finds the preceding alphabetic cell', () => {
@@ -178,7 +202,11 @@ describe('Cipher Algorithms & Math Engine', () => {
 describe('Quote Service & Content Database', () => {
 
   test('All quote categories in database have valid non-empty quotes and answers', () => {
-    for (const [, quotes] of Object.entries(QUOTE_DB)) {
+    for (const [cat, quotes] of Object.entries(QUOTE_DB)) {
+      if (cat === 'lexicon') {
+        expect(Array.isArray(quotes)).toBe(true);
+        continue;
+      }
       expect(quotes.length).toBeGreaterThanOrEqual(10);
       for (const q of quotes) {
         expect(q.text.length).toBeGreaterThan(10);
@@ -191,19 +219,20 @@ describe('Quote Service & Content Database', () => {
     const solvedSet = new Set<string>();
     const first = getNextQuote('biology', solvedSet);
     expect(first).not.toBeNull();
-    expect(first?.id).toBe('biology-0');
+    expect(first?.id).toBe('biology-mitochondria');
 
-    solvedSet.add('biology-0');
+    solvedSet.add('biology-mitochondria');
     const second = getNextQuote('biology', solvedSet);
-    expect(second?.id).toBe('biology-1');
+    expect(second?.id).toBe('biology-photosynthesis');
   });
 
   test('getGenreProgress and isGenreComplete work accurately', () => {
     const totalBio = QUOTE_DB['biology'].length;
+    const bioIds = getCategoryQuoteIds('biology');
     const solvedSet = new Set<string>();
 
-    for (let i = 0; i < totalBio; i++) {
-      solvedSet.add(`biology-${i}`);
+    for (const id of bioIds) {
+      solvedSet.add(id);
     }
 
     expect(isGenreComplete('biology', solvedSet)).toBe(true);

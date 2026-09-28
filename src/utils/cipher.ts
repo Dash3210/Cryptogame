@@ -1,4 +1,4 @@
-import { QuoteData, CellData, Difficulty, SolveGrade, LetterFrequency, CoinRewardBreakdown, GameMode } from '../types';
+import { QuoteData, CellData, Difficulty, SolveGrade, LetterFrequency, CoinRewardBreakdown, GameMode, LengthTier, DynamicScoringParams, DynamicScoringResult } from '../types';
 
 export type CipherMap = Record<string, string>;
 
@@ -197,7 +197,55 @@ export function getLetterFrequencies(
 }
 
 /**
- * Index-based traversal to find next unsolved cell
+ * Calculate dynamic board letter frequency hint weights in [0, 1].
+ * Rule:
+ *   hintWeight(k) = (count of k in text) / (max letter count in text),
+ *   ONLY when k is decoded (a known cipher->plain mapping produces k);
+ *   otherwise exactly 0.
+ * A decoded letter with count 0 stays completely unlit (weight = 0).
+ * Undecoded keys receive weight 0 so nothing leaks.
+ */
+export function getBoardHintWeights(
+    text: string,
+    cipherMap: Record<string, string>,
+    userMap: Record<string, string>
+): Record<string, number> {
+    const list = getLetterFrequencies(text, cipherMap, userMap);
+    if (list.length === 0) return {};
+
+    const maxCount = Math.max(...list.map(item => item.frequency));
+    if (maxCount <= 0) return {};
+
+    const weights: Record<string, number> = {};
+    for (const item of list) {
+        if (item.solved && item.frequency > 0) {
+            weights[item.char] = item.frequency / maxCount;
+        }
+    }
+    return weights;
+}
+
+/**
+ * Calculate the frequency hint weight for a single plaintext key k on this board.
+ * Returns in [0, 1]. Returns 0 if undecoded, count 0, or not in text.
+ */
+export function calculateBoardHintWeight(
+    k: string,
+    text: string,
+    cipherMap: Record<string, string>,
+    userMap: Record<string, string>
+): number {
+    const upperK = k.toUpperCase();
+    if (!/[A-Z]/.test(upperK)) return 0;
+    const weights = getBoardHintWeights(text, cipherMap, userMap);
+    return weights[upperK] ?? 0;
+}
+
+/**
+ * Strict forward index-based traversal to find next unsolved cell.
+ * Behaviour:
+ * - "Next" and correct-letter auto-advance move STRICTLY FORWARD from the current cell, skipping non-letters.
+ * - Wrap to the earliest unsolved gap ONLY when nothing ahead is unsolved.
  */
 export function getNextUnsolvedIndex(
     text: string,
@@ -209,8 +257,6 @@ export function getNextUnsolvedIndex(
     const len = upperText.length;
     if (len === 0) return null;
 
-    const safeStart = Math.min(Math.max(-1, startIndex), len - 1);
-
     const isIndexUnsolved = (idx: number): boolean => {
         const char = upperText[idx];
         if (!char || !/[A-Z]/.test(char)) return false;
@@ -220,13 +266,16 @@ export function getNextUnsolvedIndex(
         return userGuess !== char;
     };
 
-    // Scan forward from safeStart + 1
+    const safeStart = Math.max(-1, startIndex);
+
+    // 1. Scan STRICTLY FORWARD from safeStart + 1, skipping non-letters
     for (let i = safeStart + 1; i < len; i++) {
         if (isIndexUnsolved(i)) return i;
     }
 
-    // Wrap around
-    for (let i = 0; i <= safeStart; i++) {
+    // 2. Wrap to the earliest unsolved gap ONLY when nothing ahead is unsolved
+    const wrapLimit = Math.min(safeStart, len - 1);
+    for (let i = 0; i <= wrapLimit; i++) {
         if (isIndexUnsolved(i)) return i;
     }
 
@@ -304,10 +353,24 @@ export function calculateSolveGrade(
 }
 
 /**
+ * Determine puzzle length tier and associated coin bonus:
+ * Short (<60 alpha): +0
+ * Medium (60-100 alpha): +15
+ * Long (101-150 alpha): +30
+ * Epic (>150 alpha): +45
+ */
+export function getLengthTier(alphaCount: number): { tier: LengthTier; bonus: number } {
+    if (alphaCount > 150) return { tier: 'Epic', bonus: 45 };
+    if (alphaCount >= 101) return { tier: 'Long', bonus: 30 };
+    if (alphaCount >= 60) return { tier: 'Medium', bonus: 15 };
+    return { tier: 'Short', bonus: 0 };
+}
+
+/**
  * Transparent Itemized Coins Economy Calculator
  * Eliminates legacy dual score/coins ambiguity.
  * Rewards level completion with an itemized breakdown:
- * e.g. "45/50 coins gained: -2 for wrong answer, -2 for hint, -1 for exceeding time"
+ * e.g. "Base Level Reward (Normal - Medium): +65"
  */
 export function calculateCoinReward(params: {
     difficulty: Difficulty;
@@ -317,6 +380,8 @@ export function calculateCoinReward(params: {
     accuracy: number;
     usedMasterKey?: boolean;
     mode?: GameMode;
+    quoteText?: string;
+    alphaCount?: number;
 }): CoinRewardBreakdown {
     const {
         difficulty,
@@ -325,23 +390,36 @@ export function calculateCoinReward(params: {
         mistakesCount,
         accuracy,
         usedMasterKey = false,
-        mode = 'standard'
+        mode = 'standard',
+        quoteText,
+        alphaCount: explicitAlpha
     } = params;
 
-    // Base Level Reward
-    let baseCoins = 50;
+    let alphaCount = explicitAlpha;
+    if (alphaCount === undefined) {
+        alphaCount = quoteText ? (quoteText.toUpperCase().match(/[A-Z]/g) || []).length : 0;
+    }
+
+    const { tier: lengthTier, bonus: lengthBonus } = getLengthTier(alphaCount);
+
+    // Base difficulty coins
+    let difficultyBase = 50;
     if (mode === 'daily') {
-        baseCoins = 60;
+        difficultyBase = 60;
     } else if (mode === 'blitz') {
-        baseCoins = 25;
+        difficultyBase = 25;
     } else {
         switch (difficulty) {
-            case 'Easy': baseCoins = 40; break;
-            case 'Normal': baseCoins = 50; break;
-            case 'Hard': baseCoins = 65; break;
-            case 'Legendary': baseCoins = 80; break;
+            case 'Easy': difficultyBase = 40; break;
+            case 'Normal': difficultyBase = 50; break;
+            case 'Hard': difficultyBase = 65; break;
+            case 'Legendary': difficultyBase = 80; break;
         }
     }
+
+    const baseCoins = difficultyBase + lengthBonus;
+    const diffName = mode === 'daily' ? 'Daily' : mode === 'blitz' ? 'Blitz' : difficulty;
+    const baseLabel = `Base Level Reward (${diffName} - ${lengthTier})`;
 
     // Par Time Limits in seconds
     let parTime = 90;
@@ -363,15 +441,35 @@ export function calculateCoinReward(params: {
     const overtime = Math.max(0, timerSeconds - parTime);
     const timeDeduction = Math.min(10, Math.floor(overtime / 20));
 
-    // Master Key Penalty: heavy deduction for instant full reveal
-    const keyDeduction = usedMasterKey ? 35 : 0;
+    // Master Key solve => flat 10 coins, 0 points, grade D, no bonus
+    if (usedMasterKey) {
+        return {
+            baseCoins,
+            baseLabel,
+            lengthTier,
+            lengthBonus,
+            mistakeDeduction: 0,
+            hintDeduction: 0,
+            timeDeduction: 0,
+            keyDeduction: Math.max(0, baseCoins - 10),
+            cleanBonus: 0,
+            netCoins: 10,
+            grade: 'D',
+            gradeTitle: 'Cipher Apprentice',
+            stars: 1,
+            accuracyPercent: accuracy,
+            mistakesCount,
+            hintsCount: hintsUsed,
+            timeSeconds: timerSeconds
+        };
+    }
 
     // Clean Solve / Perfection bonus: +5 coins if 0 mistakes, 0 hints, and no key used
-    const cleanBonus = (!usedMasterKey && mistakesCount === 0 && hintsUsed === 0) ? 5 : 0;
+    const cleanBonus = (mistakesCount === 0 && hintsUsed === 0) ? 5 : 0;
 
-    // Calculate Net Coins with a guaranteed floor of 5 coins (effort always recognized)
-    const rawNet = baseCoins - mistakeDeduction - hintDeduction - timeDeduction - keyDeduction + cleanBonus;
-    const netCoins = Math.max(5, rawNet);
+    // Calculate Net Coins with a guaranteed floor of 15 coins (effort always recognized)
+    const rawNet = baseCoins - mistakeDeduction - hintDeduction - timeDeduction + cleanBonus;
+    const netCoins = Math.max(15, rawNet);
 
     const gradeInfo = calculateSolveGrade(
         accuracy,
@@ -384,10 +482,13 @@ export function calculateCoinReward(params: {
 
     return {
         baseCoins,
+        baseLabel,
+        lengthTier,
+        lengthBonus,
         mistakeDeduction,
         hintDeduction,
         timeDeduction,
-        keyDeduction,
+        keyDeduction: 0,
         cleanBonus,
         netCoins,
         grade: gradeInfo.grade,
@@ -414,6 +515,118 @@ export function getComboMultiplier(comboCount: number): number {
 }
 
 /**
+ * Dynamic Scoring Calculator
+ * Points scale with gaps and difficulty (short quotes score low).
+ * Length + difficulty scaled grace window (no time loss within it, then smooth decay capped at 50% max).
+ * Point magnitudes comparable (hundreds to low thousands). Consistent maxScore.
+ */
+export function calculateDynamicPoints(params: DynamicScoringParams): DynamicScoringResult {
+    const {
+        quoteText,
+        alphaCount: explicitAlpha,
+        difficulty = 'Normal',
+        timerSeconds,
+        hintsUsed,
+        mistakesCount,
+        accuracy = 100,
+        comboMax = 0,
+        usedMasterKey = false,
+        mode = 'standard'
+    } = params;
+
+    let alpha = explicitAlpha;
+    if (alpha === undefined) {
+        alpha = quoteText !== undefined ? (quoteText.toUpperCase().match(/[A-Z]/g) || []).length : 50;
+    }
+    const effectiveAlpha = Math.max(1, alpha);
+
+    const diffKey = mode === 'daily' ? 'Daily' : mode === 'blitz' ? 'Blitz' : difficulty;
+
+    let gapRatio = 0.75;
+    let diffMultiplier = 1.0;
+    let baseGrace = 90;
+
+    switch (diffKey) {
+        case 'Easy':
+            gapRatio = 0.55;
+            diffMultiplier = 0.8;
+            baseGrace = 60;
+            break;
+        case 'Normal':
+            gapRatio = 0.75;
+            diffMultiplier = 1.0;
+            baseGrace = 90;
+            break;
+        case 'Hard':
+            gapRatio = 0.90;
+            diffMultiplier = 1.25;
+            baseGrace = 120;
+            break;
+        case 'Legendary':
+            gapRatio = 1.00;
+            diffMultiplier = 1.5;
+            baseGrace = 150;
+            break;
+        case 'Daily':
+            gapRatio = 0.75;
+            diffMultiplier = 1.1;
+            baseGrace = 90;
+            break;
+        case 'Blitz':
+            gapRatio = 0.55;
+            diffMultiplier = 0.9;
+            baseGrace = 45;
+            break;
+    }
+
+    const basePoints = Math.round(
+        Math.max(1, Math.round(effectiveAlpha * gapRatio)) * 10 * diffMultiplier
+    );
+
+    const graceSeconds = baseGrace + Math.round(effectiveAlpha * 0.75);
+    const overtime = Math.max(0, timerSeconds - graceSeconds);
+    const timeLossPercent = overtime > 0
+        ? Math.min(50, Math.round((overtime / Math.max(120, graceSeconds)) * 50))
+        : 0;
+    const timeFactor = 1.0 - (timeLossPercent / 100);
+
+    const accuracyFactor = Math.max(0.5, accuracy / 100);
+    const cleanMultiplier = (hintsUsed === 0 && mistakesCount === 0) ? 1.1 : 1.0;
+    const comboMultiplier = getComboMultiplier(comboMax);
+
+    if (usedMasterKey) {
+        const theoreticalMax = Math.round(basePoints * 1.1 * 2.5);
+        return {
+            score: 0,
+            maxScore: theoreticalMax,
+            basePoints,
+            graceSeconds,
+            timeLossPercent: 0,
+            timeFactor: 1.0,
+            accuracyFactor,
+            cleanMultiplier: 1.0,
+            comboMultiplier: 1.0
+        };
+    }
+
+    const pointsWithoutCombo = Math.round(basePoints * timeFactor * accuracyFactor * cleanMultiplier);
+    const score = Math.max(10, Math.round(pointsWithoutCombo * comboMultiplier));
+    const maxScore = Math.max(score, Math.round(basePoints * 1.1 * 2.5));
+
+    return {
+        score,
+        maxScore,
+        basePoints,
+        graceSeconds,
+        timeLossPercent,
+        timeFactor,
+        accuracyFactor,
+        cleanMultiplier,
+        comboMultiplier
+    };
+}
+
+/**
  * Dynamic Score and Coin rewards calculator (backward-compatible adapter).
  * `comboMax` applies a real multiplier to the points score (see getComboMultiplier)
  * and `accuracy` is honoured by the grade, so this can no longer report a
@@ -426,22 +639,50 @@ export function calculateScoreAndCoins(
     hintsUsed: number,
     mistakesCount: number,
     comboMax: number,
-    accuracy = 100
+    accuracy = 100,
+    usedMasterKey = false,
+    mode?: GameMode
 ): { score: number; maxScore: number; coinsEarned: number; timeBonus: number } {
     const reward = calculateCoinReward({
         difficulty,
         timerSeconds,
         hintsUsed,
         mistakesCount,
-        accuracy
+        accuracy,
+        usedMasterKey,
+        quoteText,
+        mode
     });
-    const multiplier = getComboMultiplier(comboMax);
+    const scoring = calculateDynamicPoints({
+        quoteText,
+        difficulty,
+        timerSeconds,
+        hintsUsed,
+        mistakesCount,
+        accuracy,
+        comboMax,
+        usedMasterKey,
+        mode
+    });
+    const timeBonus = !usedMasterKey && scoring.timeLossPercent === 0
+        ? reward.cleanBonus * 5 + (timerSeconds <= scoring.graceSeconds ? 10 : 0)
+        : 0;
+
     return {
-        score: Math.round(reward.netCoins * 10 * multiplier),
-        maxScore: reward.baseCoins * 10,
+        score: scoring.score,
+        maxScore: scoring.maxScore,
         coinsEarned: reward.netCoins,
-        timeBonus: reward.cleanBonus * 5
+        timeBonus
     };
+}
+
+/**
+ * Convert Blitz Rush score points to coins at a 50:1 ratio,
+ * with a guaranteed minimum of 5 coins and capped at 100 coins.
+ */
+export function convertBlitzPointsToCoins(points: number): number {
+    if (!Number.isFinite(points) || points <= 0) return 5;
+    return Math.min(100, Math.max(5, Math.round(points / 50)));
 }
 
 /**

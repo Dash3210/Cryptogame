@@ -1,8 +1,9 @@
 import React, { useMemo, useRef } from 'react';
 import { View, Pressable, StyleSheet, useWindowDimensions, Animated } from 'react-native';
 import { AppText as Text } from './AppText';
+import { Icon } from './Icon';
 import { useGame } from '../context/GameContext';
-import { SPRING_PRESETS, englishFrequencyWeight } from '../utils/physics';
+import { SPRING_PRESETS } from '../utils/physics';
 
 interface VirtualKeyboardProps {
     usedLetters: Set<string>;
@@ -10,8 +11,9 @@ interface VirtualKeyboardProps {
     onDelete: () => void;
     onNext: () => void;
     blockUsedLetters: boolean;
-    /** Shade keys by how common the letter is in English (cryptanalysis aid). */
+    /** Shade keys by letter frequency for letters already decoded on this board. */
     frequencyHints?: boolean;
+    letterWeights?: Record<string, number>;
 }
 
 const KEYS = [
@@ -117,6 +119,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = React.memo(({
     onNext,
     blockUsedLetters,
     frequencyHints = false,
+    letterWeights,
 }) => {
     const { colors, triggerHaptic } = useGame();
     const { width: windowWidth } = useWindowDimensions();
@@ -145,6 +148,33 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = React.memo(({
         <View style={[styles.container, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
             {KEYS.map((row, rowIndex) => (
                 <View key={rowIndex} style={styles.row}>
+                    {/* Next action key on the left end of the bottom row */}
+                    {rowIndex === 2 && (
+                        <Pressable
+                            onPress={() => {
+                                triggerHaptic('light');
+                                onNext();
+                            }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Next empty cell"
+                            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                            style={({ pressed }) => [
+                                styles.key,
+                                styles.nextKey,
+                                {
+                                    backgroundColor: colors.primaryBg,
+                                    borderColor: colors.primaryBorder,
+                                    borderBottomColor: colors.primary,
+                                    width: sizes.action,
+                                    height: sizes.height,
+                                },
+                                pressed && { transform: [{ scale: 0.96 }, { translateY: 1 }], borderBottomWidth: 1 },
+                            ]}
+                        >
+                            <Icon name="next-cell" size={20} color={colors.primary} />
+                        </Pressable>
+                    )}
+
                     {row.split('').map((char) => {
                         const isBlocked = blockUsedLetters && usedLetters.has(char);
 
@@ -156,62 +186,36 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = React.memo(({
                                 width={rowWidths[rowIndex]}
                                 height={sizes.height}
                                 colors={colors}
-                                hintWeight={frequencyHints ? englishFrequencyWeight(char) : 0}
+                                hintWeight={frequencyHints && letterWeights ? (letterWeights[char] ?? 0) : 0}
                                 onPress={onKeyPress}
                             />
                         );
                     })}
 
-                    {/* Action buttons on last row */}
+                    {/* Delete action key on the right end of the bottom row */}
                     {rowIndex === 2 && (
-                        <>
-                            <Pressable
-                                onPress={() => {
-                                    triggerHaptic('medium');
-                                    onDelete();
-                                }}
-                                accessibilityRole="button"
-                                accessibilityLabel="Delete letter"
-                                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                                style={({ pressed }) => [
-                                    styles.key,
-                                    styles.actionKey,
-                                    {
-                                        backgroundColor: colors.surfaceHighlight,
-                                        borderColor: colors.border,
-                                        width: sizes.action,
-                                        height: sizes.height,
-                                    },
-                                    pressed && { transform: [{ scale: 0.96 }, { translateY: 1 }], borderBottomWidth: 1 },
-                                ]}
-                            >
-                                <Text style={[styles.actionKeyText, { color: colors.textSecondary }]}>⌫</Text>
-                            </Pressable>
-
-                            <Pressable
-                                onPress={() => {
-                                    triggerHaptic('light');
-                                    onNext();
-                                }}
-                                accessibilityRole="button"
-                                accessibilityLabel="Next empty cell"
-                                hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                                style={({ pressed }) => [
-                                    styles.key,
-                                    styles.nextKey,
-                                    {
-                                        backgroundColor: colors.primaryBg,
-                                        borderColor: colors.primaryBorder,
-                                        borderBottomColor: colors.primary,
-                                        width: sizes.action,
-                                        height: sizes.height,
-                                    },
-                                    pressed && { transform: [{ scale: 0.96 }, { translateY: 1 }], borderBottomWidth: 1 },
-                                ]}
-                            >
-                                <Text style={[styles.nextKeyText, { color: colors.primary }]}>→</Text>
-                            </Pressable>
-                        </>
+                        <Pressable
+                            onPress={() => {
+                                triggerHaptic('medium');
+                                onDelete();
+                            }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Delete letter"
+                            hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                            style={({ pressed }) => [
+                                styles.key,
+                                styles.actionKey,
+                                {
+                                    backgroundColor: colors.surfaceHighlight,
+                                    borderColor: colors.border,
+                                    width: sizes.action,
+                                    height: sizes.height,
+                                },
+                                pressed && { transform: [{ scale: 0.96 }, { translateY: 1 }], borderBottomWidth: 1 },
+                            ]}
+                        >
+                            <Icon name="backspace" size={20} color={colors.textSecondary} />
+                        </Pressable>
                     )}
                 </View>
             ))}
@@ -254,20 +258,6 @@ const styles = StyleSheet.create({
         fontSize: 17,
         fontWeight: '800',
     },
-    actionKey: {
-        marginLeft: 3,
-    },
-    actionKeyText: {
-        fontSize: 17,
-        fontWeight: '800',
-        paddingLeft: 2,
-    },
-    nextKey: {
-        marginLeft: 3,
-    },
-    nextKeyText: {
-        fontSize: 17,
-        fontWeight: '900',
-        marginTop: -1,
-    },
+    actionKey: {},
+    nextKey: {},
 });

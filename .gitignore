@@ -83,3 +83,15 @@ yarn-error.log
 
 # Build logs
 *.log
+
+# content pipeline raw dataset (public domain, 21.9MB) - regenerate with scripts/content/stage_samples.py
+content/_websters1913.json
+# review workbench artifacts
+content/.backups/
+content/approved_*.csv
+scripts/content/__pycache__/
+
+# Generated knowledge-graph output (regenerable)
+graphify-out/
+# Playwright MCP scratch output
+.playwright-mcp/

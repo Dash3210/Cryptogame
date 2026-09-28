@@ -36,7 +36,7 @@ export const BonusGuessModal: React.FC<BonusGuessModalProps> = ({
         if (resolvedRef.current) return;
         resolvedRef.current = true;
         setPicked(option);
-        const correct = option === correctAnswer;
+        const correct = option.trim() === correctAnswer.trim();
         triggerHaptic(correct ? 'success' : 'error');
         onResolved(correct);
     }, [correctAnswer, onResolved, triggerHaptic]);
@@ -58,7 +58,7 @@ export const BonusGuessModal: React.FC<BonusGuessModalProps> = ({
                         </View>
 
                         <Text style={[styles.title, { color: colors.text }]}>
-                            {picked === null ? 'Name the term' : 'Result'}
+                            Double or Nothing
                         </Text>
                         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
                             {picked === null
@@ -76,9 +76,9 @@ export const BonusGuessModal: React.FC<BonusGuessModalProps> = ({
 
                         <View style={styles.options}>
                             {options.map(option => {
-                                const isCorrect = option === correctAnswer;
+                                const isCorrect = option.trim() === correctAnswer.trim();
                                 const isPicked = option === picked;
-                                const revealCorrect = picked !== null && isCorrect;
+                                const revealCorrect = picked !== null && isPicked && isCorrect;
                                 const revealWrong = picked !== null && isPicked && !isCorrect;
 
                                 return (

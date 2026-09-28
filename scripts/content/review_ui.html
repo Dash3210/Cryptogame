@@ -1,0 +1,2823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content Review Workbench — BrainCipher</title>
+  <style>
+    /* CSS Custom Properties & Design Tokens */
+    :root {
+      --bg-canvas: #090d16;
+      --bg-rail: #0f1523;
+      --bg-panel: #131b2e;
+      --bg-card: #182238;
+      --bg-card-subtle: #1c2740;
+      --bg-input: #101726;
+      
+      --border-subtle: #22304d;
+      --border-medium: #2e4066;
+      --border-focus: #38bdf8;
+      
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --text-inverse: #090d16;
+      
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      
+      --approved: #10b981;
+      --approved-bg: rgba(16, 185, 129, 0.15);
+      --approved-border: #059669;
+      --approved-text: #6ee7b7;
+      
+      --rejected: #f43f5e;
+      --rejected-bg: rgba(244, 63, 94, 0.15);
+      --rejected-border: #e11d48;
+      --rejected-text: #fda4af;
+      
+      --edit: #f59e0b;
+      --edit-bg: rgba(245, 158, 11, 0.15);
+      --edit-border: #d97706;
+      --edit-text: #fde68a;
+      
+      --unreviewed: #64748b;
+      --unreviewed-bg: rgba(100, 116, 139, 0.15);
+      --unreviewed-border: #475569;
+      --unreviewed-text: #cbd5e1;
+      
+      --tier-short: #38bdf8;
+      --tier-med: #34d399;
+      --tier-long: #c084fc;
+      --tier-epic: #f472b6;
+      
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+      
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+      
+      --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      --font-editorial: "Charter", "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+    }
+
+    /* Reset & Base Setup */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      line-height: 1.5;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    ::selection {
+      background-color: rgba(56, 189, 248, 0.35);
+      color: #ffffff;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 2px;
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-rail);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-subtle);
+      border-radius: var(--radius-sm);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--border-medium);
+    }
+
+    /* Layout Shell */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      height: 52px;
+      background-color: var(--bg-rail);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      gap: 16px;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      background-color: rgba(56, 189, 248, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .brand-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+
+    .top-metrics {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex: 1;
+      justify-content: center;
+      max-width: 600px;
+    }
+
+    .progress-bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .progress-track {
+      height: 6px;
+      background-color: var(--bg-input);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--approved) 0%, var(--accent) 100%);
+      width: 100%;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 200ms ease-out;
+    }
+
+    .progress-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .save-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    .save-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--approved);
+    }
+
+    .save-indicator.saving .save-dot {
+      background-color: var(--edit);
+      animation: pulse 1s infinite alternate;
+    }
+
+    .save-indicator.error .save-dot {
+      background-color: var(--rejected);
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    /* Main Container (Split Rail + Main Panel) */
+    .workbench-body {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 52px);
+      overflow: hidden;
+    }
+
+    /* Left Rail */
+    .left-rail {
+      width: 360px;
+      background-color: var(--bg-rail);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      height: 100%;
+    }
+
+    .rail-header {
+      padding: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .file-picker-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .select-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    select, input, textarea {
+      font-family: inherit;
+      color: var(--text-primary);
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      transition-property: border-color, box-shadow;
+      transition-duration: 150ms;
+      transition-timing-function: ease-out;
+    }
+
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+
+    .file-select {
+      width: 100%;
+      height: 34px;
+      padding: 0 10px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* Search Bar */
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 32px;
+      padding: 0 54px 0 28px;
+      font-size: 12px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 8px;
+      width: 14px;
+      height: 14px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    .search-shortcut {
+      position: absolute;
+      right: 28px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 1px 5px;
+      border-radius: var(--radius-sm);
+      pointer-events: none;
+    }
+
+    .clear-search-btn {
+      position: absolute;
+      right: 6px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 2px 6px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .clear-search-btn.active {
+      display: block;
+    }
+
+    /* Status Filters */
+    .filter-pills {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+    }
+
+    .filter-btn {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      border-radius: var(--radius-md);
+      padding: 5px 2px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      transition-property: background-color, border-color, color;
+      transition-duration: 150ms;
+      transition-timing-function: ease-out;
+    }
+
+    .filter-btn:hover {
+      background-color: var(--bg-card-subtle);
+      color: var(--text-primary);
+    }
+
+    .filter-btn.active {
+      background-color: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .filter-count {
+      font-size: 10px;
+      font-variant-numeric: tabular-nums;
+      opacity: 0.8;
+    }
+
+    .issues-filter-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 6px;
+      background-color: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      color: var(--edit-text);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .issues-filter-toggle.active {
+      background-color: rgba(245, 158, 11, 0.2);
+      border-color: var(--edit);
+      font-weight: 600;
+    }
+
+    /* Virtualized List Container */
+    .virtual-list-container {
+      flex: 1;
+      overflow-y: auto;
+      position: relative;
+      background-color: var(--bg-rail);
+    }
+
+    .virtual-list-spacer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      pointer-events: none;
+    }
+
+    .virtual-items-viewport {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+    }
+
+    /* Virtual List Row Item */
+    .row-item {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      gap: 10px;
+      border-bottom: 1px solid rgba(34, 48, 77, 0.6);
+      cursor: pointer;
+      background-color: transparent;
+      transition-property: background-color;
+      transition-duration: 100ms;
+      transition-timing-function: ease-out;
+      user-select: none;
+    }
+
+    .row-item:hover {
+      background-color: rgba(255, 255, 255, 0.03);
+    }
+
+    .row-item.active {
+      background-color: rgba(56, 189, 248, 0.16);
+      box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.4);
+      border-radius: var(--radius-sm);
+    }
+
+    .row-index {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      width: 34px;
+      flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .row-status-icon {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border-radius: 50%;
+    }
+
+    .row-status-icon.approved { color: var(--approved); }
+    .row-status-icon.rejected { color: var(--rejected); }
+    .row-status-icon.edit { color: var(--edit); }
+    .row-status-icon.unreviewed { color: var(--text-muted); }
+
+    .row-term {
+      flex: 1;
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .row-meta-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .tier-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .tier-badge.short { color: var(--tier-short); background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); }
+    .tier-badge.medium { color: var(--tier-med); background: rgba(52, 211, 153, 0.12); border: 1px solid rgba(52, 211, 153, 0.25); }
+    .tier-badge.long { color: var(--tier-long); background: rgba(192, 132, 252, 0.12); border: 1px solid rgba(192, 132, 252, 0.25); }
+    .tier-badge.epic { color: var(--tier-epic); background: rgba(244, 114, 182, 0.12); border: 1px solid rgba(244, 114, 182, 0.25); }
+
+    .warning-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: var(--edit);
+      flex-shrink: 0;
+    }
+
+    /* Main Workspace Panel */
+    .main-panel {
+      flex: 1;
+      background-color: var(--bg-panel);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .panel-header {
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      background-color: var(--bg-panel);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      flex-shrink: 0;
+    }
+
+    .hero-meta-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .row-position-badge {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+      background-color: var(--bg-card);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .status-pill.approved { background: var(--approved-bg); color: var(--approved-text); border: 1px solid var(--approved-border); }
+    .status-pill.rejected { background: var(--rejected-bg); color: var(--rejected-text); border: 1px solid var(--rejected-border); }
+    .status-pill.edit { background: var(--edit-bg); color: var(--edit-text); border: 1px solid var(--edit-border); }
+    .status-pill.unreviewed { background: var(--unreviewed-bg); color: var(--unreviewed-text); border: 1px solid var(--unreviewed-border); }
+
+    .hero-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      border: 1px solid var(--border-subtle);
+      background-color: var(--bg-card);
+      color: var(--text-primary);
+      transition-property: transform, background-color, border-color, box-shadow;
+      transition-duration: 150ms;
+      transition-timing-function: ease-out;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn:hover {
+      background-color: var(--bg-card-subtle);
+      border-color: var(--border-medium);
+    }
+
+    .btn kbd {
+      background-color: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 1px 4px;
+    }
+
+    .btn-approve {
+      background-color: #064e3b;
+      border-color: var(--approved-border);
+      color: #a7f3d0;
+      font-weight: 600;
+    }
+    .btn-approve:hover {
+      background-color: #047857;
+      border-color: #10b981;
+      color: #ecfdf5;
+    }
+
+    .btn-reject {
+      background-color: #881337;
+      border-color: var(--rejected-border);
+      color: #fecdd3;
+      font-weight: 600;
+    }
+    .btn-reject:hover {
+      background-color: #9f1239;
+      border-color: #f43f5e;
+      color: #fff1f2;
+    }
+
+    .btn-edit {
+      background-color: #78350f;
+      border-color: var(--edit-border);
+      color: #fef3c7;
+      font-weight: 600;
+    }
+    .btn-edit:hover {
+      background-color: #92400e;
+      border-color: #f59e0b;
+      color: #fffbeb;
+    }
+
+    .btn-skip {
+      background-color: var(--bg-card);
+      border-color: var(--border-medium);
+      color: var(--text-secondary);
+    }
+    .btn-skip:hover {
+      background-color: var(--bg-card-subtle);
+      color: var(--text-primary);
+    }
+
+    /* Workspace Content Area */
+    .workspace-content {
+      flex: 1;
+      padding: 14px 24px;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    /* Hero Review Card */
+    .hero-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .char-metric-pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .char-metric-pill.danger {
+      color: var(--rejected);
+      font-weight: 700;
+    }
+
+    /* Hero Term Input */
+    .term-input {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      padding: 8px 12px;
+      width: 100%;
+      border-radius: var(--radius-md);
+      text-wrap: balance;
+    }
+
+    /* Hero Definition Input - Auto-growing up to sensible cap */
+    .def-textarea {
+      font-family: var(--font-editorial);
+      font-size: 18px;
+      line-height: 1.65;
+      padding: 10px 14px;
+      width: 100%;
+      min-height: 90px;
+      max-height: min(48vh, 220px);
+      resize: vertical;
+      border-radius: var(--radius-md);
+      text-wrap: pretty;
+      overflow-y: auto;
+    }
+
+    @media (min-height: 900px) {
+      .def-textarea {
+        max-height: 48vh;
+      }
+    }
+
+    /* Live Counters Bar */
+    .live-counters-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 10px;
+      background-color: var(--bg-card-subtle);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .counter-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .counter-value {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .mismatch-alert-btn {
+      background-color: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--edit-border);
+      color: var(--edit-text);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .mismatch-alert-btn:hover {
+      background-color: rgba(245, 158, 11, 0.25);
+    }
+
+    /* Form Fields Grid */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .control-select {
+      height: 38px;
+      padding: 0 12px;
+      font-size: 13px;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .notes-input {
+      min-height: 38px;
+      max-height: 100px;
+      padding: 8px 12px;
+      font-size: 13px;
+      line-height: 1.45;
+      width: 100%;
+      resize: vertical;
+      border-radius: var(--radius-md);
+      overflow-y: auto;
+    }
+
+    /* Raw Definition Collapsible */
+    .raw-def-collapsible {
+      margin-top: 8px;
+      margin-bottom: 6px;
+      background-color: var(--bg-card-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .raw-def-summary {
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      user-select: none;
+    }
+
+    .raw-def-summary:hover {
+      color: var(--text-secondary);
+      background-color: rgba(255, 255, 255, 0.02);
+    }
+
+    .raw-def-hint {
+      font-weight: normal;
+      font-size: 10px;
+      color: var(--text-muted);
+      opacity: 0.8;
+    }
+
+    .raw-def-body {
+      padding: 8px 12px;
+      font-family: var(--font-editorial);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border-subtle);
+      background-color: rgba(0, 0, 0, 0.15);
+      user-select: text;
+      word-break: break-word;
+    }
+
+    .re-clean-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      background-color: rgba(56, 189, 248, 0.12);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 120ms ease;
+    }
+
+    .re-clean-btn:hover {
+      background-color: rgba(56, 189, 248, 0.22);
+      transform: translateY(-1px);
+    }
+
+    /* Category Lexicon Read-Only Badge */
+    .category-badge-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 38px;
+      padding: 0 12px;
+      background-color: var(--bg-card-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+    }
+
+    .category-lexicon-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      background-color: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #c084fc;
+      border-radius: var(--radius-sm);
+    }
+
+    .category-lexicon-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Quality Flags Banner */
+    .quality-chips-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .chips-flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .issue-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      font-weight: 500;
+      font-family: inherit;
+    }
+
+    .issue-chip.clickable {
+      cursor: pointer;
+      user-select: none;
+      transition-property: filter, transform, box-shadow;
+      transition-duration: 100ms;
+      transition-timing-function: ease-out;
+    }
+
+    .issue-chip.clickable:hover {
+      filter: brightness(1.2);
+      transform: translateY(-1px);
+    }
+
+    .issue-chip.clickable.active-filter {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .active-flag-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 8px;
+      background-color: rgba(56, 189, 248, 0.12);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      color: var(--accent);
+      margin-top: 4px;
+    }
+
+    .active-flag-banner button {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 0 4px;
+    }
+
+    .issue-chip.error {
+      background-color: var(--rejected-bg);
+      border: 1px solid var(--rejected-border);
+      color: var(--rejected-text);
+    }
+
+    .issue-chip.warning {
+      background-color: var(--edit-bg);
+      border: 1px solid var(--edit-border);
+      color: var(--edit-text);
+    }
+
+    .issue-chip.notice {
+      background-color: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent);
+    }
+
+    .issue-chip.clean {
+      background-color: var(--approved-bg);
+      border: 1px solid var(--approved-border);
+      color: var(--approved-text);
+    }
+
+
+    /* Quiet Source Metadata Box */
+    .source-meta-box {
+      padding: 12px 16px;
+      background-color: var(--bg-card-subtle);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .meta-tag {
+      display: inline-flex;
+      gap: 5px;
+    }
+
+    .meta-tag strong {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* Sticky Bottom Action Bar */
+    .sticky-action-bar {
+      position: relative;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 60px;
+      background-color: rgba(19, 27, 46, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 20;
+      flex-shrink: 0;
+    }
+
+    .action-group-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .action-group-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .auto-advance-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Modal / Overlay */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(9, 13, 22, 0.8);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-dialog {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-lg);
+      width: 90%;
+      max-width: 620px;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      padding: 20px;
+      max-height: 70vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .shortcuts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .shortcuts-table th {
+      text-align: left;
+      padding: 8px 10px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .shortcuts-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(34, 48, 77, 0.4);
+      color: var(--text-secondary);
+    }
+
+    .shortcuts-table td:first-child {
+      width: 130px;
+    }
+
+    .shortcuts-table kbd {
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 6px;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 76px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .toast-item {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-medium);
+      color: var(--text-primary);
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: auto;
+      animation: slideUp 200ms ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(12px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell" id="app">
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="brand-section">
+        <span class="brand-badge">BrainCipher</span>
+        <h1 class="brand-title">Content Review Workbench</h1>
+      </div>
+
+      <div class="top-metrics">
+        <div class="progress-bar-wrap">
+          <div class="progress-track" role="progressbar" id="progressBar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Review Progress">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-stats">
+            <span id="progressSummary">0 of 0 reviewed (0%)</span>
+            <span id="breakdownSummary">0 approved · 0 rejected · 0 edit</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-controls">
+        <div class="save-indicator" id="saveIndicator">
+          <div class="save-dot"></div>
+          <span id="saveStatusText">Ready</span>
+        </div>
+        <button type="button" class="btn" id="btnHelp" aria-label="Keyboard Shortcuts" title="Keyboard Shortcuts (?)">
+          <kbd>?</kbd> Help
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <div class="workbench-body">
+      <!-- Left Rail -->
+      <aside class="left-rail" aria-label="Review candidate list">
+        <div class="rail-header">
+          <!-- File selection & Export row -->
+          <div class="file-picker-row">
+            <div class="select-wrap">
+              <select id="fileSelect" class="file-select" aria-label="Select CSV file">
+                <option value="">Loading review CSVs...</option>
+              </select>
+            </div>
+            <button type="button" class="btn" id="btnExport" title="Export rows with status 'approved' to content/approved_<basename>.csv">
+              Export
+            </button>
+          </div>
+
+          <!-- Live Search -->
+          <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            </svg>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search term or definition..." aria-label="Search term or definition" />
+            <kbd class="search-shortcut">/</kbd>
+            <button type="button" class="clear-search-btn" id="clearSearchBtn" aria-label="Clear search">×</button>
+          </div>
+
+          <!-- Status Filters -->
+          <div class="filter-pills" role="tablist" aria-label="Filter rows by status">
+            <button type="button" class="filter-btn active" data-filter="unreviewed">
+              <span>Unreviewed</span>
+              <span class="filter-count" id="countUnreviewed">0</span>
+            </button>
+            <button type="button" class="filter-btn" data-filter="approved">
+              <span>Approved</span>
+              <span class="filter-count" id="countApproved">0</span>
+            </button>
+            <button type="button" class="filter-btn" data-filter="rejected">
+              <span>Rejected</span>
+              <span class="filter-count" id="countRejected">0</span>
+            </button>
+            <button type="button" class="filter-btn" data-filter="edit">
+              <span>Flagged</span>
+              <span class="filter-count" id="countEdit">0</span>
+            </button>
+            <button type="button" class="filter-btn" data-filter="all">
+              <span>All</span>
+              <span class="filter-count" id="countAll">0</span>
+            </button>
+          </div>
+
+          <!-- Quality Issues Quick Filter Toggle -->
+          <div class="issues-filter-toggle" id="issuesFilterToggle" role="checkbox" aria-checked="false" tabindex="0">
+            <span>Filter by Quality Issues</span>
+            <span class="filter-count" id="countIssues">0 flagged</span>
+          </div>
+
+          <!-- Specific Active Quality Flag Filter Banner -->
+          <div class="active-flag-banner" id="activeFlagBanner" style="display: none;">
+            <span>Flag: <strong id="activeFlagName"></strong></span>
+            <button type="button" id="btnClearFlagFilter" aria-label="Clear flag filter" title="Clear specific flag filter">✕</button>
+          </div>
+        </div>
+
+        <!-- Virtualized List Container -->
+        <div class="virtual-list-container" id="virtualListContainer" role="listbox" aria-label="Candidate rows list" tabindex="0">
+          <div class="virtual-list-spacer" id="virtualSpacer"></div>
+          <div class="virtual-items-viewport" id="virtualViewport"></div>
+        </div>
+      </aside>
+
+      <!-- Main Review Panel -->
+      <main class="main-panel" id="mainPanel">
+        <!-- Panel Sticky Sub-Header -->
+        <div class="panel-header">
+          <div class="hero-meta-left">
+            <div class="row-position-badge" id="rowPositionBadge">Row - of -</div>
+            <div class="status-pill unreviewed" id="currentStatusPill">Unreviewed</div>
+          </div>
+
+          <div class="hero-nav-actions">
+            <button type="button" class="btn" id="btnPrev" title="Previous row (K / Up)">
+              <kbd>K</kbd> Prev
+            </button>
+            <button type="button" class="btn" id="btnNext" title="Next row (J / Down)">
+              Next <kbd>J</kbd>
+            </button>
+            <button type="button" class="btn" id="btnUndo" title="Undo last action (U)">
+              <kbd>U</kbd> Undo <span id="undoCountBadge">(0)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Hero Content Workspace -->
+        <div class="workspace-content">
+          <div class="hero-card">
+            <!-- Term Field -->
+            <div class="field-group">
+              <div class="field-header-row">
+                <label for="termInput" class="field-label">Puzzle Term</label>
+                <span class="char-metric-pill" id="termCharCounter">0 / 60 chars</span>
+              </div>
+              <input type="text" id="termInput" class="term-input" maxlength="120" placeholder="Term..." autocomplete="off" />
+            </div>
+
+            <!-- Definition Field -->
+            <div class="field-group">
+              <div class="field-header-row">
+                <label for="defTextarea" class="field-label">Definition Sense (Board-Safe)</label>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <button type="button" class="re-clean-btn" id="btnReClean" title="Re-clean definition from raw text (X)">
+                    <kbd>X</kbd> Re-clean from raw
+                  </button>
+                  <span class="char-metric-pill" id="defCharCounter">0 chars</span>
+                </div>
+              </div>
+              <textarea id="defTextarea" class="def-textarea" placeholder="Board-safe definition text..."></textarea>
+              
+              <!-- Raw Definition Reference (Muted Read-Only) -->
+              <details class="raw-def-collapsible" id="rawDefDetails">
+                <summary class="raw-def-summary">
+                  <span>Raw Source Definition</span>
+                  <span class="raw-def-hint">(read-only provenance)</span>
+                </summary>
+                <div class="raw-def-body" id="rawDefContent">—</div>
+              </details>
+
+              <!-- Live Counters Readout Bar -->
+              <div class="live-counters-bar">
+                <div class="counter-item">
+                  <span>Letters (A-Z):</span>
+                  <span class="counter-value" id="liveAlphaCount">0</span>
+                </div>
+                <div class="counter-item">
+                  <span>Total Chars:</span>
+                  <span class="counter-value" id="liveCharCount">0</span>
+                </div>
+                <div class="counter-item">
+                  <span>Computed Tier:</span>
+                  <span class="counter-value" id="liveComputedTier">Short</span>
+                </div>
+                <div id="tierMismatchContainer" style="display: none;">
+                  <button type="button" class="mismatch-alert-btn" id="btnSyncTier" title="Update proposed difficulty to match computed tier">
+                    Tier mismatch: Set to <strong id="mismatchTargetTier">Short</strong>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category & Proposed Difficulty Row -->
+            <div class="two-col-grid">
+              <div class="field-group">
+                <div class="field-header-row">
+                  <span class="field-label">Category</span>
+                </div>
+                <div class="category-badge-box">
+                  <span class="category-lexicon-badge" id="categoryBadge">Lexicon</span>
+                  <span class="category-lexicon-sub" id="categorySubBadge">Free Core Subject</span>
+                </div>
+              </div>
+
+              <div class="field-group">
+                <div class="field-header-row">
+                  <label for="difficultySelect" class="field-label">Proposed Difficulty <kbd>1-4</kbd></label>
+                </div>
+                <select id="difficultySelect" class="control-select">
+                  <option value="Short">Short (&lt;60 letters)</option>
+                  <option value="Medium">Medium (60-100 letters)</option>
+                  <option value="Long">Long (101-150 letters)</option>
+                  <option value="Epic">Epic (&gt;150 letters)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Notes Field -->
+            <div class="field-group">
+              <div class="field-header-row">
+                <label for="notesInput" class="field-label">Review Notes &amp; Lexfile Context</label>
+              </div>
+              <textarea id="notesInput" class="notes-input" rows="1" placeholder="Notes, lexfile sense, or review flags..."></textarea>
+            </div>
+
+            <!-- Quality Flags Notification Bar -->
+            <div class="quality-chips-box">
+              <div class="field-label">Quality Checks</div>
+              <div class="chips-flow" id="qualityChipsContainer">
+                <span class="issue-chip clean">No quality flags</span>
+              </div>
+            </div>
+
+            <!-- Quiet Source & License Metadata -->
+            <div class="source-meta-box">
+              <div class="meta-tag">
+                <span>Source:</span>
+                <strong id="metaSource">—</strong>
+              </div>
+              <div class="meta-tag">
+                <span>License:</span>
+                <strong id="metaLicense">—</strong>
+              </div>
+              <div class="meta-tag">
+                <span>Confidence:</span>
+                <strong id="metaConfidence">—</strong>
+              </div>
+              <div class="meta-tag" id="metaChapterTag" style="display: none;">
+                <span>Chapter:</span>
+                <strong id="metaChapter">—</strong>
+              </div>
+              <div class="meta-tag" id="metaTrackTag" style="display: none;">
+                <span>Track:</span>
+                <strong id="metaTrack">—</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sticky Bottom Status Action Bar -->
+        <footer class="sticky-action-bar">
+          <div class="action-group-left">
+            <button type="button" class="btn btn-approve" id="btnApprove" title="Approve row (A)">
+              <kbd>A</kbd> Approve
+            </button>
+            <button type="button" class="btn btn-reject" id="btnReject" title="Reject row (R)">
+              <kbd>R</kbd> Reject
+            </button>
+            <button type="button" class="btn btn-edit" id="btnFlagEdit" title="Flag row for edit (E)">
+              <kbd>E</kbd> Flag for Edit
+            </button>
+            <button type="button" class="btn btn-skip" id="btnSkip" title="Skip to next row (Space / S)">
+              <kbd>Space</kbd> Skip
+            </button>
+          </div>
+
+          <div class="action-group-right">
+            <label class="auto-advance-toggle" title="Advance to next item after review action">
+              <input type="checkbox" id="autoAdvanceToggle" checked />
+              <span>Auto-advance</span>
+            </label>
+          </div>
+        </footer>
+      </main>
+    </div>
+
+    <!-- Help Modal Overlay -->
+    <div class="modal-backdrop" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-dialog">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modalTitle">Keyboard Shortcuts</h2>
+          <button type="button" class="btn" id="btnCloseHelp" aria-label="Close modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <table class="shortcuts-table">
+            <thead>
+              <tr>
+                <th>Shortcut</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><kbd>A</kbd></td><td>Approve row and advance</td></tr>
+              <tr><td><kbd>R</kbd></td><td>Reject row and advance</td></tr>
+              <tr><td><kbd>E</kbd></td><td>Flag for edit and advance</td></tr>
+              <tr><td><kbd>Space</kbd> / <kbd>S</kbd></td><td>Skip to next row without changing status</td></tr>
+              <tr><td><kbd>J</kbd> / <kbd>↓</kbd></td><td>Select next row</td></tr>
+              <tr><td><kbd>K</kbd> / <kbd>↑</kbd></td><td>Select previous row</td></tr>
+              <tr><td><kbd>G</kbd></td><td>Jump to first row</td></tr>
+              <tr><td><kbd>Shift</kbd> + <kbd>G</kbd></td><td>Jump to last row</td></tr>
+              <tr><td><kbd>1</kbd> .. <kbd>4</kbd></td><td>Set difficulty tier (1=Short, 2=Medium, 3=Long, 4=Epic)</td></tr>
+              <tr><td><kbd>X</kbd></td><td>Re-clean board-safe definition from raw source text</td></tr>
+              <tr><td><kbd>/</kbd></td><td>Focus live search box</td></tr>
+              <tr><td><kbd>Esc</kbd></td><td>Leave input field or close this overlay</td></tr>
+              <tr><td><kbd>U</kbd></td><td>Undo previous review action (up to 50 deep)</td></tr>
+              <tr><td><kbd>Ctrl</kbd> + <kbd>S</kbd></td><td>Force save current row edits</td></tr>
+              <tr><td><kbd>?</kbd></td><td>Toggle this keyboard shortcuts guide</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+            Note: Single-letter shortcuts are automatically disabled while typing inside text fields or dropdowns. Press <kbd>Esc</kbd> at any time to return to keyboard navigation.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      // Domain Constants
+      const VALID_CATEGORIES = new Set([
+        "biology", "physics", "chemistry", "astronomy", "geography",
+        "history", "literature", "compsci", "anatomy", "music",
+        "economics", "mythology"
+      ]);
+      const TIERS = [
+        { min: 151, name: "Epic" },
+        { min: 101, name: "Long" },
+        { min: 60, name: "Medium" },
+        { min: 0, name: "Short" }
+      ];
+      const ROW_HEIGHT = 48; // px for virtualization
+
+      // App State
+      const state = {
+        files: [],
+        currentFile: "",
+        columns: [],
+        rows: [],
+        duplicates: { in_file: [], across_files: [] },
+        
+        filteredIndices: [], // Array of row indices matching current filter & search
+        selectedIndex: 0,   // Index into state.rows
+        
+        activeStatusFilter: "unreviewed", // unreviewed, approved, rejected, edit, all
+        filterOnlyIssues: false,
+        activeFlagCode: null, // filter by specific quality flag code
+        searchQuery: "",
+        
+        autoAdvance: true,
+        undoStack: [], // Array of { index, prevFields, newFields, desc }
+        
+        isSaving: false,
+        pendingSaveTimeout: null,
+      };
+
+      // DOM Elements
+      const dom = {
+        fileSelect: document.getElementById("fileSelect"),
+        btnExport: document.getElementById("btnExport"),
+        searchInput: document.getElementById("searchInput"),
+        clearSearchBtn: document.getElementById("clearSearchBtn"),
+        
+        filterButtons: document.querySelectorAll(".filter-btn"),
+        countAll: document.getElementById("countAll"),
+        countUnreviewed: document.getElementById("countUnreviewed"),
+        countApproved: document.getElementById("countApproved"),
+        countRejected: document.getElementById("countRejected"),
+        countEdit: document.getElementById("countEdit"),
+        
+        issuesFilterToggle: document.getElementById("issuesFilterToggle"),
+        countIssues: document.getElementById("countIssues"),
+        activeFlagBanner: document.getElementById("activeFlagBanner"),
+        activeFlagName: document.getElementById("activeFlagName"),
+        btnClearFlagFilter: document.getElementById("btnClearFlagFilter"),
+        
+        virtualListContainer: document.getElementById("virtualListContainer"),
+        virtualSpacer: document.getElementById("virtualSpacer"),
+        virtualViewport: document.getElementById("virtualViewport"),
+        
+        rowPositionBadge: document.getElementById("rowPositionBadge"),
+        currentStatusPill: document.getElementById("currentStatusPill"),
+        btnPrev: document.getElementById("btnPrev"),
+        btnNext: document.getElementById("btnNext"),
+        btnUndo: document.getElementById("btnUndo"),
+        undoCountBadge: document.getElementById("undoCountBadge"),
+        
+        termInput: document.getElementById("termInput"),
+        termCharCounter: document.getElementById("termCharCounter"),
+        defTextarea: document.getElementById("defTextarea"),
+        defCharCounter: document.getElementById("defCharCounter"),
+        
+        liveAlphaCount: document.getElementById("liveAlphaCount"),
+        liveCharCount: document.getElementById("liveCharCount"),
+        liveComputedTier: document.getElementById("liveComputedTier"),
+        tierMismatchContainer: document.getElementById("tierMismatchContainer"),
+        btnSyncTier: document.getElementById("btnSyncTier"),
+        mismatchTargetTier: document.getElementById("mismatchTargetTier"),
+        
+        categorySelect: document.getElementById("categorySelect"),
+        difficultySelect: document.getElementById("difficultySelect"),
+        notesInput: document.getElementById("notesInput"),
+        btnReClean: document.getElementById("btnReClean"),
+        rawDefDetails: document.getElementById("rawDefDetails"),
+        rawDefContent: document.getElementById("rawDefContent"),
+        
+        qualityChipsContainer: document.getElementById("qualityChipsContainer"),
+        categoryBadge: document.getElementById("categoryBadge"),
+        categorySubBadge: document.getElementById("categorySubBadge"),
+        metaSource: document.getElementById("metaSource"),
+        metaLicense: document.getElementById("metaLicense"),
+        metaConfidence: document.getElementById("metaConfidence"),
+        metaChapterTag: document.getElementById("metaChapterTag"),
+        metaChapter: document.getElementById("metaChapter"),
+        metaTrackTag: document.getElementById("metaTrackTag"),
+        metaTrack: document.getElementById("metaTrack"),
+        
+        btnApprove: document.getElementById("btnApprove"),
+        btnReject: document.getElementById("btnReject"),
+        btnFlagEdit: document.getElementById("btnFlagEdit"),
+        btnSkip: document.getElementById("btnSkip"),
+        autoAdvanceToggle: document.getElementById("autoAdvanceToggle"),
+        
+        progressBar: document.getElementById("progressBar"),
+        progressFill: document.getElementById("progressFill"),
+        progressSummary: document.getElementById("progressSummary"),
+        breakdownSummary: document.getElementById("breakdownSummary"),
+        
+        saveIndicator: document.getElementById("saveIndicator"),
+        saveStatusText: document.getElementById("saveStatusText"),
+        
+        btnHelp: document.getElementById("btnHelp"),
+        btnCloseHelp: document.getElementById("btnCloseHelp"),
+        helpModal: document.getElementById("helpModal"),
+        toastContainer: document.getElementById("toastContainer"),
+      };
+
+      // Helper Utilities
+      function countAlpha(str) {
+        if (!str) return 0;
+        const matches = str.match(/[A-Za-z]/g);
+        return matches ? matches.length : 0;
+      }
+
+      function computeTier(str) {
+        const count = countAlpha(str);
+        for (const tier of TIERS) {
+          if (count >= tier.min) return tier.name;
+        }
+        return "Short";
+      }
+
+      function autoGrowTextarea(el) {
+        if (!el) return;
+        const userHeight = el.dataset.userResized ? parseFloat(el.style.height) : 0;
+        el.style.height = "auto";
+        const borderOffset = el.offsetHeight - el.clientHeight;
+        const fitHeight = el.scrollHeight + borderOffset;
+        el.style.height = Math.max(userHeight || 0, fitHeight) + "px";
+      }
+
+      function attachAutoGrow(el) {
+        if (!el) return;
+        el.addEventListener("mousedown", (e) => {
+          const rect = el.getBoundingClientRect();
+          // Resize handle is located at the bottom-right corner (~24x24px)
+          if (e.clientX > rect.right - 24 && e.clientY > rect.bottom - 24) {
+            el.dataset.userResized = "true";
+            el.style.maxHeight = "none";
+          }
+        });
+      }
+
+      function isInputActive() {
+        const el = document.activeElement;
+        if (!el) return false;
+        const tag = el.tagName.toLowerCase();
+        return tag === "input" || tag === "textarea" || tag === "select" || el.isContentEditable;
+      }
+
+      function showToast(message, type = "info") {
+        const toast = document.createElement("div");
+        toast.className = `toast-item toast-${type}`;
+        toast.textContent = message;
+        dom.toastContainer.appendChild(toast);
+        setTimeout(() => {
+          toast.style.transition = "opacity 200ms ease-out, transform 200ms ease-out";
+          toast.style.opacity = "0";
+          toast.style.transform = "translateY(8px)";
+          setTimeout(() => toast.remove(), 220);
+        }, 2500);
+      }
+
+      function updateSaveStatus(status, text) {
+        dom.saveIndicator.className = `save-indicator ${status}`;
+        dom.saveStatusText.textContent = text;
+      }
+
+      // Quality Flag Analyzer
+      function evaluateQualityFlags(row) {
+        const flags = [];
+        const term = (row.term || "").trim();
+        const def = (row.definition || "").trim();
+        const proposedDiff = (row.proposed_difficulty || "").trim();
+        const compTier = computeTier(def);
+        const charLen = def.length;
+        const warnings = row.warnings || [];
+
+        // 1. Term length > 60
+        if (term.length > 60) {
+          flags.push({ level: "error", code: "term_length", label: `Term > 60 chars (${term.length})` });
+        }
+
+        // 2. Illegal characters (not in allowlist [A-Za-z .,'-])
+        const hasDisallowed = /[^A-Za-z .,'-]/.test(def);
+        if (hasDisallowed || warnings.includes("illegal_chars_removed")) {
+          flags.push({ level: "error", code: "illegal_chars", label: "Illegal characters" });
+        }
+
+        // 3. Apparatus removed
+        if (warnings.includes("apparatus_removed")) {
+          flags.push({ level: "notice", code: "apparatus_removed", label: "Apparatus removed" });
+        }
+
+        // 4. Digits removed
+        const hasDigits = /\d/.test(def);
+        if (hasDigits || warnings.includes("digits_removed")) {
+          flags.push({ level: "notice", code: "digits_removed", label: "Digits removed" });
+        }
+
+        // 5. Unwrapped brackets
+        const hasBrackets = /[()\[\]]/.test(def);
+        if (hasBrackets || warnings.includes("unwrapped")) {
+          flags.push({ level: "notice", code: "unwrapped_brackets", label: "Unwrapped brackets" });
+        }
+
+        // 6. Trailing connector
+        const trailingConn = /(?:^|\b)(?:and|or|of|the|the\s+name\s+of|etc\.?|as|but|with|for)\s*[,.-]*$/i.test(def);
+        if (trailingConn || warnings.includes("trailing_connector_trimmed")) {
+          flags.push({ level: "warning", code: "trailing_connector", label: "Trailing connector" });
+        }
+
+        // 7. Apparatus label removed
+        if (warnings.includes("apparatus_label_removed")) {
+          flags.push({ level: "notice", code: "apparatus_label_removed", label: "Apparatus label removed" });
+        }
+
+        // 8. Sense marker removed
+        if (warnings.includes("sense_marker_removed")) {
+          flags.push({ level: "notice", code: "sense_marker_removed", label: "Sense marker removed" });
+        }
+
+        // 9. Short sentence removed
+        if (warnings.includes("short_sentence_removed")) {
+          flags.push({ level: "notice", code: "short_sentence_removed", label: "Short sentence removed" });
+        }
+
+        // 10. Domain label removed
+        if (warnings.includes("domain_label_removed")) {
+          flags.push({ level: "notice", code: "domain_label_removed", label: "Domain label removed" });
+        }
+
+        // 11. Headword tail removed
+        if (warnings.includes("headword_tail_removed")) {
+          flags.push({ level: "notice", code: "headword_tail_removed", label: "Headword tail removed" });
+        }
+
+        // 12. Over 240 chars (bundled-only length, warn not error)
+        if (charLen > 240) {
+          flags.push({ level: "notice", code: "bundled_length", label: `Over 240 chars (${charLen})` });
+        }
+
+        // 8. Tier mismatch
+        if (proposedDiff.toLowerCase() !== compTier.toLowerCase()) {
+          flags.push({
+            level: "warning",
+            code: "tier_mismatch",
+            label: `Tier mismatch: proposed ${proposedDiff} vs computed ${compTier}`
+          });
+        }
+
+        // 9. Duplicate term
+        const lowerTerm = term.toLowerCase();
+        if (lowerTerm) {
+          const liveFileCount = state.rows.filter(r => (r.term || "").trim().toLowerCase() === lowerTerm).length;
+          if (liveFileCount > 1 || state.duplicates.in_file.includes(lowerTerm)) {
+            flags.push({ level: "error", code: "duplicate_in_file", label: "Duplicate term within this file" });
+          } else if (state.duplicates.across_files.includes(lowerTerm)) {
+            flags.push({ level: "warning", code: "duplicate_across", label: "Duplicate term in another review file" });
+          }
+        }
+
+        return flags;
+      }
+
+      // API Calls
+      async function apiFetchFiles() {
+        try {
+          const res = await fetch("/api/files");
+          if (!res.ok) throw new Error("Failed fetching files list");
+          const data = await res.json();
+          state.files = data.files || [];
+          renderFileSelect();
+          if (state.files.length > 0 && !state.currentFile) {
+            selectFile(state.files[0].name);
+          }
+        } catch (err) {
+          showToast(`Error: ${err.message}`, "error");
+        }
+      }
+
+      async function apiFetchRows(filename) {
+        flushPendingEdits();
+        updateSaveStatus("saving", "Loading...");
+        try {
+          const res = await fetch(`/api/rows?file=${encodeURIComponent(filename)}`);
+          if (!res.ok) throw new Error("Failed loading CSV rows");
+          const data = await res.json();
+          state.currentFile = filename;
+          state.columns = data.columns || [];
+          state.rows = data.rows || [];
+          state.duplicates = data.duplicates || { in_file: [], across_files: [] };
+          state.selectedIndex = 0;
+          
+          updateSaveStatus("saved", "Saved");
+          applyFilters();
+
+          // If current filter has no items (e.g. all rows in this file are already reviewed):
+          if (state.filteredIndices.length === 0 && state.rows.length > 0 && state.activeStatusFilter === "unreviewed") {
+            const hasUnreviewed = state.rows.some(r => !(r.status || "").trim());
+            if (!hasUnreviewed) {
+              setStatusFilter("all");
+            }
+          }
+
+          if (state.filteredIndices.length > 0) {
+            selectRowIndex(state.filteredIndices[0]);
+          } else {
+            renderActiveRow();
+          }
+          updateHeaderStats();
+        } catch (err) {
+          updateSaveStatus("error", "Load failed");
+          showToast(`Error loading rows: ${err.message}`, "error");
+        }
+      }
+
+      async function apiPatchRow(index, fields, isUndo = false, customDesc = "") {
+        const row = state.rows[index];
+        if (!row) return;
+
+        // Capture previous fields for undo history
+        const prevFields = {};
+        for (const k of Object.keys(fields)) {
+          prevFields[k] = row[k];
+        }
+
+        // Optimistically update client state
+        Object.assign(row, fields);
+
+        // Recalculate alpha_count and char_count if definition changed
+        if (fields.definition !== undefined) {
+          row.alpha_count = String(countAlpha(row.definition));
+          row.char_count = String(row.definition.length);
+        }
+
+        applyFilters();
+        updateHeaderStats();
+
+        updateSaveStatus("saving", "Saving...");
+        try {
+          const res = await fetch("/api/rows", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              file: state.currentFile,
+              index: index,
+              fields: fields
+            })
+          });
+
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.error || `HTTP ${res.status}`);
+          }
+
+          const result = await res.json();
+          if (result.row) {
+            Object.assign(row, result.row);
+          }
+
+          const now = new Date().toLocaleTimeString([], { hour12: false });
+          updateSaveStatus("saved", `Saved ${now}`);
+
+          // Track undo stack if this was not an undo action
+          if (!isUndo) {
+            const desc = customDesc || `Updated #${index + 1} (${Object.keys(fields).join(", ")})`;
+            state.undoStack.push({
+              file: state.currentFile,
+              index: index,
+              prevFields: prevFields,
+              newFields: fields,
+              desc: desc
+            });
+            if (state.undoStack.length > 50) state.undoStack.shift();
+            updateUndoBadge();
+          }
+
+          return true;
+        } catch (err) {
+          updateSaveStatus("error", "Save failed");
+          showToast(`Save error: ${err.message}`, "error");
+          return false;
+        }
+      }
+
+      async function apiExportApproved() {
+        if (!state.currentFile) return;
+        updateSaveStatus("saving", "Exporting...");
+        try {
+          const res = await fetch("/api/export", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ file: state.currentFile })
+          });
+          if (!res.ok) throw new Error("Export failed");
+          const data = await res.json();
+          updateSaveStatus("saved", "Exported");
+          showToast(`Exported ${data.count} approved rows to ${data.exported_file}`, "approved");
+        } catch (err) {
+          updateSaveStatus("error", "Export failed");
+          showToast(`Export error: ${err.message}`, "error");
+        }
+      }
+
+      // Undo Action Handler
+      async function performUndo() {
+        if (state.undoStack.length === 0) {
+          showToast("Nothing to undo", "info");
+          return;
+        }
+        const action = state.undoStack.pop();
+        updateUndoBadge();
+
+        if (action.file !== state.currentFile) {
+          await apiFetchRows(action.file);
+        }
+
+        const success = await apiPatchRow(action.index, action.prevFields, true);
+        if (success) {
+          selectRowIndex(action.index);
+          showToast(`Undone: ${action.desc}`, "info");
+        }
+      }
+
+      function updateUndoBadge() {
+        dom.undoCountBadge.textContent = `(${state.undoStack.length})`;
+      }
+
+      // Filtering & Virtualization
+      function applyFilters() {
+        const query = state.searchQuery.trim().toLowerCase();
+        const statusFilter = state.activeStatusFilter;
+        const issuesOnly = state.filterOnlyIssues;
+        const flagCode = state.activeFlagCode;
+
+        if (flagCode && dom.activeFlagBanner) {
+          dom.activeFlagBanner.style.display = "flex";
+          dom.activeFlagName.textContent = flagCode;
+        } else if (dom.activeFlagBanner) {
+          dom.activeFlagBanner.style.display = "none";
+        }
+
+        const filtered = [];
+        let issueCount = 0;
+
+        for (let i = 0; i < state.rows.length; i++) {
+          const row = state.rows[i];
+          const st = (row.status || "").trim().toLowerCase();
+          const term = (row.term || "").toLowerCase();
+          const def = (row.definition || "").toLowerCase();
+
+          // Check flags
+          const flags = evaluateQualityFlags(row);
+          if (flags.length > 0) issueCount++;
+
+          // Specific flag filter
+          if (flagCode && !flags.some(f => f.code === flagCode)) continue;
+
+          // Issue filter
+          if (issuesOnly && flags.length === 0) continue;
+
+          // Status filter
+          if (statusFilter === "unreviewed" && st !== "") continue;
+          if (statusFilter === "approved" && st !== "approved") continue;
+          if (statusFilter === "rejected" && st !== "rejected") continue;
+          if (statusFilter === "edit" && st !== "edit") continue;
+
+          // Search query
+          if (query && !term.includes(query) && !def.includes(query)) continue;
+
+          filtered.push(i);
+        }
+
+        state.filteredIndices = filtered;
+        dom.countIssues.textContent = `${issueCount} flagged`;
+
+        // If selectedIndex is not in filtered list, pick the closest one
+        if (filtered.length > 0 && !filtered.includes(state.selectedIndex)) {
+          state.selectedIndex = filtered[0];
+        }
+
+        renderVirtualList();
+        updateFilterCounts();
+        renderActiveRow();
+      }
+
+      function setStatusFilter(filterName) {
+        state.activeStatusFilter = filterName;
+        dom.filterButtons.forEach((b) => {
+          b.classList.toggle("active", b.dataset.filter === filterName);
+        });
+        applyFilters();
+      }
+
+      function updateFilterCounts() {
+        let unrev = 0, apprv = 0, rej = 0, edit = 0;
+        for (const r of state.rows) {
+          const st = (r.status || "").trim().toLowerCase();
+          if (st === "approved") apprv++;
+          else if (st === "rejected") rej++;
+          else if (st === "edit") edit++;
+          else unrev++;
+        }
+        dom.countAll.textContent = state.rows.length;
+        dom.countUnreviewed.textContent = unrev;
+        dom.countApproved.textContent = apprv;
+        dom.countRejected.textContent = rej;
+        dom.countEdit.textContent = edit;
+      }
+
+      function renderFileSelect() {
+        dom.fileSelect.innerHTML = "";
+        for (const f of state.files) {
+          const opt = document.createElement("option");
+          opt.value = f.name;
+          const pct = f.rows > 0 ? Math.round((f.reviewed / f.rows) * 100) : 0;
+          opt.textContent = `${f.name} (${f.reviewed}/${f.rows} - ${pct}%)`;
+          if (f.name === state.currentFile) opt.selected = true;
+          dom.fileSelect.appendChild(opt);
+        }
+      }
+
+      function selectFile(filename) {
+        if (!filename || filename === state.currentFile) return;
+        flushPendingEdits();
+        state.undoStack = [];
+        updateUndoBadge();
+        apiFetchRows(filename);
+      }
+
+      function updateHeaderStats() {
+        const total = state.rows.length;
+        let reviewed = 0, approved = 0, rejected = 0, edit = 0;
+        for (const r of state.rows) {
+          const st = (r.status || "").trim().toLowerCase();
+          if (st === "approved") { reviewed++; approved++; }
+          else if (st === "rejected") { reviewed++; rejected++; }
+          else if (st === "edit") { reviewed++; edit++; }
+        }
+        const pct = total > 0 ? Math.round((reviewed / total) * 100) : 0;
+        dom.progressFill.style.transform = `scaleX(${pct / 100})`;
+        dom.progressBar.setAttribute("aria-valuenow", pct);
+        dom.progressSummary.textContent = `${reviewed} of ${total} reviewed (${pct}%)`;
+        dom.breakdownSummary.textContent = `${approved} approved · ${rejected} rejected · ${edit} edit`;
+      }
+
+      // Virtual List Renderer
+      function renderVirtualList() {
+        const container = dom.virtualListContainer;
+        const totalItems = state.filteredIndices.length;
+        const totalHeight = totalItems * ROW_HEIGHT;
+        dom.virtualSpacer.style.height = `${totalHeight}px`;
+
+        if (totalItems === 0) {
+          dom.virtualSpacer.style.height = "0px";
+          dom.virtualViewport.style.transform = "none";
+          dom.virtualViewport.innerHTML = `
+            <div style="padding: 36px 16px; text-align: center; color: var(--text-muted);">
+              <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">No matching rows</div>
+              <div style="font-size: 11px; line-height: 1.5; margin-bottom: 14px;">No rows match current filter or search criteria.</div>
+              <button type="button" class="btn" id="btnResetFilter" style="font-size: 11px; padding: 4px 12px; margin: 0 auto;">Show All Rows</button>
+            </div>
+          `;
+          const btn = document.getElementById("btnResetFilter");
+          if (btn) {
+            btn.addEventListener("click", () => {
+              state.searchQuery = "";
+              dom.searchInput.value = "";
+              dom.clearSearchBtn.classList.remove("active");
+              state.activeFlagCode = null;
+              state.filterOnlyIssues = false;
+              dom.issuesFilterToggle.classList.remove("active");
+              dom.issuesFilterToggle.setAttribute("aria-checked", "false");
+              setStatusFilter("all");
+            });
+          }
+          return;
+        }
+
+        const scrollTop = container.scrollTop;
+        const clientHeight = container.clientHeight || 500;
+
+        const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - 5);
+        const endIndex = Math.min(totalItems, Math.ceil((scrollTop + clientHeight) / ROW_HEIGHT) + 5);
+
+        dom.virtualViewport.style.transform = `translateY(${startIndex * ROW_HEIGHT}px)`;
+        dom.virtualViewport.innerHTML = "";
+
+        for (let i = startIndex; i < endIndex; i++) {
+          const rowIndex = state.filteredIndices[i];
+          const row = state.rows[rowIndex];
+          if (!row) continue;
+
+          const itemEl = document.createElement("div");
+          itemEl.className = `row-item ${rowIndex === state.selectedIndex ? "active" : ""}`;
+          itemEl.setAttribute("role", "option");
+          itemEl.setAttribute("aria-selected", rowIndex === state.selectedIndex ? "true" : "false");
+          itemEl.dataset.rowIndex = rowIndex;
+
+          const st = (row.status || "").trim().toLowerCase();
+          let statusIconSvg = "";
+          if (st === "approved") {
+            statusIconSvg = `<svg class="row-status-icon approved" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>`;
+          } else if (st === "rejected") {
+            statusIconSvg = `<svg class="row-status-icon rejected" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>`;
+          } else if (st === "edit") {
+            statusIconSvg = `<svg class="row-status-icon edit" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/></svg>`;
+          } else {
+            statusIconSvg = `<svg class="row-status-icon unreviewed" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="3"/></svg>`;
+          }
+
+          const tier = (row.proposed_difficulty || "Short").toLowerCase();
+          const flags = evaluateQualityFlags(row);
+          const hasFlags = flags.length > 0;
+          const flagsSummary = flags.map(f => f.label).join("; ");
+
+          itemEl.innerHTML = `
+            <span class="row-index">#${rowIndex + 1}</span>
+            ${statusIconSvg}
+            <span class="row-term" title="${escapeHtml(row.term || "")}">${escapeHtml(row.term || "(untitled)")}</span>
+            <div class="row-meta-right">
+              ${hasFlags ? `<span class="warning-dot" title="${flags.length} issue(s): ${escapeHtml(flagsSummary)}"></span>` : ""}
+              <span class="tier-badge ${tier}">${tier}</span>
+            </div>
+          `;
+
+          itemEl.addEventListener("click", () => {
+            selectRowIndex(rowIndex);
+          });
+
+          dom.virtualViewport.appendChild(itemEl);
+        }
+      }
+
+      function ensureVisible(rowIndex) {
+        const pos = state.filteredIndices.indexOf(rowIndex);
+        if (pos === -1) return;
+
+        const container = dom.virtualListContainer;
+        const itemTop = pos * ROW_HEIGHT;
+        const itemBottom = itemTop + ROW_HEIGHT;
+
+        if (itemTop < container.scrollTop) {
+          container.scrollTop = itemTop;
+        } else if (itemBottom > container.scrollTop + container.clientHeight) {
+          container.scrollTop = itemBottom - container.clientHeight;
+        }
+      }
+
+      function selectRowIndex(index) {
+        if (index < 0 || index >= state.rows.length) return;
+        if (index !== state.selectedIndex) {
+          flushPendingEdits();
+        }
+        state.selectedIndex = index;
+        renderActiveRow();
+        renderVirtualList();
+        ensureVisible(index);
+      }
+
+      // Active Row View & Live Computations
+      function renderActiveRow() {
+        if (state.filteredIndices.length === 0) {
+          dom.rowPositionBadge.textContent = "0 matching rows";
+          dom.currentStatusPill.className = "status-pill unreviewed";
+          dom.currentStatusPill.textContent = "EMPTY";
+          dom.termInput.value = "";
+          dom.defTextarea.value = "";
+          if (dom.rawDefContent) dom.rawDefContent.textContent = "—";
+          if (dom.categorySelect) dom.categorySelect.value = "";
+          dom.difficultySelect.value = "Short";
+          dom.notesInput.value = "";
+          dom.termCharCounter.textContent = "0 / 60 chars";
+          dom.defCharCounter.textContent = "0 chars";
+          dom.liveAlphaCount.textContent = "0";
+          dom.liveCharCount.textContent = "0";
+          dom.liveComputedTier.textContent = "Short";
+          dom.tierMismatchContainer.style.display = "none";
+          dom.metaSource.textContent = "—";
+          dom.metaLicense.textContent = "—";
+          dom.metaConfidence.textContent = "—";
+          dom.qualityChipsContainer.innerHTML = '<span class="issue-chip clean">No matching rows in current filter</span>';
+          return;
+        }
+
+        const row = state.rows[state.selectedIndex];
+        if (!row) {
+          dom.rowPositionBadge.textContent = "No rows match";
+          return;
+        }
+
+        const filteredPos = state.filteredIndices.indexOf(state.selectedIndex);
+        const posText = filteredPos !== -1 
+          ? `Row ${filteredPos + 1} of ${state.filteredIndices.length} (total #${state.selectedIndex + 1})`
+          : `Row #${state.selectedIndex + 1}`;
+        dom.rowPositionBadge.textContent = posText;
+
+        // Status Pill
+        const st = (row.status || "").trim().toLowerCase();
+        dom.currentStatusPill.className = `status-pill ${st || "unreviewed"}`;
+        dom.currentStatusPill.textContent = st ? st.toUpperCase() : "UNREVIEWED";
+
+        // Form Fields (prevent overwriting if focused to avoid cursor jumping)
+        if (document.activeElement !== dom.termInput) {
+          dom.termInput.value = row.term || "";
+        }
+        if (document.activeElement !== dom.defTextarea) {
+          dom.defTextarea.value = row.definition || "";
+        }
+        if (dom.rawDefContent) {
+          dom.rawDefContent.textContent = row.raw_definition || row.definition || "—";
+        }
+        if (dom.categorySelect && document.activeElement !== dom.categorySelect) {
+          dom.categorySelect.value = (row.category || row.suggested_category || "").trim().toLowerCase();
+        }
+        if (document.activeElement !== dom.difficultySelect) {
+          dom.difficultySelect.value = row.proposed_difficulty || "Short";
+        }
+        if (document.activeElement !== dom.notesInput) {
+          dom.notesInput.value = row.notes || "";
+        }
+
+        // Auto-grow fields to fit content & reset manual resize per row
+        delete dom.defTextarea.dataset.userResized;
+        dom.defTextarea.style.maxHeight = "";
+        delete dom.notesInput.dataset.userResized;
+        dom.notesInput.style.maxHeight = "";
+        autoGrowTextarea(dom.defTextarea);
+        autoGrowTextarea(dom.notesInput);
+
+        // Live stats on active fields
+        updateLiveStats();
+
+        // Metadata box & subject tags
+        dom.metaSource.textContent = row.source || "—";
+        dom.metaLicense.textContent = row.license || "—";
+        dom.metaConfidence.textContent = row.confidence || "—";
+
+        if (dom.metaChapterTag && dom.metaChapter) {
+          if (row.chapter) {
+            dom.metaChapterTag.style.display = "";
+            dom.metaChapter.textContent = row.chapter;
+          } else {
+            dom.metaChapterTag.style.display = "none";
+          }
+        }
+
+        if (dom.metaTrackTag && dom.metaTrack) {
+          if (row.track) {
+            dom.metaTrackTag.style.display = "";
+            const stageText = row.stage ? ` (${row.stage})` : "";
+            const unitText = row.unit ? ` · ${row.unit}` : "";
+            dom.metaTrack.textContent = `${row.track}${stageText}${unitText}`;
+          } else {
+            dom.metaTrackTag.style.display = "none";
+          }
+        }
+
+        if (dom.categoryBadge) {
+          if (row.track) {
+            dom.categoryBadge.textContent = row.track.charAt(0).toUpperCase() + row.track.slice(1);
+            if (dom.categorySubBadge) {
+              dom.categorySubBadge.textContent = row.stage ? `Track: ${row.stage}` : "Subject Track";
+            }
+          } else {
+            dom.categoryBadge.textContent = "Lexicon";
+            if (dom.categorySubBadge) {
+              dom.categorySubBadge.textContent = "Free Core Subject";
+            }
+          }
+        }
+
+        // Quality flags list
+        renderQualityChips(row);
+      }
+
+      async function reCleanFromRaw() {
+        const row = state.rows[state.selectedIndex];
+        if (!row) return;
+        const rawText = row.raw_definition || row.definition || "";
+        if (!rawText) return;
+
+        try {
+          updateSaveStatus("saving", "Cleaning...");
+          const res = await fetch("/api/clean", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: rawText, term: row.term || "" })
+          });
+          if (!res.ok) throw new Error("Cleaning request failed");
+          const data = await res.json();
+          dom.defTextarea.value = data.cleaned;
+          dom.difficultySelect.value = data.tier;
+          row.definition = data.cleaned;
+          row.proposed_difficulty = data.tier;
+          row.alpha_count = String(data.alpha_count);
+          row.char_count = String(data.char_count);
+          row.warnings = data.warnings || [];
+
+          autoGrowTextarea(dom.defTextarea);
+          updateLiveStats();
+          scheduleFieldSave();
+          renderQualityChips(row);
+          showToast("Re-cleaned definition from raw (board-safe)", "info");
+        } catch (err) {
+          updateSaveStatus("error", "Clean error");
+          showToast(`Clean error: ${err.message}`, "error");
+        }
+      }
+
+      function updateLiveStats() {
+        const termVal = dom.termInput.value;
+        const defVal = dom.defTextarea.value;
+        const proposedDiff = dom.difficultySelect.value;
+
+        // Term Counter
+        dom.termCharCounter.textContent = `${termVal.length} / 60 chars`;
+        if (termVal.length > 60) {
+          dom.termCharCounter.className = "char-metric-pill danger";
+        } else {
+          dom.termCharCounter.className = "char-metric-pill";
+        }
+
+        // Definition Counters
+        const alpha = countAlpha(defVal);
+        const charLen = defVal.length;
+        const computed = computeTier(defVal);
+
+        dom.defCharCounter.textContent = `${charLen} chars (${alpha} letters)`;
+        dom.liveAlphaCount.textContent = alpha;
+        dom.liveCharCount.textContent = charLen;
+        dom.liveComputedTier.textContent = computed;
+
+        // Tier Mismatch Alert
+        if (proposedDiff.toLowerCase() !== computed.toLowerCase()) {
+          dom.tierMismatchContainer.style.display = "inline-block";
+          dom.mismatchTargetTier.textContent = computed;
+        } else {
+          dom.tierMismatchContainer.style.display = "none";
+        }
+      }
+
+      function renderQualityChips(row) {
+        const flags = evaluateQualityFlags(row);
+        dom.qualityChipsContainer.innerHTML = "";
+
+        if (flags.length === 0) {
+          const cleanEl = document.createElement("span");
+          cleanEl.className = "issue-chip clean";
+          cleanEl.innerHTML = `<svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> No quality flags`;
+          dom.qualityChipsContainer.appendChild(cleanEl);
+          return;
+        }
+
+        for (const flag of flags) {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          const isActive = state.activeFlagCode === flag.code;
+          chip.className = `issue-chip ${flag.level} clickable ${isActive ? "active-filter" : ""}`;
+          chip.title = isActive ? "Click to clear this flag filter" : `Click to filter candidate rows with '${flag.label}'`;
+          chip.innerHTML = `<span>${escapeHtml(flag.label)}</span>${isActive ? ' <span style="margin-left:4px; font-weight:700;">✕</span>' : ''}`;
+          chip.addEventListener("click", () => {
+            toggleFlagFilter(flag.code);
+          });
+          dom.qualityChipsContainer.appendChild(chip);
+        }
+      }
+
+      function toggleFlagFilter(flagCode) {
+        if (state.activeFlagCode === flagCode) {
+          state.activeFlagCode = null;
+          showToast("Flag filter cleared", "info");
+        } else {
+          state.activeFlagCode = flagCode;
+          showToast(`Filtering by flag: ${flagCode}`, "info");
+        }
+        applyFilters();
+      }
+
+      function escapeHtml(str) {
+        return (str || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // Review Actions (Approve, Reject, Edit, Skip)
+      function flushPendingEdits() {
+        if (state.pendingSaveTimeout) {
+          clearTimeout(state.pendingSaveTimeout);
+          state.pendingSaveTimeout = null;
+          commitCurrentRowEdits();
+        }
+      }
+
+      function scheduleFieldSave() {
+        if (state.pendingSaveTimeout) clearTimeout(state.pendingSaveTimeout);
+        state.pendingSaveTimeout = setTimeout(() => {
+          commitCurrentRowEdits();
+        }, 300);
+      }
+
+      async function commitCurrentRowEdits() {
+        const row = state.rows[state.selectedIndex];
+        if (!row) return;
+
+        const fields = {
+          term: dom.termInput.value.trim(),
+          definition: dom.defTextarea.value.trim(),
+          category: "lexicon",
+          suggested_category: "lexicon",
+          proposed_difficulty: dom.difficultySelect.value,
+          notes: dom.notesInput.value.trim()
+        };
+
+        await apiPatchRow(state.selectedIndex, fields, false, `Edited #${state.selectedIndex + 1}`);
+      }
+
+      async function setRowStatus(status) {
+        const row = state.rows[state.selectedIndex];
+        if (!row) return;
+
+        flushPendingEdits();
+
+        const currentIdx = state.selectedIndex;
+        const filteredPos = state.filteredIndices.indexOf(currentIdx);
+
+        // Precompute next row in current filter before this row changes status
+        let nextIdx = null;
+        if (state.autoAdvance && filteredPos !== -1) {
+          if (state.activeStatusFilter === "all") {
+            if (filteredPos + 1 < state.filteredIndices.length) {
+              nextIdx = state.filteredIndices[filteredPos + 1];
+            }
+          } else {
+            // When filtering by specific status, current row will leave the filtered list
+            if (filteredPos + 1 < state.filteredIndices.length) {
+              nextIdx = state.filteredIndices[filteredPos + 1];
+            } else if (filteredPos > 0) {
+              nextIdx = state.filteredIndices[filteredPos - 1];
+            }
+          }
+        }
+
+        const fields = {
+          status: status,
+          term: dom.termInput.value.trim(),
+          definition: dom.defTextarea.value.trim(),
+          category: "lexicon",
+          suggested_category: "lexicon",
+          proposed_difficulty: dom.difficultySelect.value,
+          notes: dom.notesInput.value.trim()
+        };
+
+        const desc = `Marked #${currentIdx + 1} as ${status || "unreviewed"}`;
+        const ok = await apiPatchRow(currentIdx, fields, false, desc);
+
+        if (ok && state.autoAdvance) {
+          if (nextIdx !== null) {
+            selectRowIndex(nextIdx);
+          } else if (state.filteredIndices.length > 0) {
+            selectRowIndex(state.filteredIndices[0]);
+          } else {
+            showToast("All items in current filter completed!", "approved");
+            renderActiveRow();
+          }
+        }
+      }
+
+      function advanceNext() {
+        flushPendingEdits();
+        if (state.filteredIndices.length === 0) return;
+        const currentPos = state.filteredIndices.indexOf(state.selectedIndex);
+        if (currentPos !== -1 && currentPos + 1 < state.filteredIndices.length) {
+          selectRowIndex(state.filteredIndices[currentPos + 1]);
+        } else {
+          showToast("Reached end of filtered list", "info");
+        }
+      }
+
+      function advancePrev() {
+        flushPendingEdits();
+        if (state.filteredIndices.length === 0) return;
+        const currentPos = state.filteredIndices.indexOf(state.selectedIndex);
+        if (currentPos > 0) {
+          selectRowIndex(state.filteredIndices[currentPos - 1]);
+        }
+      }
+
+      // Keyboard Shortcuts Handler
+      function handleKeyDown(e) {
+        // Modal is open: allow Esc to close it
+        if (dom.helpModal.classList.contains("open")) {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            dom.helpModal.classList.remove("open");
+          }
+          return;
+        }
+
+        // Ctrl+S: force save from anywhere
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+          e.preventDefault();
+          commitCurrentRowEdits();
+          showToast("Saved current edits", "info");
+          return;
+        }
+
+        // If inside an input field:
+        if (isInputActive()) {
+          if (e.key === "Escape") {
+            e.preventDefault();
+            document.activeElement.blur();
+          }
+          return; // Single-letter shortcuts must NEVER fire inside inputs!
+        }
+
+        // Global shortcuts (when no input is focused)
+        const key = e.key;
+
+        // / : Focus search
+        if (key === "/") {
+          e.preventDefault();
+          dom.searchInput.focus();
+          dom.searchInput.select();
+          return;
+        }
+
+        // ? : Toggle Help Modal
+        if (key === "?") {
+          e.preventDefault();
+          dom.helpModal.classList.add("open");
+          return;
+        }
+
+        // U : Undo
+        if (key === "u" || key === "U") {
+          e.preventDefault();
+          performUndo();
+          return;
+        }
+
+        // G : Jump to first row (Shift+G = last row)
+        if (key === "g" && !e.shiftKey) {
+          e.preventDefault();
+          if (state.filteredIndices.length > 0) {
+            selectRowIndex(state.filteredIndices[0]);
+          }
+          return;
+        }
+        if (key === "G" && e.shiftKey) {
+          e.preventDefault();
+          if (state.filteredIndices.length > 0) {
+            selectRowIndex(state.filteredIndices[state.filteredIndices.length - 1]);
+          }
+          return;
+        }
+
+        // J / Down : Next row
+        if (key === "j" || key === "J" || key === "ArrowDown") {
+          e.preventDefault();
+          advanceNext();
+          return;
+        }
+
+        // K / Up : Prev row
+        if (key === "k" || key === "K" || key === "ArrowUp") {
+          e.preventDefault();
+          advancePrev();
+          return;
+        }
+
+        // A : Approve
+        if (key === "a" || key === "A") {
+          e.preventDefault();
+          setRowStatus("approved");
+          return;
+        }
+
+        // R : Reject
+        if (key === "r" || key === "R") {
+          e.preventDefault();
+          setRowStatus("rejected");
+          return;
+        }
+
+        // E : Flag for edit
+        if (key === "e" || key === "E") {
+          e.preventDefault();
+          setRowStatus("edit");
+          return;
+        }
+
+        // Space or S : Skip
+        if (key === " " || key === "s" || key === "S") {
+          e.preventDefault();
+          advanceNext();
+          return;
+        }
+
+        // X : Re-clean from raw
+        if (key === "x" || key === "X") {
+          e.preventDefault();
+          reCleanFromRaw();
+          return;
+        }
+
+        // 1..4 : Set difficulty tier
+        if (key === "1") {
+          e.preventDefault();
+          dom.difficultySelect.value = "Short";
+          scheduleFieldSave();
+          updateLiveStats();
+          return;
+        }
+        if (key === "2") {
+          e.preventDefault();
+          dom.difficultySelect.value = "Medium";
+          scheduleFieldSave();
+          updateLiveStats();
+          return;
+        }
+        if (key === "3") {
+          e.preventDefault();
+          dom.difficultySelect.value = "Long";
+          scheduleFieldSave();
+          updateLiveStats();
+          return;
+        }
+        if (key === "4") {
+          e.preventDefault();
+          dom.difficultySelect.value = "Epic";
+          scheduleFieldSave();
+          updateLiveStats();
+          return;
+        }
+      }
+
+      // Event Listeners Setup
+      function setupListeners() {
+        window.addEventListener("keydown", handleKeyDown);
+
+        dom.fileSelect.addEventListener("change", (e) => selectFile(e.target.value));
+        dom.btnExport.addEventListener("click", apiExportApproved);
+
+        // Search
+        dom.searchInput.addEventListener("input", (e) => {
+          state.searchQuery = e.target.value;
+          dom.clearSearchBtn.classList.toggle("active", Boolean(state.searchQuery));
+          applyFilters();
+        });
+        dom.clearSearchBtn.addEventListener("click", () => {
+          dom.searchInput.value = "";
+          state.searchQuery = "";
+          dom.clearSearchBtn.classList.remove("active");
+          applyFilters();
+        });
+
+        // Status filter buttons
+        dom.filterButtons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            setStatusFilter(btn.dataset.filter);
+          });
+        });
+
+        // Clear active specific flag filter
+        if (dom.btnClearFlagFilter) {
+          dom.btnClearFlagFilter.addEventListener("click", () => {
+            state.activeFlagCode = null;
+            applyFilters();
+          });
+        }
+
+        // Issue filter toggle
+        const toggleIssues = () => {
+          state.filterOnlyIssues = !state.filterOnlyIssues;
+          dom.issuesFilterToggle.classList.toggle("active", state.filterOnlyIssues);
+          dom.issuesFilterToggle.setAttribute("aria-checked", state.filterOnlyIssues ? "true" : "false");
+          applyFilters();
+        };
+        dom.issuesFilterToggle.addEventListener("click", toggleIssues);
+        dom.issuesFilterToggle.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggleIssues();
+          }
+        });
+
+        // Virtual scroll listener
+        dom.virtualListContainer.addEventListener("scroll", renderVirtualList);
+
+        // Form field change listeners & auto-grow
+        attachAutoGrow(dom.defTextarea);
+        attachAutoGrow(dom.notesInput);
+
+        window.addEventListener("resize", () => {
+          autoGrowTextarea(dom.defTextarea);
+          autoGrowTextarea(dom.notesInput);
+        });
+
+        dom.termInput.addEventListener("input", () => {
+          updateLiveStats();
+          scheduleFieldSave();
+        });
+        dom.defTextarea.addEventListener("input", () => {
+          autoGrowTextarea(dom.defTextarea);
+          updateLiveStats();
+          scheduleFieldSave();
+        });
+        if (dom.btnReClean) {
+          dom.btnReClean.addEventListener("click", reCleanFromRaw);
+        }
+        dom.difficultySelect.addEventListener("change", () => {
+          updateLiveStats();
+          scheduleFieldSave();
+        });
+        dom.notesInput.addEventListener("input", () => {
+          autoGrowTextarea(dom.notesInput);
+          scheduleFieldSave();
+        });
+
+        // Sync difficulty button
+        dom.btnSyncTier.addEventListener("click", () => {
+          const comp = dom.liveComputedTier.textContent;
+          dom.difficultySelect.value = comp;
+          updateLiveStats();
+          scheduleFieldSave();
+          showToast(`Proposed difficulty updated to ${comp}`, "info");
+        });
+
+        // Action Buttons
+        dom.btnApprove.addEventListener("click", () => setRowStatus("approved"));
+        dom.btnReject.addEventListener("click", () => setRowStatus("rejected"));
+        dom.btnFlagEdit.addEventListener("click", () => setRowStatus("edit"));
+        dom.btnSkip.addEventListener("click", advanceNext);
+
+        dom.btnPrev.addEventListener("click", advancePrev);
+        dom.btnNext.addEventListener("click", advanceNext);
+        dom.btnUndo.addEventListener("click", performUndo);
+
+        dom.autoAdvanceToggle.addEventListener("change", (e) => {
+          state.autoAdvance = e.target.checked;
+        });
+
+        // Modal Help Controls
+        dom.btnHelp.addEventListener("click", () => dom.helpModal.classList.add("open"));
+        dom.btnCloseHelp.addEventListener("click", () => dom.helpModal.classList.remove("open"));
+        dom.helpModal.addEventListener("click", (e) => {
+          if (e.target === dom.helpModal) dom.helpModal.classList.remove("open");
+        });
+      }
+
+      // Initial Boot
+      function init() {
+        setupListeners();
+        apiFetchFiles();
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>

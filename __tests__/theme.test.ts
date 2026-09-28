@@ -44,12 +44,21 @@ describe('Hard Metrics: Theme Engine & Semantic Design Tokens', () => {
     expect(getFontScale('large')).toBe(1.18);
   });
 
-  test('getFontFamilyNative maps appropriate system/mono/serif font stacks', () => {
+  // Item 7: Distinct font family mappings for Android
+  // Rule: each family has a real, distinct Android font value:
+  // - 'sans' maps to 'sans-serif' (distinct from 'system' which defaults to undefined)
+  // - 'cursive' maps to 'cursive' (distinct from 'serif')
+  // - 'system' maps to undefined (platform default)
+  // - 'mono' maps to 'monospace'
+  // - 'serif' maps to 'serif'
+  // - 'handwritten' maps to 'sans-serif-condensed'
+  test('getFontFamilyNative maps distinct Android font stacks for all supported families', () => {
     expect(getFontFamilyNative('mono')).toBe('monospace');
     expect(getFontFamilyNative('serif')).toBe('serif');
-    expect(getFontFamilyNative('cursive')).toBe('serif');
+    expect(getFontFamilyNative('cursive')).toBe('cursive');
     expect(getFontFamilyNative('handwritten')).toBe('sans-serif-condensed');
-    expect(getFontFamilyNative('sans')).toBeUndefined();
+    expect(getFontFamilyNative('sans')).toBe('sans-serif');
     expect(getFontFamilyNative('system')).toBeUndefined();
+    expect(getFontFamilyNative('unknown')).toBeUndefined();
   });
 });

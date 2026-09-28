@@ -89,7 +89,11 @@ describe('Hard Metrics: Full Screen Matrix & UI Integration Tests', () => {
     });
   });
 
-  test('SettingsScreen renders difficulty, typography, gameplay toggles, and modal', async () => {
+  // Item 7: Honest typography selection and preview matching
+  // Verifies that SettingsScreen uses the shared getFontFamilyNative mapping:
+  // - Does NOT use the invalid 'System' string for fontFamily
+  // - Renders real, distinct Android font values ('sans-serif', 'serif', 'monospace', 'cursive', 'sans-serif-condensed')
+  test('SettingsScreen renders difficulty, typography, gameplay toggles, and modal with honest font mappings', async () => {
     let renderer: any;
     await ReactTestRenderer.act(async () => {
       renderer = ReactTestRenderer.create(renderWithProviders(<SettingsScreen />));
@@ -97,6 +101,17 @@ describe('Hard Metrics: Full Screen Matrix & UI Integration Tests', () => {
     });
 
     expect(renderer).toBeDefined();
+
+    const json = JSON.stringify(renderer.toJSON());
+    // Invalid 'System' string must not be present as a fontFamily style
+    expect(json).not.toContain('"fontFamily":"System"');
+
+    // Real distinct Android font families must be applied to preview chips
+    expect(json).toContain('"fontFamily":"sans-serif"');
+    expect(json).toContain('"fontFamily":"serif"');
+    expect(json).toContain('"fontFamily":"monospace"');
+    expect(json).toContain('"fontFamily":"cursive"');
+    expect(json).toContain('"fontFamily":"sans-serif-condensed"');
 
     await ReactTestRenderer.act(async () => {
       renderer.unmount();

@@ -81,7 +81,7 @@ export const BlitzScreen = () => {
                         <View style={styles.ruleTextCol}>
                             <Text style={[styles.ruleTitle, { color: colors.text }]}>Combo Multipliers</Text>
                             <Text style={[styles.ruleDesc, { color: colors.textSecondary }]}>
-                                Chain correct letters without mistakes to boost your points up to 2.5x. When the clock runs out, points convert to coins at 20:1 (minimum 5).
+                                Chain correct letters without mistakes to boost your points up to 2.5x. When the clock runs out, points convert to coins at 50:1 (minimum 5, capped at 100 coins).
                             </Text>
                         </View>
                     </View>

@@ -3,8 +3,8 @@ import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppSettings, SavedGameState, PlayerStats, Achievement, Theme, SolveGrade } from '../types';
 import { getTheme, COLORS } from '../styles/theme';
-import { SUBJECTS, EXTENSIONS } from '../data/quotes';
-import { isGenreComplete } from '../services/quoteService';
+import { TRACKS, getMasterableCoreTracks } from '../data/quotes';
+import { getCategoryQuoteIds, isTrackComplete } from '../services/quoteService';
 import { HapticType, triggerTactileHaptic } from '../utils/physics';
 import { playGamesService, PlayGamesUser, PLAY_GAMES_CONFIG } from '../services/playGamesService';
 import { daysBetweenKeys, todayKey } from '../utils/date';
@@ -48,7 +48,7 @@ const INITIAL_ACHIEVEMENTS: Achievement[] = [
     { id: 'streak_7', icon: 'flame', title: 'Week of Brilliance', description: 'Maintain a 7-day Daily Cipher streak', category: 'streaks', target: 7, progress: 0, isUnlocked: false, rewardCoins: 200, claimed: false },
     { id: 'streak_30', icon: 'trophy', title: 'Unbreakable Will', description: 'Reach a 30-day Daily Cipher streak', category: 'streaks', target: 30, progress: 0, isUnlocked: false, rewardCoins: 600, claimed: false },
     { id: 'polymath_3', icon: 'graduation', title: 'Polymath', description: 'Master all puzzles in 3 distinct subjects', category: 'mastery', target: 3, progress: 0, isUnlocked: false, rewardCoins: 150, claimed: false },
-    { id: 'omniscient_all', icon: 'galaxy', title: 'Omniscient Mind', description: 'Master all subjects in the library', category: 'mastery', target: 7, progress: 0, isUnlocked: false, rewardCoins: 400, claimed: false },
+    { id: 'omniscient_all', icon: 'galaxy', title: 'Omniscient Mind', description: 'Master all subjects in the library', category: 'mastery', target: getMasterableCoreTracks().length, progress: 0, isUnlocked: false, rewardCoins: 400, claimed: false },
     { id: 'legendary_solver', icon: 'sword', title: 'Legendary Decryptor', description: 'Solve a Legendary difficulty puzzle', category: 'special', target: 1, progress: 0, isUnlocked: false, rewardCoins: 100, claimed: false },
     { id: 'blitz_master', icon: 'rocket', title: 'Blitz Overdrive', description: 'Score 1,000+ points in Blitz Rush mode', category: 'speed', target: 1, progress: 0, isUnlocked: false, rewardCoins: 120, claimed: false },
     { id: 'theme_collector', icon: 'palette', title: 'Aesthetic Elite', description: 'Unlock 3 custom themes in the Store', category: 'special', target: 3, progress: 0, isUnlocked: false, rewardCoins: 100, claimed: false },
@@ -66,21 +66,24 @@ const PAID_THEMES: Theme[] = ['cyberpunk', 'terminal', 'gold', 'midnight', 'ocea
 function computeStreak(
     prev: PlayerStats,
     today: string,
-    isDaily: boolean | undefined
+    isDaily: boolean | undefined,
+    usedMasterKey?: boolean
 ): { newStreak: number; dailyDates: string[] } {
     let newStreak = prev.currentStreak;
     const dailyDates = [...prev.dailySolvedDates];
     if (isDaily && !dailyDates.includes(today)) {
         dailyDates.push(today);
-        if (prev.lastSolvedDate) {
-            const diffDays = daysBetweenKeys(prev.lastSolvedDate, today);
-            if (diffDays === 1) {
-                newStreak += 1;
-            } else if (diffDays > 1) {
+        if (!usedMasterKey) {
+            if (prev.lastSolvedDate) {
+                const diffDays = daysBetweenKeys(prev.lastSolvedDate, today);
+                if (diffDays === 1) {
+                    newStreak += 1;
+                } else if (diffDays > 1) {
+                    newStreak = 1;
+                }
+            } else {
                 newStreak = 1;
             }
-        } else {
-            newStreak = 1;
         }
     }
     return { newStreak, dailyDates };
@@ -141,6 +144,7 @@ interface GameContextType {
         grade: SolveGrade;
         totalGuesses?: number;
         correctGuesses?: number;
+        usedMasterKey?: boolean;
     }) => void;
     achievements: Achievement[];
     claimAchievement: (id: string) => void;
@@ -381,7 +385,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
             ['brainCipherStats', JSON.stringify(stats)],
             ['brainCipherAchievements', JSON.stringify(achievements)],
         ];
-        AsyncStorage.multiSet(batch).catch(err => {
+        AsyncStorage.multiSet(batch)?.catch?.(err => {
             console.error('Failed to batch persist game data:', err);
         });
     }, [totalPoints, coins, favorites, myExtensions, unlockedThemes, settings, solvedQuotes, savedGames, stats, achievements]);
@@ -543,8 +547,9 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         setSolvedQuotes(prev => {
             const newSet = new Set(prev);
             const prefix = `${category}-`;
+            const categoryIds = new Set(getCategoryQuoteIds(category));
             for (const id of newSet) {
-                if (id.startsWith(prefix)) {
+                if (id.startsWith(prefix) || categoryIds.has(id)) {
                     newSet.delete(id);
                 }
             }
@@ -596,16 +601,18 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         grade: SolveGrade;
         totalGuesses?: number;
         correctGuesses?: number;
+        usedMasterKey?: boolean;
     }) => {
         const today = todayKey();
 
         // Resolve the streak once from the current snapshot so stats and the
         // streak achievements use exactly the same value.
-        const { newStreak, dailyDates } = computeStreak(stats, today, params.isDaily);
+        const { newStreak, dailyDates } = computeStreak(stats, today, params.isDaily, params.usedMasterKey);
 
         setStats(prev => {
             const bestTimes = { ...prev.bestTimes };
-            if (!bestTimes[params.category] || params.timeSeconds < bestTimes[params.category]) {
+            // Master key solves must not count toward fastest solve records
+            if (!params.usedMasterKey && (!bestTimes[params.category] || params.timeSeconds < bestTimes[params.category])) {
                 bestTimes[params.category] = params.timeSeconds;
             }
 
@@ -615,7 +622,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                 bestTimes,
                 currentStreak: newStreak,
                 maxStreak: Math.max(prev.maxStreak, newStreak),
-                lastSolvedDate: params.isDaily ? today : prev.lastSolvedDate,
+                lastSolvedDate: (params.isDaily && !params.usedMasterKey) ? today : (params.isDaily ? (prev.lastSolvedDate || today) : prev.lastSolvedDate),
                 totalPlayTimeSeconds: prev.totalPlayTimeSeconds + params.timeSeconds,
                 dailySolvedDates: dailyDates,
                 totalGuesses: prev.totalGuesses + (params.totalGuesses ?? 0),
@@ -647,38 +654,40 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                     newProgress += 1;
                     break;
                 case 'clean_solve':
-                    if (params.hintsUsed === 0 && params.mistakesCount === 0) newProgress = 1;
+                    if (!params.usedMasterKey && params.hintsUsed === 0 && params.mistakesCount === 0) newProgress = 1;
                     break;
                 case 'flawless_5':
-                    if (params.hintsUsed === 0 && params.mistakesCount === 0) newProgress += 1;
+                    if (!params.usedMasterKey && params.hintsUsed === 0 && params.mistakesCount === 0) newProgress += 1;
                     break;
                 case 'speed_demon':
-                    if (params.timeSeconds <= 30) newProgress = 1;
+                    if (!params.usedMasterKey && params.timeSeconds <= 30) newProgress = 1;
                     break;
                 case 'lightning_fast':
-                    if (params.timeSeconds <= 15) newProgress = 1;
+                    if (!params.usedMasterKey && params.timeSeconds <= 15) newProgress = 1;
                     break;
                 case 'daily_starter':
-                    if (params.isDaily) newProgress = 1;
+                    if (!params.usedMasterKey && params.isDaily) newProgress = 1;
                     break;
                 case 'streak_7':
                 case 'streak_30':
-                    if (params.isDaily) newProgress = Math.max(newProgress, newStreak);
+                    if (params.isDaily && !params.usedMasterKey) newProgress = Math.max(newProgress, newStreak);
                     break;
                 case 'legendary_solver':
-                    if (params.difficulty === 'Legendary' && params.hintsUsed === 0) newProgress = 1;
+                    if (!params.usedMasterKey && params.difficulty === 'Legendary' && params.hintsUsed === 0) newProgress = 1;
                     break;
                 case 'polymath_3': {
-                    const allGenres = [...SUBJECTS, ...EXTENSIONS];
-                    const completed = allGenres.filter(g => isGenreComplete(g.id, effectiveSolved)).length;
+                    const allTracks = TRACKS;
+                    const completed = allTracks.filter(t => isTrackComplete(t.id, effectiveSolved)).length;
                     newProgress = completed;
                     break;
                 }
                 case 'omniscient_all': {
-                    const completed = SUBJECTS.filter(g => isGenreComplete(g.id, effectiveSolved)).length;
+                    const masterable = getMasterableCoreTracks();
+                    const completed = masterable.filter(t => isTrackComplete(t.id, effectiveSolved)).length;
                     newProgress = completed;
                     break;
                 }
+
             }
 
             unlocked = newProgress >= ach.target;
@@ -715,14 +724,19 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     // it runs once even though it reads the latest totalPoints.
     const didSignInRef = useRef(false);
     useEffect(() => {
+        let isMounted = true;
         if (!isHydratedRef.current || isLoading || didSignInRef.current) return;
         didSignInRef.current = true;
         playGamesService.directSignIn().then(user => {
+            if (!isMounted) return;
             setPlayGamesUser(user);
             if (user.isAuthenticated && pointsRef.current > 0) {
                 playGamesService.submitScore(pointsRef.current, PLAY_GAMES_CONFIG.LEADERBOARDS.GLOBAL_CIPHER_IQ);
             }
         }).catch(() => {});
+        return () => {
+            isMounted = false;
+        };
     }, [isLoading, totalPoints]);
 
     const signInPlayGames = useCallback(async (): Promise<PlayGamesUser> => {

@@ -4,8 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { AppText as Text } from '../components/AppText';
 import { useGame } from '../context/GameContext';
-import { SUBJECTS, EXTENSIONS } from '../data/quotes';
-import { isGenreComplete, getGenreProgress } from '../services/quoteService';
+import { SUBJECTS, EXTENSIONS, QUOTE_DB } from '../data/quotes';
+import { getTrackProgress, getBranchesForTrack, isTrackComplete } from '../services/quoteService';
 import { Icon, IconName } from '../components/Icon';
 
 export const MasteryScreen = () => {
@@ -27,7 +27,8 @@ export const MasteryScreen = () => {
     const [activeTab, setActiveTab] = useState<'achievements' | 'stats' | 'subjects'>('achievements');
 
     const allGenres = [...SUBJECTS, ...EXTENSIONS.filter(e => myExtensions.has(e.id))];
-    const completedGenres = allGenres.filter(g => isGenreComplete(g.id, solvedQuotes));
+    const completedGenres = allGenres.filter(g => isTrackComplete(g.id, solvedQuotes));
+
 
     // Global accuracy calculation. With no guesses there is no accuracy to show,
     // so the UI renders a dash rather than a misleading 100%.
@@ -291,11 +292,13 @@ export const MasteryScreen = () => {
                         ) : (
                             <View style={styles.masteryGrid}>
                                 {completedGenres.map(genre => {
-                                    const progress = getGenreProgress(genre.id, solvedQuotes);
+                                    const progress = getTrackProgress(genre.id, solvedQuotes);
+                                    const branches = getBranchesForTrack(genre.id);
+                                    const firstPlayableBranch = branches.find(b => (QUOTE_DB[b.id]?.length ?? 0) > 0);
                                     return (
                                         <Pressable
                                             key={genre.id}
-                                            onPress={() => navigation.navigate('Game', { genreId: genre.id })}
+                                            onPress={() => navigation.navigate('Game', { genreId: firstPlayableBranch?.id || genre.id })}
                                             style={({ pressed }) => [
                                                 styles.masteryCard,
                                                 { backgroundColor: colors.surface, borderColor: colors.gold },
@@ -303,7 +306,7 @@ export const MasteryScreen = () => {
                                             ]}
                                         >
                                             <View style={[styles.masteryIconBox, { backgroundColor: colors.goldBg }]}>
-                                                <Text style={{ fontSize: 28 }}>{genre.icon}</Text>
+                                                <Icon name={genre.icon as IconName} size={26} color={colors.gold} />
                                             </View>
                                             <Text style={[styles.masteryLabel, { color: colors.text }]}>{genre.label}</Text>
                                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -311,11 +314,12 @@ export const MasteryScreen = () => {
                                                 <Text style={[styles.masteryBadge, { color: colors.gold }]}>MASTERED</Text>
                                             </View>
                                             <Text style={[styles.masteryCount, { color: colors.textMuted }]}>
-                                                {progress.total}/{progress.total} Puzzles
+                                                {branches.length > 1 ? `${branches.length} branches · ` : ''}{progress.total}/{progress.total} Puzzles
                                             </Text>
                                         </Pressable>
                                     );
                                 })}
+
                             </View>
                         )}
                     </View>

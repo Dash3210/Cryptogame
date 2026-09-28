@@ -4,7 +4,7 @@ import { AppText as Text } from './AppText';
 import { CellData } from '../types';
 import { useGame } from '../context/GameContext';
 import { SPRING_PRESETS, HapticType, calculateWaveDelay } from '../utils/physics';
-import { ThemeColors } from '../styles/theme';
+import { ThemeColors, getFontFamilyNative } from '../styles/theme';
 
 interface PuzzleBoardProps {
     cells: CellData[];
@@ -44,7 +44,6 @@ const AnimatedPuzzleCell: React.FC<AnimatedPuzzleCellProps> = React.memo(({
 }) => {
     const isCorrect = cell.userChar === cell.char;
     const isWrong = cell.userChar && cell.userChar !== cell.char;
-    const isActive = isSelected || isMatching;
 
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const liftAnim = useRef(new Animated.Value(0)).current;
@@ -136,34 +135,35 @@ const AnimatedPuzzleCell: React.FC<AnimatedPuzzleCellProps> = React.memo(({
                             { translateY: liftAnim }
                         ],
                     },
-                    !isCorrect && !isActive && !isWrong && {
-                        backgroundColor: colors.surface,
-                        borderColor: colors.border,
-                        borderBottomColor: colors.border,
-                    },
+                    // Three distinct visual states:
+                    // 1. SOLVED cells = transparent, no border
+                    // 2. CURRENT cell = green (colors.successBg / colors.success)
+                    // 3. OTHER empty gaps = blue (colors.matchingBg / colors.matching)
+                    // (and isWrong = red for incorrect guesses)
                     isCorrect && {
                         backgroundColor: 'transparent',
                         borderWidth: 0,
                         borderBottomWidth: 0,
                     },
-                    isSelected && {
+                    !isCorrect && isSelected && {
                         backgroundColor: colors.successBg,
                         borderColor: colors.success,
                         borderBottomColor: colors.success,
                     },
-                    isMatching && {
-                        backgroundColor: colors.matchingBg,
-                        borderColor: colors.matching,
-                        borderBottomColor: colors.matching,
-                    },
-                    isWrong && {
+                    !isCorrect && !isSelected && isWrong && {
                         backgroundColor: colors.errorBg,
                         borderColor: colors.error,
                         borderBottomColor: colors.error,
                     },
+                    !isCorrect && !isSelected && !isWrong && {
+                        backgroundColor: colors.matchingBg,
+                        borderColor: colors.matching,
+                        borderBottomColor: colors.matching,
+                    },
                 ]}
             >
                 <Text
+                    disableScaling
                     style={[
                         styles.cellText,
                         {
@@ -181,6 +181,7 @@ const AnimatedPuzzleCell: React.FC<AnimatedPuzzleCellProps> = React.memo(({
 
             {/* Cipher Clue */}
             <Text
+                disableScaling
                 style={[
                     styles.cipherClue,
                     {
@@ -188,11 +189,9 @@ const AnimatedPuzzleCell: React.FC<AnimatedPuzzleCellProps> = React.memo(({
                         fontFamily: 'monospace',
                         color: isSelected
                             ? colors.success
-                            : isMatching
-                                ? colors.matching
-                                : isWrong
-                                    ? colors.error
-                                    : colors.textMuted,
+                            : isWrong
+                                ? colors.error
+                                : colors.matching,
                         opacity: isCorrect ? 0 : 1,
                     },
                 ]}
@@ -304,14 +303,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = React.memo(({
     }, [baseSizes, SCREEN_WIDTH]);
 
     const nativeFontFamily = useMemo(() => {
-        switch (fontFamily) {
-            case 'mono': return 'monospace';
-            case 'serif': return 'serif';
-            case 'cursive': return 'serif';
-            case 'handwritten': return 'sans-serif-condensed';
-            case 'sans':
-            default: return undefined;
-        }
+        return getFontFamilyNative(fontFamily);
     }, [fontFamily]);
 
     const nativeFontStyle: 'italic' | 'normal' = useMemo(() => {
@@ -343,6 +335,7 @@ export const PuzzleBoard: React.FC<PuzzleBoardProps> = React.memo(({
                                     return (
                                         <View key={cell.id} style={styles.punctuation}>
                                             <Text
+                                                disableScaling
                                                 style={[
                                                     styles.punctuationText,
                                                     { fontSize: wordSizes.fontSize, color: colors.textSecondary }
