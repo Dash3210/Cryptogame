@@ -6,7 +6,7 @@ import { AppText as Text } from '../components/AppText';
 import { useGame } from '../context/GameContext';
 import { SUBJECTS, EXTENSIONS } from '../data/quotes';
 import { getAllGenresProgress } from '../services/quoteService';
-import { Icon, IconName } from '../components/Icon';
+import { Icon } from '../components/Icon';
 
 export const LeaderboardScreen = () => {
     const navigation = useNavigation<any>();
@@ -189,7 +189,7 @@ export const LeaderboardScreen = () => {
                                 ]}
                             >
                                 <View style={[styles.masteryIconContainer, { backgroundColor: colors.surfaceHighlight }]}>
-                                    <Icon name={genre.icon as IconName} size={22} color={colors.text} />
+                                    <Icon name={genre.icon} fallbackLabel={genre.label} id={genre.id} size={22} color={colors.text} />
                                 </View>
                                 <View style={{ flex: 1 }}>
                                     <Text style={[styles.masteryLabel, { color: colors.text }]}>{genre.label}</Text>

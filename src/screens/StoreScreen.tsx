@@ -211,7 +211,7 @@ export const StoreScreen = () => {
                                 >
                                     <View style={styles.cardInfo}>
                                         <View style={[styles.iconBox, { backgroundColor: colors.surfaceHighlight }]}>
-                                            <Icon name={ext.icon as IconName} size={24} color={colors.text} />
+                                            <Icon name={ext.icon} fallbackLabel={ext.label} id={ext.id} size={24} color={colors.text} />
                                         </View>
                                         <View style={{ flex: 1 }}>
                                             <Text style={[styles.cardTitle, { color: colors.text }]}>{ext.label}</Text>

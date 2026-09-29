@@ -306,7 +306,7 @@ export const MasteryScreen = () => {
                                             ]}
                                         >
                                             <View style={[styles.masteryIconBox, { backgroundColor: colors.goldBg }]}>
-                                                <Icon name={genre.icon as IconName} size={26} color={colors.gold} />
+                                                <Icon name={genre.icon} fallbackLabel={genre.label} id={genre.id} size={26} color={colors.gold} />
                                             </View>
                                             <Text style={[styles.masteryLabel, { color: colors.text }]}>{genre.label}</Text>
                                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>

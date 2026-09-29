@@ -3,7 +3,7 @@ import { View, Pressable, StyleSheet } from 'react-native';
 import { AppText as Text } from './AppText';
 import { Genre } from '../types';
 import { useGame } from '../context/GameContext';
-import { Icon, IconName } from './Icon';
+import { Icon } from './Icon';
 
 export interface GenreCardProps {
     genre: Genre;
@@ -43,7 +43,7 @@ export const GenreCard: React.FC<GenreCardProps> = ({
             ]}
         >
             <View style={[styles.iconContainer, { backgroundColor: colors.surfaceHighlight }]}>
-                <Icon name={genre.icon as IconName} size={24} color={colors.text} />
+                <Icon name={genre.icon} fallbackLabel={genre.label} id={genre.id} size={24} color={colors.text} />
             </View>
 
             <View style={styles.textContainer}>

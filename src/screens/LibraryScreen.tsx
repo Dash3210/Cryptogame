@@ -9,7 +9,7 @@ import { SUBJECTS, EXTENSIONS } from '../data/quotes';
 import { getTrackProgress, getBranchesForTrack, getBranchProgress } from '../services/quoteService';
 import { DailyQuoteModal } from '../components/DailyQuoteModal';
 import { UnifiedOperationsStrip } from '../components/UnifiedOperationsStrip';
-import { Icon, IconName } from '../components/Icon';
+import { Icon } from '../components/Icon';
 import { RADIUS } from '../styles/theme';
 
 export const LibraryScreen = () => {
@@ -84,7 +84,7 @@ export const LibraryScreen = () => {
                 ]}>
                     <View style={styles.cardHeaderRow}>
                         <View style={[styles.iconContainer, { backgroundColor: colors.surfaceHighlight }]}>
-                            <Icon name={subject.icon as IconName} size={20} color={colors.text} />
+                            <Icon name={subject.icon} fallbackLabel={subject.label} id={subject.id} size={20} color={colors.text} />
                         </View>
                         <View style={styles.cardHeaderTelemetry}>
                             <Text style={[styles.sectionIndexText, { color: colors.textMuted }]}>

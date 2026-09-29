@@ -76,6 +76,8 @@ export const ICON_XML = {
   "trophy": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\"\r\n     fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"\r\n     stroke-linecap=\"round\" stroke-linejoin=\"round\">\r\n  <path d=\"M 6 4 h 12 v 6 a 6 6 0 0 1 -12 0 Z\" />\r\n  <path d=\"M 6 7 H 4.5 A 1.5 1.5 0 0 0 3 8.5 v 1 a 2.5 2.5 0 0 0 2.5 2.5 h .5\" />\r\n  <path d=\"M 18 7 h 1.5 A 1.5 1.5 0 0 1 21 8.5 v 1 a 2.5 2.5 0 0 1 -2.5 2.5 h -.5\" />\r\n  <line x1=\"12\" y1=\"16\" x2=\"12\" y2=\"19\" />\r\n  <line x1=\"8\" y1=\"19\" x2=\"16\" y2=\"19\" />\r\n</svg>",
 } as const;
 
-export type IconName = keyof typeof ICON_XML;
+export type KnownIconName = keyof typeof ICON_XML;
+export type IconName = KnownIconName | string;
 
-export const ICON_NAMES = Object.keys(ICON_XML) as IconName[];
+export const ICON_NAMES = Object.keys(ICON_XML) as KnownIconName[];
+

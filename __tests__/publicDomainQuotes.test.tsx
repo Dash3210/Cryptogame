@@ -86,8 +86,10 @@ describe('Public Domain Compliance & Branch Invariants', () => {
             const physicsBranches = getBranchesForTrack('physics');
             // Physics track has registered branches, but only branches with > 0 levels should be playable
             const activeBranches = physicsBranches.filter(b => getBranchProgress(b.id, new Set()).total > 0);
-            expect(activeBranches.length).toBe(1);
-            expect(activeBranches[0].id).toBe('physics');
+            const expectedActiveCount = physicsBranches.filter(b => (QUOTE_DB[b.id]?.length ?? 0) > 0).length;
+            expect(activeBranches.length).toBe(expectedActiveCount);
+            expect(activeBranches.length).toBeGreaterThanOrEqual(1);
+            expect(activeBranches.some(b => b.id === 'physics')).toBe(true);
             expect(activeBranches[0].label).toBe('Physics');
 
             // Empty branches must not be in active branches

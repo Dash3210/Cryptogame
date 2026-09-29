@@ -3,7 +3,7 @@ import { AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppSettings, SavedGameState, PlayerStats, Achievement, Theme, SolveGrade } from '../types';
 import { getTheme, COLORS } from '../styles/theme';
-import { TRACKS, getMasterableCoreTracks } from '../data/quotes';
+import { TRACKS } from '../data/quotes';
 import { getCategoryQuoteIds, isTrackComplete } from '../services/quoteService';
 import { HapticType, triggerTactileHaptic } from '../utils/physics';
 import { playGamesService, PlayGamesUser, PLAY_GAMES_CONFIG } from '../services/playGamesService';
@@ -38,7 +38,7 @@ const INITIAL_ACHIEVEMENTS: Achievement[] = [
     // `icon` is an icon-kit slug rendered by the Icon component.
     { id: 'first_cipher', icon: 'sparkle', title: 'First Contact', description: 'Solve your first cryptogram', category: 'special', target: 1, progress: 0, isUnlocked: false, rewardCoins: 25, claimed: false },
     { id: 'scholar_10', icon: 'book', title: 'Scholar', description: 'Solve 10 cryptograms', category: 'mastery', target: 10, progress: 0, isUnlocked: false, rewardCoins: 60, claimed: false },
-    { id: 'mastermind_50', icon: 'brain', title: 'Mastermind', description: 'Solve 50 cryptograms across all genres', category: 'mastery', target: 50, progress: 0, isUnlocked: false, rewardCoins: 200, claimed: false },
+    { id: 'mastermind_50', icon: 'brain', title: 'Mastermind', description: 'Solve 50 cryptograms across the curriculum', category: 'mastery', target: 50, progress: 0, isUnlocked: false, rewardCoins: 200, claimed: false },
     { id: 'centurion_100', icon: 'monument', title: 'Enigma Centurion', description: 'Solve 100 total puzzles', category: 'mastery', target: 100, progress: 0, isUnlocked: false, rewardCoins: 500, claimed: false },
     { id: 'clean_solve', icon: 'sparkle-burst', title: 'Pure Insight', description: 'Solve a puzzle with 0 hints and 0 mistakes', category: 'accuracy', target: 1, progress: 0, isUnlocked: false, rewardCoins: 50, claimed: false },
     { id: 'flawless_5', icon: 'target', title: 'Flawless Decryptor', description: 'Solve 5 puzzles with 0 mistakes', category: 'accuracy', target: 5, progress: 0, isUnlocked: false, rewardCoins: 120, claimed: false },
@@ -47,8 +47,9 @@ const INITIAL_ACHIEVEMENTS: Achievement[] = [
     { id: 'daily_starter', icon: 'calendar', title: 'Daily Dedication', description: 'Solve your first Daily Cipher challenge', category: 'streaks', target: 1, progress: 0, isUnlocked: false, rewardCoins: 40, claimed: false },
     { id: 'streak_7', icon: 'flame', title: 'Week of Brilliance', description: 'Maintain a 7-day Daily Cipher streak', category: 'streaks', target: 7, progress: 0, isUnlocked: false, rewardCoins: 200, claimed: false },
     { id: 'streak_30', icon: 'trophy', title: 'Unbreakable Will', description: 'Reach a 30-day Daily Cipher streak', category: 'streaks', target: 30, progress: 0, isUnlocked: false, rewardCoins: 600, claimed: false },
-    { id: 'polymath_3', icon: 'graduation', title: 'Polymath', description: 'Master all puzzles in 3 distinct subjects', category: 'mastery', target: 3, progress: 0, isUnlocked: false, rewardCoins: 150, claimed: false },
-    { id: 'omniscient_all', icon: 'galaxy', title: 'Omniscient Mind', description: 'Master all subjects in the library', category: 'mastery', target: getMasterableCoreTracks().length, progress: 0, isUnlocked: false, rewardCoins: 400, claimed: false },
+    { id: 'subject_master_1', icon: 'medal', title: 'First Mastery', description: 'Master 1 subject in the library', category: 'mastery', target: 1, progress: 0, isUnlocked: false, rewardCoins: 80, claimed: false },
+    { id: 'polymath_3', icon: 'graduation', title: 'Polymath', description: 'Master 3 distinct subjects', category: 'mastery', target: 3, progress: 0, isUnlocked: false, rewardCoins: 150, claimed: false },
+    { id: 'omniscient_8', icon: 'galaxy', title: 'Omniscient Mind', description: 'Master 8 distinct subjects', category: 'mastery', target: 8, progress: 0, isUnlocked: false, rewardCoins: 400, claimed: false },
     { id: 'legendary_solver', icon: 'sword', title: 'Legendary Decryptor', description: 'Solve a Legendary difficulty puzzle', category: 'special', target: 1, progress: 0, isUnlocked: false, rewardCoins: 100, claimed: false },
     { id: 'blitz_master', icon: 'rocket', title: 'Blitz Overdrive', description: 'Score 1,000+ points in Blitz Rush mode', category: 'speed', target: 1, progress: 0, isUnlocked: false, rewardCoins: 120, claimed: false },
     { id: 'theme_collector', icon: 'palette', title: 'Aesthetic Elite', description: 'Unlock 3 custom themes in the Store', category: 'special', target: 3, progress: 0, isUnlocked: false, rewardCoins: 100, claimed: false },
@@ -675,15 +676,11 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                 case 'legendary_solver':
                     if (!params.usedMasterKey && params.difficulty === 'Legendary' && params.hintsUsed === 0) newProgress = 1;
                     break;
-                case 'polymath_3': {
+                case 'subject_master_1':
+                case 'polymath_3':
+                case 'omniscient_8': {
                     const allTracks = TRACKS;
                     const completed = allTracks.filter(t => isTrackComplete(t.id, effectiveSolved)).length;
-                    newProgress = completed;
-                    break;
-                }
-                case 'omniscient_all': {
-                    const masterable = getMasterableCoreTracks();
-                    const completed = masterable.filter(t => isTrackComplete(t.id, effectiveSolved)).length;
                     newProgress = completed;
                     break;
                 }
