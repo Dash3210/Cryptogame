@@ -1,1 +1,2946 @@
-{}
+{
+  "classical physics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "physics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "model": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "theory": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "law": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "scientific method": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "modern physics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "relativity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "quantum mechanics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "physical quantity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "units": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "SI units": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "English units": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "fundamental units": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "derived units": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "metric system": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "order of magnitude": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "conversion factor": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "accuracy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "method of adding percents": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "percent uncertainty": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "precision": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "significant figures": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "uncertainty": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "approximation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "kinematics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "position": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "displacement": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "distance": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "distance traveled": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "scalar": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "vector": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "average speed": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "average velocity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "instantaneous velocity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "time": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "elapsed time": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "average acceleration": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "instantaneous acceleration": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "deceleration": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "free-fall": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "acceleration due to gravity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "independent variable": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "dependent variable": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "slope": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "y-intercept": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "component (of a 2-d vector)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "commutative": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "direction (of a vector)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "head (of a vector)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "head-to-tail method": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magnitude (of a vector)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "resultant": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "resultant vector": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "tail": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "analytical method": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "air resistance": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "motion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "projectile": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "projectile motion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "range": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "trajectory": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "classical relativity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "relative velocity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "vector addition": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "external force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "free-body diagram": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Newton's first law of motion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "friction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "net external force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "system": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "weight": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Newton's third law of motion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "thrust": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "inertial frame of reference": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "normal force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "tension": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "carrier particle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "force field": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "kinetic friction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "static friction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "deformation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "tensile strength": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "strain": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "shear deformation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "uniform circular motion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "arc length": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "pit": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "rotation angle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "angular velocity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "centripetal acceleration": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ultracentrifuge": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "centripetal force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ideal banking": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ideal speed": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ideal angle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "banked curve": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "fictitious force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "centrifugal force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Coriolis force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "gravitational constant, G": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "center of mass": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "microgravity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Newton's universal law of gravitation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "work": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "joule": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "net work": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "work-energy theorem": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "gravitational potential energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "conservative force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "potential energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "potential energy of a spring": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "conservation of mechanical energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "mechanical energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "nonconservative force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "law of conservation of energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electrical energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "chemical energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "radiant energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "nuclear energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "thermal energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "efficiency": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "horsepower": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "metabolic rate": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "basal metabolic rate": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "useful work": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "renewable forms of energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "linear momentum": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "second law of motion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "change in momentum": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "impulse": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "conservation of momentum principle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "isolated system": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "quark": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "elastic collision": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "internal kinetic energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "inelastic collision": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "perfectly inelastic collision": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "point masses": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "static equilibrium": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "dynamic equilibrium": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "torque": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "perpendicular lever arm": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "SI units of torque": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "center of gravity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "neutral equilibrium": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "stable equilibrium": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "unstable equilibrium": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "mechanical advantage": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "angular acceleration": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "change in angular velocity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "tangential acceleration": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "kinematics of rotational motion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "rotational inertia": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "moment of inertia": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "rotational kinetic energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "angular momentum": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "law of conservation of angular momentum": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "right-hand rule": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "fluids": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "density": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "pressure": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Pascal's Principle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "absolute pressure": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "diastolic pressure": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "gauge pressure": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "systolic pressure": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Archimedes' principle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "buoyant force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "specific gravity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "adhesive forces": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "capillary action": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "cohesive forces": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "contact angle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "surface tension": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "glaucoma": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "micturition reflex": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "fluid dynamics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Bernoulli's equation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "laminar": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "turbulence": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "viscosity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Poiseuille's law for resistance": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Reynolds number": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "viscous drag": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "terminal speed": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "diffusion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "semipermeable": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "dialysis": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "relative osmotic pressure": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "osmotic pressure": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "reverse osmosis": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "reverse dialysis": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "active transport": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "temperature": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Celsius scale": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "degree Celsius": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Fahrenheit scale": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "degree Fahrenheit": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Kelvin scale": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "thermal equilibrium": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "zeroth law of thermodynamics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "thermal expansion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "coefficient of linear expansion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "coefficient of volume expansion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "thermal stress": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ideal gas law": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Boltzmann constant": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "mole": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "critical point": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "critical temperature": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "critical pressure": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "vapor": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "vapor pressure": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "phase diagram": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "triple point": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "sublimation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "partial pressure": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Dalton's law of partial pressures": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "dew point": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "saturation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "percent relative humidity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "relative humidity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "heat": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "mechanical equivalent of heat": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "specific heat": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "heat of sublimation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "latent heat coefficient": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "conduction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "convection": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "radiation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "R factor": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "rate of conductive heat transfer": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "thermal conductivity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "emissivity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "greenhouse effect": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "first law of thermodynamics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "internal energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "human metabolism": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "heat engine": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "isobaric process": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "adiabatic process": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "reversible process": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "irreversible process": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "second law of thermodynamics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "cyclical process": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Otto cycle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Carnot cycle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Carnot engine": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Carnot efficiency": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "heat pump": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "coefficient of performance": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "change in entropy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "second law of thermodynamics stated in terms of entropy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "macrostate": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "microstate": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "statistical analysis": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "oscillate": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "wave": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "elastic potential energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "force constant": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "restoring force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "period": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "periodic motion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "frequency": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "amplitude": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "simple harmonic motion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "simple harmonic oscillator": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "simple pendulum": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "critical damping": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "over damping": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "under damping": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "natural frequency": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "resonate": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "longitudinal wave": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "transverse wave": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "wave velocity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "wavelength": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "antinode": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "beat frequency": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "constructive interference": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "destructive interference": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "fundamental frequency": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "nodes": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "overtones": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "superposition": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "sound": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "intensity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "sound intensity level": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "sound pressure level": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Doppler effect": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Doppler shift": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "sonic boom": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "bow wake": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "harmonics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "note": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "tone": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "acoustic impedance": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "intensity reflection coefficient": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Doppler-shifted ultrasound": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "static electricity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electromagnetic force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electric charge": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "law of conservation of charge": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electron": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "proton": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "free electron": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "conductor": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "insulator": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "grounded": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "induction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "polarization": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electrostatic repulsion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Coulomb's law": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Coulomb force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electrostatic force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "field": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "point charge": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "test charge": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electric field": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electric field lines": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "dipole": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "polar molecule": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "screening": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Coulomb interaction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "free charge": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electrostatic equilibrium": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "polarized": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ionosphere": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Faraday cage": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Van de Graaff generator": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electrostatics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "photoconductor": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "xerography": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "laser printer": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ink-jet printer": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electrostatic precipitators": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "potential difference (or voltage)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electron volt": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "equipotential line": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "grounding": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "capacitor": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "capacitance": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "dielectric strength": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "parallel plate capacitor": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "defibrillator": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "drift velocity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Ohm's law": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "resistance": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ohm": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ohmic": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "simple circuit": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "resistivity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "temperature coefficient of resistivity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electric power": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "direct current": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "alternating current": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "rms current": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "rms voltage": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "thermal hazard": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "shock hazard": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "short circuit": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "microshock sensitive": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "nerve conduction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "bioelectricity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electrocardiogram (ECG)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "series": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "resistor": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "voltage": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "voltage drop": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "current": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Joule's law": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "parallel": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electromotive force (emf)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "internal resistance": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "potential difference": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "terminal voltage": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Kirchhoff's rules": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "junction rule": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "conservation laws": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "analog meter": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "digital meter": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "galvanometer": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "current sensitivity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "full-scale deflection": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "shunt resistance": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "null measurements": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "potentiometer": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ohmmeter": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "bridge device": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Wheatstone bridge": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "RC circuit": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "north magnetic pole": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "south magnetic pole": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ferromagnetic": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magnetized": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "domains": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Curie temperature": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electromagnetism": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electromagnet": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magnetic monopoles": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magnetic field lines": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "direction of magnetic field lines": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "right hand rule 1 (RHR-1)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Lorentz force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magnetic force": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Hall effect": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Hall emf": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "motor": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "meter": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "right hand rule 2 (RHR-2)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "solenoid": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Biot-Savart law": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Ampere's law": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Maxwell's equations": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magnetic resonance imaging (MRI)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "nuclear magnetic resonance (NMR)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magnetocardiogram (MCG)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magnetoencephalogram (MEG)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electromagnetic induction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Faraday's law of induction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Lenz's law": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "eddy current": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magnetic damping": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electric generator": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "back emf": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "transformer": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "three-wire system": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "inductance": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "mutual inductance": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "self-inductance": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "inductor": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "characteristic time constant": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "phase angle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "power factor": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electromagnetic waves": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "RLC circuit": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "hertz": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electric field strength": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magnetic field": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magnetic field strength": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "standing wave": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "resonant": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electromagnetic spectrum": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "radio waves": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "microwaves": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "thermal agitation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "infrared radiation (IR)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ultraviolet radiation (UV)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "visible light": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "amplitude modulation (AM)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "carrier wave": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "frequency modulation (FM)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "TV": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "X-ray": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "gamma ray": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "maximum field strength": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ray": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "geometric optics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "mirror": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "law of reflection": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "index of refraction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "critical angle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "fiber optics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "corner reflector": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "zircon": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "dispersion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "rainbow": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "converging lens": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "diverging lens": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "focal point": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "focal length": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magnification": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "converging mirror": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "diverging mirror": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "accommodation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "presbyopia": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "nearsightedness": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "myopia": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "far point": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "farsightedness": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "hyperopia": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "near point": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "astigmatism": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "laser vision correction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "hues": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "rods and cones": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "simplified theory of color vision": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "color constancy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "retinex": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "retinex theory of color vision": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "compound microscope": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "objective lens": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "eyepiece": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "adaptive optics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "angular magnification": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "aberration": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "diffraction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Huygens's principle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "coherent": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "constructive interference for a double slit": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "destructive interference for a double slit": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "order": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "diffraction grating": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Rayleigh criterion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "thin film interference": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "axis of a polarizing filter": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "birefringent": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Brewster's angle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Brewster's law": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "direction of polarization": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "horizontally polarized": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "optically active": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "reflected light that is completely polarized": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "vertically polarized": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "confocal microscopes": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "contrast": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "interference microscopes": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "phase-contrast microscope": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "polarization microscope": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ultraviolet (UV) microscopes": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "special relativity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "first postulate of special relativity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "second postulate of special relativity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Michelson-Morley experiment": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "time dilation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "twin paradox": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "proper length": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "length contraction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "classical velocity addition": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "relativistic velocity addition": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "relativistic Doppler effects": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "relativistic momentum": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "rest mass": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "rest energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "quantized": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "correspondence principle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "blackbody": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "blackbody radiation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "atomic spectra": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "photoelectric effect": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "photon energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "binding energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ionizing radiation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "x ray": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "bremsstrahlung": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "characteristic x rays": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ultraviolet radiation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "infrared radiation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Compton effect": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "particle-wave duality": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "de Broglie wavelength": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Heisenberg's uncertainty principle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "uncertainty in energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "uncertainty in time": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "uncertainty in momentum": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "uncertainty in position": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "probability distribution": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "atom": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Brownian motion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "cathode-ray tube": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "planetary model of the atom": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "hydrogen spectrum wavelengths": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "double-slit interference": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "energy-level diagram": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Bohr radius": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "hydrogen-like atom": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "x-ray diffraction": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "metastable": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "atomic excitation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "atomic de-excitation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "laser": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "phosphorescence": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "population inversion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "stimulated emission": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "hologram": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "fluorescence": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Zeeman effect": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "intrinsic spin": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "orbital angular momentum": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "fine structure": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "space quantization": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "intrinsic magnetic field": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "orbital magnetic field": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "quantum numbers": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "angular momentum quantum number": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "spin quantum number": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "spin projection quantum number": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "z-component of spin angular momentum": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "z-component of the angular momentum": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Pauli exclusion principle": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "shell": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "subshell": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "alpha rays": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "beta rays": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "gamma rays": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "nuclear radiation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "radioactivity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "radioactive": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "range of radiation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Geiger tube": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "photomultiplier": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "radiation detector": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "scintillators": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "solid-state radiation detectors": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "atomic mass": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "chart of the nuclides": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magic numbers": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "mass number": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "neutron": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "nucleus": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "nuclide": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "protons": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "parent": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "daughter": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "positron": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "decay": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "alpha decay": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "beta decay": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "gamma decay": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "decay equation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "nuclear reaction energy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "neutrino": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "positron decay": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "decay series": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electron's neutrino": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electron capture": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "becquerel": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "half-life": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "radioactive dating": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "decay constant": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "carbon-14 dating": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "activity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "rate of decay": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "curie": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "binding energy per nucleon": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "barrier penetration": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "quantum mechanical tunneling": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "tunneling": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Anger camera": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "gamma camera": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "positron emission tomography (PET)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "tagged": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "gray (Gy)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "linear hypothesis": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "rad": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "sievert": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "relative biological effectiveness (RBE)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "roentgen equivalent man (rem)": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "hormesis": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "shielding": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "radiotherapy": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "therapeutic ratio": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "food irradiation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "free radicals": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "radiolytic products": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "break-even": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "ignition": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "inertial confinement": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "magnetic confinement": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "nuclear fusion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "breeder reactors": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "breeding": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "criticality": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "critical mass": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "liquid drop model": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "nuclear fission": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "neutron-induced fission": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "particle physics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "pion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "virtual particles": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "meson": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Feynman diagram": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "gluons": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "quantum electrodynamics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "colliding beams": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "cyclotron": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "linear accelerator": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "synchrotron": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "synchrotron radiation": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Van de Graaff": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "boson": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "baryons": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "baryon number": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "conservation of total baryon number": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "conservation of total electron family number": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "conservation of total muon family number": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electron family number": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "fermion": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "gauge boson": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "hadrons": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "leptons": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "muon family number": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "strangeness": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "tau family number": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "charm": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "down": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "strange": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "theory of quark confinement": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electroweak theory": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "grand unified theory": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Higgs boson": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "quantum chromodynamics": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "standard model": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "superstring theory": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "cosmic microwave background": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "cosmological red shift": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "cosmology": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "electroweak epoch": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "GUT epoch": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Hubble constant": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "inflationary scenario": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "spontaneous symmetry breaking": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "superforce": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "TOE epoch": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "black holes": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "general relativity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "gravitational waves": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "escape velocity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "neutron stars": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Schwarzschild radius": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "thought experiment": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "quasars": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "Quantum gravity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "cosmological constant": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "critical density": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "flat (zero curvature) universe": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "microlensing": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "MACHOs": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "neutrino oscillations": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "negatively curved": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "positively curved": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "WIMPs": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "complexity": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  },
+  "chaos": {
+    "source": "College Physics",
+    "license": "CC BY 4.0"
+  }
+}

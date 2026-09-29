@@ -72,11 +72,11 @@ describe('Public Domain Compliance & Branch Invariants', () => {
             expect(branch!.icon).toBeDefined();
         });
 
-        test('empty physics branches have zero levels in QUOTE_DB and are empty', () => {
+        test('physics branches have valid levels in QUOTE_DB and are populated', () => {
             expectedBranches.forEach(({ id }) => {
-                expect(QUOTE_DB[id]?.length ?? 0).toBe(0);
+                expect(QUOTE_DB[id]?.length ?? 0).toBeGreaterThan(0);
                 const progress = getBranchProgress(id, new Set());
-                expect(progress.total).toBe(0);
+                expect(progress.total).toBe(QUOTE_DB[id]?.length);
             });
         });
     });
@@ -84,28 +84,23 @@ describe('Public Domain Compliance & Branch Invariants', () => {
     describe('Zero-Level Branch Filtering (Requirement 1)', () => {
         test('branches with zero levels are filtered out from playable list for a track', () => {
             const physicsBranches = getBranchesForTrack('physics');
-            // Physics track has registered branches, but only branches with > 0 levels should be playable
+            // Physics track has registered branches, and branches with > 0 levels are playable
             const activeBranches = physicsBranches.filter(b => getBranchProgress(b.id, new Set()).total > 0);
             const expectedActiveCount = physicsBranches.filter(b => (QUOTE_DB[b.id]?.length ?? 0) > 0).length;
             expect(activeBranches.length).toBe(expectedActiveCount);
             expect(activeBranches.length).toBeGreaterThanOrEqual(1);
             expect(activeBranches.some(b => b.id === 'physics')).toBe(true);
-            expect(activeBranches[0].label).toBe('Physics');
+            expect(activeBranches[0].label).toBe('Scientific Foundations');
 
-            // Empty branches must not be in active branches
-            const emptyIds = [
-                'scientific-foundations',
-                'physics-mechanics',
-                'physics-fluids',
-                'physics-thermodynamics',
-                'physics-waves-sound',
-                'physics-electromagnetism',
-                'physics-optics',
-                'physics-modern',
-                'physics-nuclear-particle'
-            ];
+            // Truly empty branches (e.g. biochemistry or lexicon with 0 levels) must not be in active branches
+            const emptyIds = ['biochemistry', 'lexicon'];
             emptyIds.forEach(id => {
-                expect(activeBranches.some(b => b.id === id)).toBe(false);
+                const emptyBranch = BRANCHES.find(b => b.id === id);
+                if (emptyBranch) {
+                    const trackBranches = getBranchesForTrack(emptyBranch.tracks[0]);
+                    const trackActive = trackBranches.filter(b => getBranchProgress(b.id, new Set()).total > 0);
+                    expect(trackActive.some(b => b.id === id)).toBe(false);
+                }
             });
         });
 
@@ -124,11 +119,8 @@ describe('Public Domain Compliance & Branch Invariants', () => {
 
             const json = JSON.stringify(renderer.toJSON());
 
-            // Zero-level branch descriptions and labels must NOT be rendered
-            expect(json).not.toContain('Motion, Forces, Energy');
-            expect(json).not.toContain('Fluid Dynamics');
-            expect(json).not.toContain('Heat, Temperature');
-            expect(json).not.toContain('Scientific Inquiry');
+            // Zero-level branch descriptions and labels must NOT be rendered (e.g. unpopulated biochemistry)
+            expect(json).not.toContain('Chemical processes within living organisms');
             expect(json).not.toContain('branch, available soon');
 
             await ReactTestRenderer.act(async () => {

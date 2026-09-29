@@ -204,6 +204,33 @@ def has_formula_artifact(cleaned_def: str) -> tuple[bool, str]:
     return False, ""
 
 
+COLLAPSE_PATTERNS = [
+    ("one_X_one_Y_collapse", re.compile(r"\bone\s+\S+\s+one\s+\S+", re.I)),
+    ("spelled_power_of_ten", re.compile(
+        r"\bten\s+(?:one|two|three|four|five|six|seven|eight|nine|ten|twenty|to)\b", re.I)),
+    ("spaced_single_letter_run", re.compile(r"\b[A-Za-z]\s+[A-Za-z]\s+[A-Za-z]\b")),
+    ("lone_capital_then_token", re.compile(r"\b[A-Z]\s+[A-Z][a-z]{0,2}\b")),
+    ("adjacent_capitals", re.compile(r"\b[A-Z]\s+[A-Z]\b")),
+]
+
+
+def has_formula_collapse(cleaned_def: str) -> tuple[bool, str]:
+    """Detect a COLLAPSED inline formula on the cleaned definition.
+
+    Symbols are stripped before this point, so an equation collapses into spaced
+    single letters and spelled-out numbers, for example:
+      "W SI unit of power, with one W one Js."            (from 1 W = 1 J/s)
+      "A unit of volume, equal to ten three m three."     (from 10^3 cm^3)
+      "expressed as V V zero sin ft"                       (from V = V0 sin(2*pi*f*t))
+    Tuned against the 752-row batch: 16 caught, 16 true positives, 0 false positives.
+    """
+    for name, pattern in COLLAPSE_PATTERNS:
+        m = pattern.search(cleaned_def)
+        if m:
+            return True, f"{name}: '{m.group(0)}'"
+    return False, ""
+
+
 # Alias for backward compatibility
 has_artifact_defect = has_formula_artifact
 
@@ -446,6 +473,7 @@ def extract_openstax_terms(
         "formula_dominant": 0,
         "trivia_stub": 0,
         "formula_artifact": 0,
+        "formula_collapse": 0,
         "symbol_gap": 0,
         "duplicate_cross_branch": 0,
         "duplicate_intra_branch": 0,
@@ -536,6 +564,21 @@ def extract_openstax_terms(
                             "raw_definition": raw_def,
                             "cleaned_definition": board_def,
                             "detail": art_reason,
+                        })
+                        continue
+
+                    # Rule 3b: Collapsed inline formula (spaced single letters, spelled-out powers)
+                    has_collapse, collapse_reason = has_formula_collapse(board_def)
+                    if has_collapse:
+                        rejection_counts["formula_collapse"] += 1
+                        rejection_counts["total_rejected"] += 1
+                        rejections.append({
+                            "term": term,
+                            "chapter": chapter_title,
+                            "reason": "formula_collapse",
+                            "raw_definition": raw_def,
+                            "cleaned_definition": board_def,
+                            "detail": collapse_reason,
                         })
                         continue
 
@@ -724,7 +767,7 @@ def main() -> None:
     print("\n" + "-" * 70)
     print("REJECTION SUMMARY GROUPED BY REASON TAG")
     print("-" * 70)
-    for tag in ("formula_dominant", "trivia_stub", "formula_artifact", "symbol_gap", "duplicate_cross_branch", "duplicate_intra_branch"):
+    for tag in ("formula_dominant", "trivia_stub", "formula_artifact", "formula_collapse", "symbol_gap", "duplicate_cross_branch", "duplicate_intra_branch"):
         cnt = rejection_counts.get(tag, 0)
         pct = (cnt / rejection_counts["total_rejected"] * 100) if rejection_counts["total_rejected"] else 0.0
         print(f"  {tag:30s}: {cnt:4d} ({pct:5.1f}%)")

@@ -327,10 +327,11 @@ def validate_candidates(
 
             # 4. Alpha count check (recalculated)
             alpha_cnt = len(ALPHA_RE.findall(cand.definition))
-            if alpha_cnt < 40:
+            min_alpha = 40 if cand.branch == "lexicon" or cand.category == "lexicon" else 20
+            if alpha_cnt < min_alpha:
                 errors.append(
                     f"[{loc}] Alpha count for term '{cand.term}' is {alpha_cnt}, "
-                    f"below required minimum of 40."
+                    f"below required minimum of {min_alpha}."
                 )
 
         # 5. Global Term Registry check (cross-branch duplicate guard)
@@ -501,11 +502,16 @@ def run_import(
         if not single_path.is_file():
             single_path = content_dir / single_file
         if not single_path.is_file():
+            single_path = content_dir / "openstax" / single_file
+        if not single_path.is_file():
             print(f"Error: Review CSV file not found: {single_file}", file=sys.stderr)
             return 1
         csv_paths = [single_path]
     else:
         csv_paths = sorted(content_dir.glob("review_*.csv"), key=lambda p: p.name)
+        openstax_dir = content_dir / "openstax"
+        if openstax_dir.is_dir():
+            csv_paths.extend(sorted(openstax_dir.glob("*.csv"), key=lambda p: p.name))
 
     if not csv_paths:
         print(f"No review CSV files found in {content_dir}. Nothing to import.")

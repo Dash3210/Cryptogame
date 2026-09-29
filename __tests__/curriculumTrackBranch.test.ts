@@ -330,18 +330,27 @@ describe('Curriculum Track -> Branch Content Model', () => {
 
         test('backward-compatible isGenreComplete and getGenreProgress route to track or branch', () => {
             const solvedSet = new Set<string>();
-            const bioQuotes = QUOTE_DB['biology'];
-            expect(isGenreComplete('biology', solvedSet)).toBe(false);
+            const historyQuotes = QUOTE_DB['history'];
+            expect(isGenreComplete('history', solvedSet)).toBe(false);
 
-            // Complete biology
-            bioQuotes.forEach((q, idx) => {
-                solvedSet.add(getLevelId('biology', q, idx, bioQuotes));
+            // Complete history track
+            historyQuotes.forEach((q, idx) => {
+                solvedSet.add(getLevelId('history', q, idx, historyQuotes));
             });
 
-            expect(isGenreComplete('biology', solvedSet)).toBe(true);
-            const progress = getGenreProgress('biology', solvedSet);
-            expect(progress.completed).toBe(bioQuotes.length);
-            expect(progress.total).toBe(bioQuotes.length);
+            expect(isGenreComplete('history', solvedSet)).toBe(true);
+            const progress = getGenreProgress('history', solvedSet);
+            expect(progress.completed).toBe(historyQuotes.length);
+            expect(progress.total).toBe(historyQuotes.length);
+
+            // Also routes directly for a branch that is not a top-level track
+            const mechQuotes = QUOTE_DB['physics-mechanics'];
+            expect(isGenreComplete('physics-mechanics', new Set())).toBe(false);
+            const mechSolved = new Set(mechQuotes.map((q, idx) => getLevelId('physics-mechanics', q, idx, mechQuotes)));
+            expect(isGenreComplete('physics-mechanics', mechSolved)).toBe(true);
+            const mechProgress = getGenreProgress('physics-mechanics', mechSolved);
+            expect(mechProgress.completed).toBe(mechQuotes.length);
+            expect(mechProgress.total).toBe(mechQuotes.length);
         });
     });
 });

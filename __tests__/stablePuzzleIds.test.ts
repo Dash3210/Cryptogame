@@ -166,42 +166,42 @@ describe('Stable Puzzle IDs & Curriculum Insertion Invariant', () => {
     });
 
     test('getNextQuote, getGenreProgress, and isGenreComplete function accurately with stable IDs', () => {
-      const category = 'physics';
-      const allPhysicsIds = getCategoryQuoteIds(category);
-      expect(allPhysicsIds.length).toBeGreaterThan(0);
+      const category = 'history';
+      const allHistoryIds = getCategoryQuoteIds(category);
+      expect(allHistoryIds.length).toBeGreaterThan(0);
 
       // Fresh player has 0 progress
       const solvedSet = new Set<string>();
       expect(isGenreComplete(category, solvedSet)).toBe(false);
       expect(getGenreProgress(category, solvedSet)).toEqual({
         completed: 0,
-        total: allPhysicsIds.length
+        total: allHistoryIds.length
       });
 
       // First quote is served
       const q1 = getNextQuote(category, solvedSet);
       expect(q1).not.toBeNull();
-      expect(q1?.id).toBe(allPhysicsIds[0]);
+      expect(q1?.id).toBe(allHistoryIds[0]);
 
       // Player solves first 3 quotes
       for (let i = 0; i < 3; i++) {
-        solvedSet.add(allPhysicsIds[i]);
+        solvedSet.add(allHistoryIds[i]);
       }
 
       const qNext = getNextQuote(category, solvedSet);
-      expect(qNext?.id).toBe(allPhysicsIds[3]);
+      expect(qNext?.id).toBe(allHistoryIds[3]);
       expect(getGenreProgress(category, solvedSet)).toEqual({
         completed: 3,
-        total: allPhysicsIds.length
+        total: allHistoryIds.length
       });
       expect(isGenreComplete(category, solvedSet)).toBe(false);
 
       // Player completes all
-      allPhysicsIds.forEach(id => solvedSet.add(id));
+      allHistoryIds.forEach(id => solvedSet.add(id));
       expect(isGenreComplete(category, solvedSet)).toBe(true);
       expect(getGenreProgress(category, solvedSet)).toEqual({
-        completed: allPhysicsIds.length,
-        total: allPhysicsIds.length
+        completed: allHistoryIds.length,
+        total: allHistoryIds.length
       });
       expect(getNextQuote(category, solvedSet)).toBeNull();
     });

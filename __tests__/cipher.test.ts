@@ -227,18 +227,18 @@ describe('Quote Service & Content Database', () => {
   });
 
   test('getGenreProgress and isGenreComplete work accurately', () => {
-    const totalBio = QUOTE_DB['biology'].length;
-    const bioIds = getCategoryQuoteIds('biology');
+    const totalHistory = QUOTE_DB['history'].length;
+    const historyIds = getCategoryQuoteIds('history');
     const solvedSet = new Set<string>();
 
-    for (const id of bioIds) {
+    for (const id of historyIds) {
       solvedSet.add(id);
     }
 
-    expect(isGenreComplete('biology', solvedSet)).toBe(true);
-    const progress = getGenreProgress('biology', solvedSet);
-    expect(progress.completed).toBe(totalBio);
-    expect(progress.total).toBe(totalBio);
+    expect(isGenreComplete('history', solvedSet)).toBe(true);
+    const progress = getGenreProgress('history', solvedSet);
+    expect(progress.completed).toBe(totalHistory);
+    expect(progress.total).toBe(totalHistory);
   });
 
   test('getDailyQuote returns deterministic daily quotes for given dates', () => {
