@@ -61,12 +61,12 @@ VALID_CC_BY_4_URLS = {
 # Trivia stub pattern for SI units
 SI_STUB_PATTERN = re.compile(r"(?i)\b(?:the\s+)?SI\s+unit\b.*?\babbreviated\b")
 
-# Gap class patterns (dropped symbol leaving missing subject / broken connector)
+# Gap class patterns (dropped symbol leaving missing subject or variable run)
+SYMBOL_GAP_WHERE_PATTERN = re.compile(r"(?i)\bwhere\s+(?:is|are|was|were)\b")
+SYMBOL_GAP_RUN_PATTERN = re.compile(r"\b(?:[A-Za-z]\s+){3,}[A-Za-z]\b")
 GAP_PATTERNS = [
-    re.compile(r"(?i)\bwhere\s+is\s+the\b"),
-    re.compile(r"(?i)(?:^|[.;,]\s+)is\s+(?:the|an?)\b"),
-    re.compile(r"(?i)\bat\s+an\s+angle\s+with\s+the\s+perpendicular\b"),
-    re.compile(r"(?i)\bis\s+(?:the\s+)?wavelength\b"),
+    SYMBOL_GAP_WHERE_PATTERN,
+    SYMBOL_GAP_RUN_PATTERN,
 ]
 
 # 7 known mangled math terms to specifically verify and report
@@ -78,6 +78,12 @@ KNOWN_MANGLED_TARGETS = [
     "magnetic flux",
     "numerical aperture",
     "constructive interference for a diffraction grating",
+]
+
+# 2 dropped-symbol gap terms to specifically verify absence
+DROPPED_SYMBOL_GAP_TARGETS = [
+    "Stefan-Boltzmann law of radiation",
+    "wavelength in a medium",
 ]
 
 
@@ -202,13 +208,29 @@ def has_formula_artifact(cleaned_def: str) -> tuple[bool, str]:
 has_artifact_defect = has_formula_artifact
 
 
-def check_gap_class(cleaned_def: str) -> tuple[bool, str]:
-    """Detect milder gap class where a dropped symbol leaves a missing subject."""
-    for pat in GAP_PATTERNS:
-        m = pat.search(cleaned_def)
-        if m:
-            return True, m.group(0)
+def has_symbol_gap(cleaned_def: str) -> tuple[bool, str]:
+    """Detect ungrammatical gap caused by a stripped inline math symbol:
+    1. A relative clause whose subject was stripped: 'where is', 'where are',
+       'where was', 'where were' with no token between the relative pronoun and the verb.
+       (Legitimate phrasing has a subject token, e.g. 'where lambda is the constant'.)
+    2. Runs of isolated single letters (e.g. 'Q t e A T four').
+    """
+    reasons: list[str] = []
+    m_where = SYMBOL_GAP_WHERE_PATTERN.search(cleaned_def)
+    if m_where:
+        reasons.append(f"missing_subject_relative_clause: '{m_where.group(0)}'")
+
+    m_run = SYMBOL_GAP_RUN_PATTERN.search(cleaned_def)
+    if m_run:
+        reasons.append(f"isolated_single_letter_run: '{m_run.group(0)}'")
+
+    if reasons:
+        return True, "; ".join(reasons)
     return False, ""
+
+
+# Backward compatibility alias
+check_gap_class = has_symbol_gap
 
 
 def is_formula_dominant(
@@ -424,6 +446,7 @@ def extract_openstax_terms(
         "formula_dominant": 0,
         "trivia_stub": 0,
         "formula_artifact": 0,
+        "symbol_gap": 0,
         "duplicate_cross_branch": 0,
         "duplicate_intra_branch": 0,
         "total_rejected": 0,
@@ -516,7 +539,22 @@ def extract_openstax_terms(
                         })
                         continue
 
-                    # Rule 4: Global Term Registry deduplication ("never repeat a topic across subjects")
+                    # Rule 4: Dropped-symbol gap (missing subject in relative clause, single letter runs)
+                    has_gap, gap_reason = has_symbol_gap(board_def)
+                    if has_gap:
+                        rejection_counts["symbol_gap"] += 1
+                        rejection_counts["total_rejected"] += 1
+                        rejections.append({
+                            "term": term,
+                            "chapter": chapter_title,
+                            "reason": "symbol_gap",
+                            "raw_definition": raw_def,
+                            "cleaned_definition": board_def,
+                            "detail": gap_reason,
+                        })
+                        continue
+
+                    # Rule 5: Global Term Registry deduplication ("never repeat a topic across subjects")
                     is_dupe, dupe_reason = registry.check_duplicate(term, branch_id)
                     if is_dupe:
                         tag = "duplicate_cross_branch" if "CROSS-BRANCH" in dupe_reason else "duplicate_intra_branch"
@@ -532,9 +570,9 @@ def extract_openstax_terms(
                         })
                         continue
 
-                    # Check and track gap class (reporting only, milder dropped-symbol gaps)
-                    has_gap, gap_snippet = check_gap_class(board_def)
-                    if has_gap:
+                    # Check and track any remaining gap class instances surviving in accepted pool
+                    has_surviving_gap, gap_snippet = check_gap_class(board_def)
+                    if has_surviving_gap:
                         gap_class_reported.append((term, gap_snippet, board_def))
 
                     # Valid candidate! Register into Global Term Registry
@@ -686,7 +724,7 @@ def main() -> None:
     print("\n" + "-" * 70)
     print("REJECTION SUMMARY GROUPED BY REASON TAG")
     print("-" * 70)
-    for tag in ("formula_dominant", "trivia_stub", "formula_artifact", "duplicate_cross_branch", "duplicate_intra_branch"):
+    for tag in ("formula_dominant", "trivia_stub", "formula_artifact", "symbol_gap", "duplicate_cross_branch", "duplicate_intra_branch"):
         cnt = rejection_counts.get(tag, 0)
         pct = (cnt / rejection_counts["total_rejected"] * 100) if rejection_counts["total_rejected"] else 0.0
         print(f"  {tag:30s}: {cnt:4d} ({pct:5.1f}%)")
@@ -711,7 +749,7 @@ def main() -> None:
         print(f"  {tier:7s}: {count:4d} ({pct:5.1f}%)")
 
     print("\n" + "-" * 70)
-    print(f"GAP CLASS REPORTING ({len(gap_class_reported)} milder instance(s) detected, not rejected)")
+    print(f"GAP CLASS AUDIT ({len(gap_class_reported)} milder instance(s) detected surviving in accepted pool)")
     print("-" * 70)
     for term, snippet, defn in gap_class_reported:
         print(f"  [{term}]: snippet '{snippet}' -> {defn}")
@@ -730,6 +768,20 @@ def main() -> None:
         print(f"  {target:52s} : {status_str}")
     print(f"All 7 known mangled-math rows eliminated: {all_absent}")
     assert all_absent, "Error: One or more known mangled math terms were not eliminated!"
+
+    print("\n" + "-" * 70)
+    print("VERIFICATION OF 2 DROPPED-SYMBOL GAP TERMS (Must ALL be absent)")
+    print("-" * 70)
+    gaps_absent = True
+    for target in DROPPED_SYMBOL_GAP_TARGETS:
+        norm_t = normalize_term(target)
+        present = norm_t in accepted_norm
+        status_str = "PRESENT (FAIL)" if present else "ABSENT (PASS)"
+        if present:
+            gaps_absent = False
+        print(f"  {target:52s} : {status_str}")
+    print(f"All 2 dropped-symbol gap rows eliminated: {gaps_absent}")
+    assert gaps_absent, "Error: One or more dropped-symbol gap terms were not eliminated!"
 
 
 if __name__ == "__main__":
