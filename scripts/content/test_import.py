@@ -3,16 +3,21 @@
 BrainCipher - Test Suite for Approved Content Importer
 
 All tests operate strictly on copies in temporary directories.
-The real src/data/quotes.ts and content/review_*.csv are NEVER touched.
+The real src/data/quotes.ts, content/term_registry.json, and content/review_*.csv
+are NEVER touched.
 
 Covers:
   1. Dry-run makes no changes to the copied file.
   2. A batch with 2 valid approved rows appends exactly 2 entries, with the right shape and valid syntax.
-  3. An invalid row (illegal character, term > 60 chars, wrong category, alpha_count < 40)
+  3. An invalid row (illegal character, term > 60 chars, unknown branch, alpha_count < 40)
      aborts with a non-zero exit and writes nothing (all-or-nothing guarantee).
-  4. Re-running the same batch does not duplicate (manifest duplicate guard works).
+  4. Re-running the same batch does not duplicate (manifest duplicate guard works; idempotent no-op).
   5. The appended text is the same shape as an existing real entry in QUOTE_DB.
   6. Zero approved rows is a clean no-op.
+  7. A valid Physics branch row appends into the CORRECT branch array in a temp COPY of quotes.ts.
+  8. An unknown branch id is rejected with a non-zero exit.
+  9. A term already owned by a different branch in the term registry is rejected as a duplicate.
+  10. The 'branch' column takes precedence over 'category' when present.
 """
 
 from __future__ import annotations
@@ -48,6 +53,7 @@ def make_review_csv(path: Path, rows: list[dict[str, str]]) -> None:
         "term",
         "definition",
         "raw_definition",
+        "branch",
         "category",
         "proposed_difficulty",
         "alpha_count",
@@ -79,6 +85,7 @@ class TestImportApproved(unittest.TestCase):
         self.tmp_quotes = self.tmp_dir / "quotes.ts"
         self.tmp_manifest = self.tmp_dir / "imported.json"
         self.tmp_sources = self.tmp_dir / "sources.json"
+        self.tmp_registry = self.tmp_dir / "term_registry.json"
         self.tmp_csv = self.tmp_dir / "review_sample.csv"
 
         # Copy real quotes.ts into temp workspace
@@ -87,10 +94,12 @@ class TestImportApproved(unittest.TestCase):
         with open(self.tmp_quotes, "w", encoding="utf-8", newline="\n") as f_dst:
             f_dst.write(content)
 
-        # Initialize empty manifest and sources
+        # Initialize empty manifest, sources, and registry in temp workspace
         with open(self.tmp_manifest, "w", encoding="utf-8") as f:
             json.dump([], f)
         with open(self.tmp_sources, "w", encoding="utf-8") as f:
+            json.dump({}, f)
+        with open(self.tmp_registry, "w", encoding="utf-8") as f:
             json.dump({}, f)
 
     def tearDown(self) -> None:
@@ -114,6 +123,8 @@ class TestImportApproved(unittest.TestCase):
             str(self.tmp_manifest),
             "--sources-path",
             str(self.tmp_sources),
+            "--registry-path",
+            str(self.tmp_registry),
             "--content-dir",
             str(self.tmp_dir),
             *extra_args,
@@ -286,19 +297,19 @@ class TestImportApproved(unittest.TestCase):
         self.assertIn("exceeds 60 characters", res.stderr)
         self.assertEqual(initial_hash, file_sha256(self.tmp_quotes))
 
-        # 3c: Wrong category (not 'lexicon')
-        rows_wrong_category = [
+        # 3c: Unknown/unregistered branch
+        rows_wrong_branch = [
             {
                 "term": "photosynthesis",
                 "definition": "This is a valid definition with more than forty letters for testing.",
-                "category": "biology",
+                "category": "unknown-nonexistent-branch",
                 "status": "approved",
             }
         ]
-        make_review_csv(self.tmp_csv, rows_wrong_category)
+        make_review_csv(self.tmp_csv, rows_wrong_branch)
         res = self.run_importer("--file", str(self.tmp_csv))
-        self.assertNotEqual(res.returncode, 0, "Importer should fail on category != 'lexicon'")
-        self.assertIn("invalid category", res.stderr.lower())
+        self.assertNotEqual(res.returncode, 0, "Importer should fail on unknown branch")
+        self.assertIn("invalid branch", res.stderr.lower())
         self.assertEqual(initial_hash, file_sha256(self.tmp_quotes))
 
         # 3d: Alpha count < 40 letters
@@ -323,9 +334,14 @@ class TestImportApproved(unittest.TestCase):
             self.assertEqual(json.load(f), {})
 
     # -------------------------------------------------------------------------
-    # TEST 4: Re-running the same batch does not duplicate (manifest works)
+    # TEST 4: Re-running the same batch does not duplicate
     # -------------------------------------------------------------------------
     def test_re_running_batch_does_not_duplicate(self) -> None:
+        """
+        Under the branch model, terms already present in manifest for the same branch
+        are skipped without duplication. Re-running the exact same batch results in a
+        clean no-op (exit 0) and adds zero duplicate entries to quotes.ts.
+        """
         sample_rows = [
             {
                 "term": "selenic",
@@ -355,10 +371,10 @@ class TestImportApproved(unittest.TestCase):
         # Hash after first successful import
         post_first_run_hash = file_sha256(self.tmp_quotes)
 
-        # Second run with exact same batch: duplicate guard aborts to prevent duplication
+        # Second run with exact same batch: skipped as already imported, clean no-op
         res2 = self.run_importer("--file", str(self.tmp_csv))
-        self.assertNotEqual(res2.returncode, 0, "Second run should abort due to duplicate terms in manifest")
-        self.assertIn("already present in manifest", res2.stderr)
+        self.assertEqual(res2.returncode, 0, f"Second run should cleanly succeed: {res2.stderr}")
+        self.assertIn("already imported", res2.stdout.lower())
 
         # Quotes file must NOT have changed from the first run (no duplicates added)
         self.assertEqual(
@@ -471,6 +487,134 @@ class TestImportApproved(unittest.TestCase):
         self.assertEqual(res.returncode, 0)
         self.assertIn("0 approved rows", res.stdout.lower())
         self.assertEqual(initial_hash, file_sha256(self.tmp_quotes))
+
+    # -------------------------------------------------------------------------
+    # TEST 7: Valid Physics branch row appends into the CORRECT branch array
+    # -------------------------------------------------------------------------
+    def test_physics_branch_row_appends_to_correct_branch(self) -> None:
+        """
+        Verify that an approved row for a Physics branch (e.g. physics-mechanics)
+        appends strictly into that branch's array, preserving quoting and trailing commas.
+        """
+        sample_rows = [
+            {
+                "term": "centripetal acceleration",
+                "definition": "The acceleration of an object moving in a circle directed toward the center of curvature.",
+                "branch": "physics-mechanics",
+                "category": "physics",
+                "proposed_difficulty": "Long",
+                "source": "OpenStax College Physics",
+                "license": "CC BY 4.0",
+                "status": "approved",
+            }
+        ]
+        make_review_csv(self.tmp_csv, sample_rows)
+
+        res = self.run_importer("--file", str(self.tmp_csv))
+        self.assertEqual(res.returncode, 0, f"Import failed: {res.stderr}")
+
+        with open(self.tmp_quotes, "r", encoding="utf-8") as f:
+            updated_ts = f.read()
+
+        # Must be present in physics-mechanics block
+        m = re.search(r"['\"]?physics-mechanics['\"]?\s*:\s*\[([\s\S]*?)\]", updated_ts)
+        self.assertIsNotNone(m, "physics-mechanics array not found in updated quotes.ts")
+        mech_body = m.group(1)
+
+        self.assertIn('"centripetal acceleration"', mech_body)
+        self.assertIn('"The acceleration of an object moving in a circle directed toward the center of curvature."', mech_body)
+
+        # Confirm lexicon array was untouched
+        lex_match = re.search(r"lexicon\s*:\s*\[([\s\S]*?)\]", updated_ts)
+        self.assertIsNotNone(lex_match)
+        self.assertEqual(lex_match.group(1).strip(), "", "Lexicon array was modified unexpectedly!")
+
+        # Confirm manifest contains the term
+        with open(self.tmp_manifest, "r", encoding="utf-8") as f:
+            manifest_data = json.load(f)
+        self.assertIn("centripetal acceleration", manifest_data)
+
+    # -------------------------------------------------------------------------
+    # TEST 8: Unknown branch id is rejected with a non-zero exit
+    # -------------------------------------------------------------------------
+    def test_unknown_branch_rejected(self) -> None:
+        """
+        Rows specifying an unregistered branch id must be rejected with non-zero exit.
+        """
+        initial_hash = file_sha256(self.tmp_quotes)
+        sample_rows = [
+            {
+                "term": "teleportation",
+                "definition": "Instantaneous transmission of physical objects across arbitrary spatial dimensions.",
+                "branch": "quantum-sorcery",
+                "status": "approved",
+            }
+        ]
+        make_review_csv(self.tmp_csv, sample_rows)
+
+        res = self.run_importer("--file", str(self.tmp_csv))
+        self.assertNotEqual(res.returncode, 0, "Importer should reject unknown branch")
+        self.assertIn("invalid branch", res.stderr.lower())
+        self.assertEqual(initial_hash, file_sha256(self.tmp_quotes), "Quotes modified on branch error!")
+
+    # -------------------------------------------------------------------------
+    # TEST 9: Term already owned by a different branch is rejected as duplicate
+    # -------------------------------------------------------------------------
+    def test_cross_branch_duplicate_rejected(self) -> None:
+        """
+        Verify that if a term is registered to branch A in term_registry.json,
+        an approved row attempting to import it under branch B is rejected with non-zero exit.
+        """
+        # Register term 'gravity' under 'physics'
+        with open(self.tmp_registry, "w", encoding="utf-8") as f:
+            json.dump({"gravity": "physics"}, f)
+
+        initial_hash = file_sha256(self.tmp_quotes)
+
+        # Attempt to import 'gravity' under 'biology'
+        sample_rows = [
+            {
+                "term": "gravity",
+                "definition": "The universal force of attraction acting between all matter possessing mass or energy.",
+                "branch": "biology",
+                "status": "approved",
+            }
+        ]
+        make_review_csv(self.tmp_csv, sample_rows)
+
+        res = self.run_importer("--file", str(self.tmp_csv))
+        self.assertNotEqual(res.returncode, 0, "Importer must reject cross-branch duplicate")
+        self.assertIn("cross-branch duplicate", res.stderr.lower())
+        self.assertEqual(initial_hash, file_sha256(self.tmp_quotes))
+
+    # -------------------------------------------------------------------------
+    # TEST 10: 'branch' column takes precedence over 'category'
+    # -------------------------------------------------------------------------
+    def test_branch_column_precedence(self) -> None:
+        """
+        When both 'branch' and 'category' are populated, 'branch' takes precedence.
+        """
+        sample_rows = [
+            {
+                "term": "diffraction",
+                "definition": "The bending of a wave around the edges of an opening or an obstacle.",
+                "branch": "physics-optics",
+                "category": "physics",
+                "status": "approved",
+            }
+        ]
+        make_review_csv(self.tmp_csv, sample_rows)
+
+        res = self.run_importer("--file", str(self.tmp_csv))
+        self.assertEqual(res.returncode, 0, f"Import failed: {res.stderr}")
+
+        with open(self.tmp_quotes, "r", encoding="utf-8") as f:
+            updated_ts = f.read()
+
+        # Should be in physics-optics, not physics
+        m = re.search(r"['\"]?physics-optics['\"]?\s*:\s*\[([\s\S]*?)\]", updated_ts)
+        self.assertIsNotNone(m, "physics-optics array not found")
+        self.assertIn('"diffraction"', m.group(1))
 
 
 if __name__ == "__main__":

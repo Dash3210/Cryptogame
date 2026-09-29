@@ -2,18 +2,33 @@
 """
 BrainCipher - Approved Content Importer
 
-Collects approved dictionary/lexicon rows from review batches (content/review_*.csv),
-validates all constraints, and appends them to QUOTE_DB.lexicon in src/data/quotes.ts.
+Collects approved rows from review batches (content/review_*.csv), validates all
+constraints, checks global term ownership against the Term Registry, and appends
+them to the appropriate branch array in QUOTE_DB in src/data/quotes.ts.
 
-Append-only invariant:
-  src/services/quoteService.ts derives puzzle IDs from array indices (`lexicon-${index}`).
-  Therefore, imports MUST strictly append to QUOTE_DB.lexicon and never reorder,
-  insert, or rewrite existing entries.
+Puzzle ID Scheme & Append-only Invariant:
+  src/services/quoteService.ts derives puzzle IDs deterministically from entry content
+  via getLevelId (`${branch}-${slug(entry.author)}`), with collision counters for
+  identical slugs.
+  Therefore, puzzle IDs are content-derived, not index-derived.
+  However, append-only ordering is still mandatory because curriculum progression,
+  saved progress (isBranchComplete, getBranchProgress, getNextQuote), and player
+  journey depend strictly on array order. Imports MUST append to the target branch
+  array and never reorder, insert, or rewrite existing entries.
 
-Attribution & provenance:
+Branch Validation & Term Registry:
+  A row's branch is resolved from its 'branch' column (if present and non-empty),
+  falling back to 'category'. It must match a registered branch from BRANCHES in
+  src/data/quotes.ts or content/openstax/physics_branches.json.
+  The global Term Registry (content/term_registry.json) enforces the invariant that
+  every term has at most one owner branch. An approved row whose normalised term is
+  owned by a different branch is rejected as a duplicate. Rows already in the manifest
+  for the same branch are skipped without duplication.
+
+Attribution & Provenance:
   content/imported.json tracks all imported terms to prevent duplication.
   content/sources.json records source and license attribution per term
-  (e.g., CC BY 4.0 requirement for WordNet).
+  (e.g., CC BY 4.0 requirement for OpenStax and WordNet).
 
 Python 3.10 standard library only.
 """
@@ -28,7 +43,15 @@ from pathlib import Path
 import re
 import sys
 import tempfile
+import time
 from typing import Any, NamedTuple
+
+# Ensure local scripts/content/ directory is in sys.path for local imports
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from term_registry import get_term_registry, normalize_term, TermRegistry
 
 
 # -----------------------------------------------------------------------------
@@ -46,6 +69,8 @@ DEFAULT_QUOTES_TS = REPO_ROOT / "src" / "data" / "quotes.ts"
 DEFAULT_CONTENT_DIR = REPO_ROOT / "content"
 DEFAULT_MANIFEST = DEFAULT_CONTENT_DIR / "imported.json"
 DEFAULT_SOURCES = DEFAULT_CONTENT_DIR / "sources.json"
+DEFAULT_REGISTRY = DEFAULT_CONTENT_DIR / "term_registry.json"
+DEFAULT_PHYSICS_BRANCHES = DEFAULT_CONTENT_DIR / "openstax" / "physics_branches.json"
 
 
 # -----------------------------------------------------------------------------
@@ -57,15 +82,35 @@ class ApprovedCandidate(NamedTuple):
     row_number: int
     term: str
     definition: str
+    branch: str
     category: str
     source: str
     license: str
     proposed_difficulty: str
 
 
+class ValidationResult(NamedTuple):
+    errors: list[str]
+    to_import: list[ApprovedCandidate]
+    skipped: list[ApprovedCandidate]
+
+
 # -----------------------------------------------------------------------------
 # ATOMIC FILE I/O HELPERS
 # -----------------------------------------------------------------------------
+
+def read_text_with_retry(path: Path, max_attempts: int = 3, delay: float = 0.1) -> str:
+    """Read a text file with retry logic to tolerate concurrent writers."""
+    for attempt in range(max_attempts):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+        except OSError:
+            if attempt == max_attempts - 1:
+                raise
+            time.sleep(delay)
+    return ""
+
 
 def atomic_write_text(path: Path, content: str) -> None:
     """Write content to path atomically via a temporary file in the same directory."""
@@ -105,12 +150,12 @@ def load_imported_manifest(path: Path) -> list[str]:
     if not path.exists():
         return []
     try:
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            if isinstance(data, list):
-                return [str(item) for item in data]
-            elif isinstance(data, dict):
-                return [str(k) for k in data.keys()]
+        content = read_text_with_retry(path)
+        data = json.loads(content)
+        if isinstance(data, list):
+            return [str(item) for item in data]
+        elif isinstance(data, dict):
+            return [str(k) for k in data.keys()]
     except (json.JSONDecodeError, OSError):
         pass
     return []
@@ -121,29 +166,66 @@ def load_sources_data(path: Path) -> dict[str, dict[str, str]]:
     if not path.exists():
         return {}
     try:
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            if isinstance(data, dict):
-                return {
-                    str(k): {
-                        "source": str(v.get("source", "")),
-                        "license": str(v.get("license", "")),
-                    }
-                    for k, v in data.items()
-                    if isinstance(v, dict)
+        content = read_text_with_retry(path)
+        data = json.loads(content)
+        if isinstance(data, dict):
+            return {
+                str(k): {
+                    "source": str(v.get("source", "")),
+                    "license": str(v.get("license", "")),
                 }
-            elif isinstance(data, list):
-                result: dict[str, dict[str, str]] = {}
-                for item in data:
-                    if isinstance(item, dict) and "term" in item:
-                        result[str(item["term"])] = {
-                            "source": str(item.get("source", "")),
-                            "license": str(item.get("license", "")),
-                        }
-                return result
+                for k, v in data.items()
+                if isinstance(v, dict)
+            }
+        elif isinstance(data, list):
+            result: dict[str, dict[str, str]] = {}
+            for item in data:
+                if isinstance(item, dict) and "term" in item:
+                    result[str(item["term"])] = {
+                        "source": str(item.get("source", "")),
+                        "license": str(item.get("license", "")),
+                    }
+            return result
     except (json.JSONDecodeError, OSError):
         pass
     return {}
+
+
+def load_valid_branches(quotes_path: Path, physics_branches_path: Path | None = None) -> set[str]:
+    """
+    Load registered branch IDs from:
+      1. BRANCHES in quotes.ts
+      2. physics_branches.json (if present)
+    """
+    valid: set[str] = set()
+
+    if quotes_path.exists():
+        try:
+            content = read_text_with_retry(quotes_path)
+            m = re.search(r"export const BRANCHES:\s*Branch\[\]\s*=\s*\[([\s\S]*?)\];", content)
+            if m:
+                for b_id in re.findall(r"id:\s*['\"]([a-zA-Z0-9_-]+)['\"]", m.group(1)):
+                    valid.add(b_id)
+        except Exception as e:
+            print(f"Warning: Failed to parse BRANCHES from {quotes_path}: {e}", file=sys.stderr)
+
+    phys_path = physics_branches_path or DEFAULT_PHYSICS_BRANCHES
+    if phys_path.exists():
+        for attempt in range(3):
+            try:
+                content = read_text_with_retry(phys_path)
+                data = json.loads(content)
+                if isinstance(data, dict):
+                    for v in data.values():
+                        if isinstance(v, str) and v.strip():
+                            valid.add(v.strip())
+                break
+            except (json.JSONDecodeError, OSError):
+                if attempt == 2:
+                    break
+                time.sleep(0.1)
+
+    return valid
 
 
 # -----------------------------------------------------------------------------
@@ -154,6 +236,7 @@ def collect_approved_rows(csv_paths: list[Path]) -> list[ApprovedCandidate]:
     """
     Read review CSV files and collect all rows where status == 'approved'.
     Uses encoding='utf-8-sig' to safely handle BOM from DictWriter.
+    Resolves branch from 'branch' column when present and non-empty, otherwise 'category'.
     """
     candidates: list[ApprovedCandidate] = []
     for csv_path in csv_paths:
@@ -164,13 +247,17 @@ def collect_approved_rows(csv_paths: list[Path]) -> list[ApprovedCandidate]:
             for row_idx, row in enumerate(reader, start=2):  # Header is row 1
                 status = (row.get("status") or "").strip().lower()
                 if status == "approved":
+                    branch_col = (row.get("branch") or "").strip()
+                    cat_col = (row.get("category") or "").strip()
+                    resolved_branch = branch_col if branch_col else cat_col
                     candidates.append(
                         ApprovedCandidate(
                             source_file=csv_path.name,
                             row_number=row_idx,
                             term=(row.get("term") or "").strip(),
                             definition=(row.get("definition") or "").strip(),
-                            category=(row.get("category") or "").strip(),
+                            branch=resolved_branch,
+                            category=cat_col,
                             source=(row.get("source") or "").strip(),
                             license=(row.get("license") or "").strip(),
                             proposed_difficulty=(row.get("proposed_difficulty") or "").strip(),
@@ -182,29 +269,39 @@ def collect_approved_rows(csv_paths: list[Path]) -> list[ApprovedCandidate]:
 def validate_candidates(
     candidates: list[ApprovedCandidate],
     existing_manifest: list[str],
-) -> list[str]:
+    valid_branches: set[str],
+    registry: TermRegistry | None = None,
+) -> ValidationResult:
     """
     Validates all candidates against constraints:
-      - category == 'lexicon'
+      - branch is in valid_branches (from BRANCHES in quotes.ts or physics_branches.json)
       - term non-empty and <= 60 characters
       - definition non-empty and matches ^[A-Za-z .,'-]+$
       - alpha_count >= 40 (recomputed, not trusting CSV)
-      - term not in imported manifest (duplicate guard)
-      - term not duplicate within current batch
+      - registry check: normalised term not already owned by a DIFFERENT branch (cross-branch duplicate)
+      - manifest check: same branch and already in manifest -> skipped as already imported
+      - batch uniqueness: term not duplicated within current import batch
 
-    Returns a list of human-readable error descriptions. Empty list means all valid.
+    Returns ValidationResult(errors, to_import, skipped).
     """
     errors: list[str] = []
+    to_import: list[ApprovedCandidate] = []
+    skipped: list[ApprovedCandidate] = []
+
     manifest_set = set(existing_manifest)
     batch_terms: set[str] = set()
 
     for cand in candidates:
         loc = f"{cand.source_file}:{cand.row_number}"
 
-        # 1. Category check
-        if cand.category != "lexicon":
+        # 1. Branch check
+        if not cand.branch:
             errors.append(
-                f"[{loc}] Invalid category '{cand.category}'; expected 'lexicon'."
+                f"[{loc}] Missing branch for term '{cand.term}'. Specify 'branch' or 'category'."
+            )
+        elif cand.branch not in valid_branches:
+            errors.append(
+                f"[{loc}] Unknown or invalid branch '{cand.branch}'; not found in BRANCHES list or physics_branches.json."
             )
 
         # 2. Term checks
@@ -236,20 +333,30 @@ def validate_candidates(
                     f"below required minimum of 40."
                 )
 
-        # 5. Duplicate guard
-        if cand.term:
-            if cand.term in manifest_set:
+        # 5. Global Term Registry check (cross-branch duplicate guard)
+        if registry is not None and cand.term:
+            owner = registry.get_owner(cand.term)
+            if owner is not None and owner != cand.branch:
                 errors.append(
-                    f"[{loc}] Term '{cand.term}' is already present in manifest of "
-                    f"previously imported terms (content/imported.json)."
+                    f"[{loc}] Cross-branch duplicate: Term '{cand.term}' is already owned by branch '{owner}', "
+                    f"cannot be claimed by '{cand.branch}'."
                 )
+
+        # 6. Manifest check: already imported for same branch -> skip without duplicating
+        if cand.term and cand.term in manifest_set:
+            skipped.append(cand)
+            continue
+
+        # 7. Intra-batch duplicate check
+        if cand.term:
             if cand.term in batch_terms:
                 errors.append(
                     f"[{loc}] Duplicate term '{cand.term}' found within current import batch."
                 )
             batch_terms.add(cand.term)
+            to_import.append(cand)
 
-    return errors
+    return ValidationResult(errors=errors, to_import=to_import, skipped=skipped)
 
 
 # -----------------------------------------------------------------------------
@@ -268,13 +375,14 @@ def format_quote_entry(definition: str, term: str) -> str:
     return f'    {{ text: "{clean_def}", author: "{clean_term}" }},'
 
 
-def append_to_quotes_ts(content: str, entry_lines: list[str]) -> str:
+def append_to_quotes_ts(content: str, branch: str, entry_lines: list[str]) -> str:
     """
-    Appends formatted entry lines to the QUOTE_DB.lexicon array in quotes.ts.
+    Appends formatted entry lines to the specified branch array in QUOTE_DB in quotes.ts.
     Maintains append-only invariant:
       - Never reorders existing elements.
       - Never modifies earlier entries (preserves array index stability).
-      - Appends strictly before the closing bracket of `lexicon: [...]`.
+      - Appends strictly before the closing bracket of `[branch]: [...]`.
+      - If the branch array does not exist in QUOTE_DB yet, inserts it before the closing `};`.
       - Preserves indentation, comments, and line endings.
     """
     if not entry_lines:
@@ -282,38 +390,86 @@ def append_to_quotes_ts(content: str, entry_lines: list[str]) -> str:
 
     entries_block = "\n".join(entry_lines)
 
-    # Case 1: Empty array `lexicon: []`
-    m_empty = re.search(r"(\blexicon\s*:\s*\[)\s*(\])", content)
-    if m_empty:
-        line_start = content.rfind("\n", 0, m_empty.start())
-        indent = content[line_start + 1 : m_empty.start()]
-        return (
-            content[: m_empty.start()]
-            + "lexicon: [\n"
-            + entries_block
-            + "\n"
-            + indent
-            + "]"
-            + content[m_empty.end() :]
-        )
+    # Search for branch key in QUOTE_DB
+    # Matches:
+    #   branch: [
+    #   'branch': [
+    #   "branch": [
+    pattern = rf"(?:^|\n)([ \t]*)(['\"]?){re.escape(branch)}\2\s*:\s*\["
+    m = re.search(pattern, content)
 
-    # Case 2: Array with existing entries `lexicon: [ ... \n  ]`
-    m_full = re.search(r"(\blexicon\s*:\s*\[[\s\S]*?)(\n\s*\])", content)
-    if m_full:
-        prefix = m_full.group(1)
-        # Ensure previous line ends with comma if it did not have one
-        if prefix.rstrip().endswith("}"):
-            prefix = prefix.rstrip() + ","
-        return (
-            content[: m_full.start()]
-            + prefix
-            + "\n"
-            + entries_block
-            + m_full.group(2)
-            + content[m_full.end() :]
-        )
+    if m:
+        indent = m.group(1) or "  "
+        start_bracket = content.find("[", m.start())
+        end_bracket = content.find("]", start_bracket)
+        if end_bracket == -1:
+            raise ValueError(f"Could not find closing bracket for branch '{branch}' in quotes.ts")
 
-    raise ValueError("Could not find 'lexicon: [...]' array in quotes.ts")
+        inside = content[start_bracket + 1 : end_bracket]
+        stripped = inside.strip()
+
+        if not stripped:
+            # Case 1: Empty array `branch: []` or `branch: [\n  ]`
+            return (
+                content[:start_bracket]
+                + "[\n"
+                + entries_block
+                + "\n"
+                + indent
+                + "]"
+                + content[end_bracket + 1 :]
+            )
+        else:
+            # Case 2: Array with existing entries
+            # Ensure the last entry before closing bracket has a trailing comma
+            r_inside = inside.rstrip()
+            if r_inside.endswith("}"):
+                prefix = r_inside + ",\n"
+            elif r_inside.endswith(","):
+                prefix = r_inside + "\n"
+            else:
+                prefix = r_inside + ",\n"
+
+            return (
+                content[:start_bracket + 1]
+                + prefix
+                + entries_block
+                + "\n"
+                + indent
+                + "]"
+                + content[end_bracket + 1 :]
+            )
+
+    # Case 3: Branch array not found in QUOTE_DB yet - insert before closing `};` of QUOTE_DB
+    m_db = re.search(r"export const QUOTE_DB:[^=]*=\s*\{([\s\S]*?)(\n\};)", content)
+    if not m_db:
+        raise ValueError(f"Could not find QUOTE_DB block in quotes.ts to insert branch '{branch}'")
+
+    db_body = m_db.group(1)
+    stripped_body = db_body.rstrip()
+    comma = ""
+    if stripped_body and not stripped_body.endswith(","):
+        comma = ","
+
+    # Format key name: quote if not a simple identifier (e.g. contains hyphens)
+    key_repr = branch if re.match(r"^[A-Za-z_$][A-Za-z0-9_$]*$", branch) else f"'{branch}'"
+
+    new_branch_block = (
+        f"\n\n  // --------------------------------------------------------------------------\n"
+        f"  // {branch.upper()}\n"
+        f"  // --------------------------------------------------------------------------\n"
+        f"  {key_repr}: [\n"
+        f"{entries_block}\n"
+        f"  ]"
+    )
+
+    insert_pos = m_db.start(1) + len(stripped_body)
+    return (
+        content[:insert_pos]
+        + comma
+        + new_branch_block
+        + content[m_db.start(2) :]
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -325,6 +481,8 @@ def run_import(
     content_dir: Path = DEFAULT_CONTENT_DIR,
     manifest_path: Path = DEFAULT_MANIFEST,
     sources_path: Path = DEFAULT_SOURCES,
+    registry_path: Path = DEFAULT_REGISTRY,
+    physics_branches_path: Path = DEFAULT_PHYSICS_BRANCHES,
     single_file: str | None = None,
     dry_run: bool = False,
 ) -> int:
@@ -332,7 +490,7 @@ def run_import(
     Main import pipeline:
       1. Discover review CSV(s)
       2. Collect approved rows
-      3. Handle zero-row no-op
+      3. Load valid branches, manifest, and term registry
       4. Validate all rows (all-or-nothing)
       5. Dry-run output or atomic writes
     Returns exit code (0 on success, 1 on error).
@@ -361,64 +519,82 @@ def run_import(
         print("0 approved rows found across review files. Clean no-op, nothing to import.")
         return 0
 
-    # 4. Load manifest & validate all candidates
+    # 4. Load valid branches, manifest, and term registry
+    valid_branches = load_valid_branches(quotes_path, physics_branches_path)
     manifest = load_imported_manifest(manifest_path)
-    errors = validate_candidates(candidates, manifest)
+    registry = TermRegistry(registry_path) if registry_path.exists() else None
 
-    if errors:
-        print(f"Validation failed with {len(errors)} error(s):", file=sys.stderr)
-        for err in errors:
+    # 5. Validate all candidates
+    result = validate_candidates(candidates, manifest, valid_branches, registry)
+
+    if result.errors:
+        print(f"Validation failed with {len(result.errors)} error(s):", file=sys.stderr)
+        for err in result.errors:
             print(f"  - {err}", file=sys.stderr)
         print("Import aborted. No changes were written.", file=sys.stderr)
         return 1
 
-    # Format new TypeScript entries
-    formatted_entries = [
-        format_quote_entry(cand.definition, cand.term) for cand in candidates
-    ]
+    if not result.to_import:
+        if result.skipped:
+            print(
+                f"All {len(result.skipped)} approved row(s) were already imported in manifest. "
+                f"Clean no-op, nothing to import."
+            )
+        else:
+            print("0 approved rows to import. Clean no-op, nothing to import.")
+        return 0
 
-    # 5. Handle Dry-Run
+    # Group to_import by branch
+    entries_by_branch: dict[str, list[ApprovedCandidate]] = {}
+    for cand in result.to_import:
+        entries_by_branch.setdefault(cand.branch, []).append(cand)
+
+    # 6. Handle Dry-Run
     if dry_run:
         print(
-            f"[DRY RUN] All {len(candidates)} approved row(s) validated successfully."
+            f"[DRY RUN] All {len(result.to_import)} approved row(s) validated successfully"
+            f"{f' ({len(result.skipped)} skipped as already imported)' if result.skipped else ''}."
+        )
+        for branch, b_cands in entries_by_branch.items():
+            formatted = [format_quote_entry(c.definition, c.term) for c in b_cands]
+            print(
+                f"[DRY RUN] Would append {len(formatted)} entries to branch '{branch}' in {quotes_path}:"
+            )
+            for entry in formatted:
+                print(entry)
+        print(
+            f"[DRY RUN] Would record {len(result.to_import)} term(s) in manifest: {manifest_path}"
         )
         print(
-            f"[DRY RUN] Would append {len(formatted_entries)} entries to QUOTE_DB.lexicon in {quotes_path}:"
-        )
-        for entry in formatted_entries:
-            print(entry)
-        print(
-            f"[DRY RUN] Would record {len(candidates)} term(s) in manifest: {manifest_path}"
-        )
-        print(
-            f"[DRY RUN] Would record {len(candidates)} source attribution record(s) in: {sources_path}"
+            f"[DRY RUN] Would record {len(result.to_import)} source attribution record(s) in: {sources_path}"
         )
         print("[DRY RUN] Clean dry-run complete. No files were modified.")
         return 0
 
-    # 6. Atomic Write to quotes.ts
+    # 7. Atomic Write to quotes.ts
     if not quotes_path.exists():
         print(f"Error: Target quotes file does not exist: {quotes_path}", file=sys.stderr)
         return 1
 
-    with open(quotes_path, "r", encoding="utf-8") as f:
-        original_ts = f.read()
+    quotes_content = read_text_with_retry(quotes_path)
+    for branch, b_cands in entries_by_branch.items():
+        formatted = [format_quote_entry(c.definition, c.term) for c in b_cands]
+        quotes_content = append_to_quotes_ts(quotes_content, branch, formatted)
 
-    new_ts = append_to_quotes_ts(original_ts, formatted_entries)
-    atomic_write_text(quotes_path, new_ts)
+    atomic_write_text(quotes_path, quotes_content)
 
-    # 7. Atomic Write to Manifest (content/imported.json)
+    # 8. Atomic Write to Manifest (content/imported.json)
     manifest_terms = list(manifest)
     manifest_set = set(manifest)
-    for cand in candidates:
+    for cand in result.to_import:
         if cand.term not in manifest_set:
             manifest_terms.append(cand.term)
             manifest_set.add(cand.term)
     atomic_write_json(manifest_path, manifest_terms)
 
-    # 8. Atomic Write to Sources (content/sources.json)
+    # 9. Atomic Write to Sources (content/sources.json)
     sources_data = load_sources_data(sources_path)
-    for cand in candidates:
+    for cand in result.to_import:
         sources_data[cand.term] = {
             "source": cand.source,
             "license": cand.license,
@@ -426,9 +602,13 @@ def run_import(
     atomic_write_json(sources_path, sources_data)
 
     print(
-        f"Successfully imported {len(candidates)} approved row(s) into QUOTE_DB.lexicon."
+        f"Successfully imported {len(result.to_import)} approved row(s) across "
+        f"{len(entries_by_branch)} branch(es)."
     )
-    print(f"  - Appended {len(candidates)} entries to {quotes_path}")
+    for branch, b_cands in entries_by_branch.items():
+        print(f"  - Appended {len(b_cands)} entries to branch '{branch}' in {quotes_path}")
+    if result.skipped:
+        print(f"  - Skipped {len(result.skipped)} row(s) already in manifest")
     print(f"  - Updated manifest {manifest_path} (total: {len(manifest_terms)} terms)")
     print(f"  - Updated attribution {sources_path} (total: {len(sources_data)} records)")
     return 0
@@ -436,7 +616,7 @@ def run_import(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="BrainCipher approved content importer (append-only)."
+        description="BrainCipher approved content importer (append-only, branch-aware)."
     )
     parser.add_argument(
         "--dry-run",
@@ -474,6 +654,18 @@ def main() -> None:
         default=DEFAULT_SOURCES,
         help=f"Path to sources.json attribution file (default: {DEFAULT_SOURCES})",
     )
+    parser.add_argument(
+        "--registry-path",
+        type=Path,
+        default=DEFAULT_REGISTRY,
+        help=f"Path to term_registry.json (default: {DEFAULT_REGISTRY})",
+    )
+    parser.add_argument(
+        "--physics-branches-path",
+        type=Path,
+        default=DEFAULT_PHYSICS_BRANCHES,
+        help=f"Path to physics_branches.json (default: {DEFAULT_PHYSICS_BRANCHES})",
+    )
 
     args = parser.parse_args()
 
@@ -482,6 +674,8 @@ def main() -> None:
         content_dir=args.content_dir,
         manifest_path=args.manifest_path,
         sources_path=args.sources_path,
+        registry_path=args.registry_path,
+        physics_branches_path=args.physics_branches_path,
         single_file=args.file_name,
         dry_run=args.dry_run,
     )

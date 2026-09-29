@@ -39,6 +39,7 @@ DEFAULT_BRANCH = "1e"
 DEFAULT_TEMP_REPO = Path(r"C:\Users\user\AppData\Local\Temp\opencode\openstax\book")
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_OUTPUT_CSV = PROJECT_ROOT / "content" / "openstax" / "college_physics_terms.csv"
+DEFAULT_REJECTED_PATH = PROJECT_ROOT / "content" / "openstax" / "rejected.jsonl"
 DEFAULT_PHYSICS_BRANCHES = PROJECT_ROOT / "content" / "openstax" / "physics_branches.json"
 DEFAULT_REGISTRY_PATH = PROJECT_ROOT / "content" / "term_registry.json"
 
@@ -171,11 +172,12 @@ def is_equation_level_math(m_elem: ET.Element) -> tuple[bool, str]:
     return False, ""
 
 
-def has_artifact_defect(cleaned_def: str) -> tuple[bool, str]:
-    """Backstop artifact regex on cleaned definition:
-    - contains ',-,'
-    - internal lowercase-to-uppercase transition inside one token ([a-z][A-Z])
-    - uppercase run followed by lowercase ([A-Z]{2,}[a-z])
+def has_formula_artifact(cleaned_def: str) -> tuple[bool, str]:
+    """Detect formula artifacts on cleaned definition:
+    - mangled series with comma-hyphen-comma (',-,')
+    - internal lowercase-to-uppercase transition inside one token ([a-z][A-Z], e.g. 'fI', 'nT', 'aFnetm')
+    - unvowelled token of length >= 4 (e.g. 'Fsrv', 'XLXC', 'ttvct', 'VsVpNsNp')
+    - uppercase run followed by lowercase ([A-Z]{2,}[a-z], e.g. 'BAcos', 'NAnsin', 'KErelmc')
     """
     if ",-," in cleaned_def:
         return True, "contains_mangled_series_comma_hyphen_comma (',-,')"
@@ -184,11 +186,20 @@ def has_artifact_defect(cleaned_def: str) -> tuple[bool, str]:
     if m_lu:
         return True, f"lowercase_to_uppercase_transition: '{m_lu.group(0)}'"
 
+    tokens = re.findall(r"\b[A-Za-z]+\b", cleaned_def)
+    for tok in tokens:
+        if len(tok) >= 4 and not re.search(r"[aeiouyAEIOUY]", tok):
+            return True, f"unvowelled_token_len_{len(tok)}: '{tok}'"
+
     m_ul = re.search(r"\b\w*[A-Z]{2,}[a-z]\w*\b", cleaned_def)
     if m_ul:
         return True, f"uppercase_run_followed_by_lowercase: '{m_ul.group(0)}'"
 
     return False, ""
+
+
+# Alias for backward compatibility
+has_artifact_defect = has_formula_artifact
 
 
 def check_gap_class(cleaned_def: str) -> tuple[bool, str]:
@@ -370,13 +381,15 @@ def enforce_licence_gate(col_path: Path, branch: str) -> tuple[str, str, str]:
 def extract_openstax_terms(
     repo_path: Path,
     output_csv: Path,
+    rejected_path: Path = DEFAULT_REJECTED_PATH,
     physics_branches_path: Path = DEFAULT_PHYSICS_BRANCHES,
     registry_path: Path = DEFAULT_REGISTRY_PATH,
     branch: str = DEFAULT_BRANCH,
+    update_registry: bool = False,
 ) -> tuple[list[dict[str, str | int]], dict[str, int], dict[str, int], list[tuple[str, str, str]]]:
     """Parse collection.xml spine and module cnxml files into CSV candidate rows,
-    applying licence verification, number-to-words normalisation, math rejection,
-    Physics branch mapping, and Global Term Registry deduplication.
+    applying licence verification, number-to-words normalisation, calibrated formula artifact rejection,
+    Physics branch mapping, and Global Term Registry deduplication. Logs all rejections to JSONL.
     """
     col_path = resolve_collection_xml(repo_path)
     book_title, lic_name, lic_url = enforce_licence_gate(col_path, branch)
@@ -386,7 +399,12 @@ def extract_openstax_terms(
 
     # Initialize Global Term Registry: seeded from canonical QUOTE_DB and review samples
     registry = get_term_registry(registry_path)
-    # Ensure baseline quotes are present in registry
+    # Exclude terms in branches currently being staged so re-runs do not self-duplicate
+    staged_branches = set(branches_map.values())
+    registry._registry = {
+        k: v for k, v in registry._registry.items() if v not in staged_branches
+    }
+    # Ensure baseline quotes and samples are present in registry
     registry.seed_from_quotes_ts()
     registry.seed_from_csv(PROJECT_ROOT / "content" / "review_wordnet_sample.csv", "category")
     registry.seed_from_csv(PROJECT_ROOT / "content" / "review_vintage_sample.csv", "category")
@@ -399,13 +417,13 @@ def extract_openstax_terms(
         subcollections = root.findall(".//{*}subcollection")
 
     rows: list[dict[str, str | int]] = []
+    rejections: list[dict[str, str]] = []
     tiers_dist: dict[str, int] = {"Short": 0, "Medium": 0, "Long": 0, "Epic": 0}
     rejection_counts: dict[str, int] = {
         "total_extracted": 0,
         "formula_dominant": 0,
         "trivia_stub": 0,
-        "equation_math": 0,
-        "artifact_defect": 0,
+        "formula_artifact": 0,
         "duplicate_cross_branch": 0,
         "duplicate_intra_branch": 0,
         "total_rejected": 0,
@@ -456,45 +474,62 @@ def extract_openstax_terms(
                     words = re.findall(r"\b[A-Za-z]+\b", board_def)
                     real_words = [w for w in words if len(w) > 1 or w.lower() in ("a", "i")]
 
-                    # Rule 1: Formula/math-dominant (structureless)
+                    # Rule 1: Formula/math-dominant (structureless or < 4 real words)
                     if is_formula_dominant(d, raw_def, board_def, words, real_words):
                         rejection_counts["formula_dominant"] += 1
                         rejection_counts["total_rejected"] += 1
+                        rejections.append({
+                            "term": term,
+                            "chapter": chapter_title,
+                            "reason": "formula_dominant",
+                            "raw_definition": raw_def,
+                            "cleaned_definition": board_def,
+                        })
                         continue
 
                     # Rule 2: Trivia stubs (SI units, < 6 words)
                     if is_trivia_stub(raw_def, board_def, real_words):
                         rejection_counts["trivia_stub"] += 1
                         rejection_counts["total_rejected"] += 1
+                        rejections.append({
+                            "term": term,
+                            "chapter": chapter_title,
+                            "reason": "trivia_stub",
+                            "raw_definition": raw_def,
+                            "cleaned_definition": board_def,
+                        })
                         continue
 
-                    # Rule 3: Equation-level math elements in raw entry
-                    eq_math = False
-                    for m in d.findall(".//{*}math"):
-                        is_eq, reason = is_equation_level_math(m)
-                        if is_eq:
-                            eq_math = True
-                            break
-                    if eq_math:
-                        rejection_counts["equation_math"] += 1
-                        rejection_counts["total_rejected"] += 1
-                        continue
-
-                    # Rule 4: Backstop artifact regex on cleaned definition
-                    has_art, art_reason = has_artifact_defect(board_def)
+                    # Rule 3: Calibrated formula artifact on cleaned definition
+                    # Replaces indiscriminate raw MathML rejection with evidence-based artifact gate
+                    has_art, art_reason = has_formula_artifact(board_def)
                     if has_art:
-                        rejection_counts["artifact_defect"] += 1
+                        rejection_counts["formula_artifact"] += 1
                         rejection_counts["total_rejected"] += 1
+                        rejections.append({
+                            "term": term,
+                            "chapter": chapter_title,
+                            "reason": "formula_artifact",
+                            "raw_definition": raw_def,
+                            "cleaned_definition": board_def,
+                            "detail": art_reason,
+                        })
                         continue
 
-                    # Rule 5: Global Term Registry deduplication ("never repeat a topic across subjects")
+                    # Rule 4: Global Term Registry deduplication ("never repeat a topic across subjects")
                     is_dupe, dupe_reason = registry.check_duplicate(term, branch_id)
                     if is_dupe:
-                        if "CROSS-BRANCH" in dupe_reason:
-                            rejection_counts["duplicate_cross_branch"] += 1
-                        else:
-                            rejection_counts["duplicate_intra_branch"] += 1
+                        tag = "duplicate_cross_branch" if "CROSS-BRANCH" in dupe_reason else "duplicate_intra_branch"
+                        rejection_counts[tag] += 1
                         rejection_counts["total_rejected"] += 1
+                        rejections.append({
+                            "term": term,
+                            "chapter": chapter_title,
+                            "reason": tag,
+                            "raw_definition": raw_def,
+                            "cleaned_definition": board_def,
+                            "detail": dupe_reason,
+                        })
                         continue
 
                     # Check and track gap class (reporting only, milder dropped-symbol gaps)
@@ -532,8 +567,17 @@ def extract_openstax_terms(
                     }
                     rows.append(row)
 
-    # Persist updated term registry atomically
-    registry.save()
+    # Write rejected candidates to JSONL (no silent drops)
+    rejected_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(rejected_path, "w", encoding="utf-8") as f:
+        for rej in rejections:
+            f.write(json.dumps(rej, ensure_ascii=False) + "\n")
+
+    # Persist updated term registry atomically if requested
+    if update_registry:
+        registry.save()
+    else:
+        print("[Registry Notice] content/term_registry.json left untouched on disk (pass --update-registry to overwrite)")
 
     # Ensure output directory exists
     output_csv.parent.mkdir(parents=True, exist_ok=True)
@@ -589,6 +633,12 @@ def main() -> None:
         help="Target CSV output path",
     )
     parser.add_argument(
+        "--rejected",
+        type=Path,
+        default=DEFAULT_REJECTED_PATH,
+        help=f"Target JSONL path for logged rejections (default: {DEFAULT_REJECTED_PATH})",
+    )
+    parser.add_argument(
         "--physics-branches",
         type=Path,
         default=DEFAULT_PHYSICS_BRANCHES,
@@ -600,15 +650,22 @@ def main() -> None:
         default=DEFAULT_REGISTRY_PATH,
         help=f"Path to term_registry.json (default: {DEFAULT_REGISTRY_PATH})",
     )
+    parser.add_argument(
+        "--update-registry",
+        action="store_true",
+        help="Persist staged terms to term_registry.json (default: leave registry file untouched)",
+    )
     args = parser.parse_args()
 
     ensure_repo_cloned(args.repo_path, branch=args.branch)
     rows, tiers_dist, rejection_counts, gap_class_reported = extract_openstax_terms(
         args.repo_path,
         args.output,
+        rejected_path=args.rejected,
         physics_branches_path=args.physics_branches,
         registry_path=args.registry_path,
         branch=args.branch,
+        update_registry=args.update_registry,
     )
 
     total_accepted = len(rows)
@@ -618,18 +675,21 @@ def main() -> None:
     print("\n" + "=" * 70)
     print("OPENSTAX EXTRACTION & REJECTION REPORT")
     print("=" * 70)
-    print(f"Output file:                     {args.output}")
+    print(f"Output CSV:                      {args.output}")
+    print(f"Rejected logging file:           {args.rejected}")
     print(f"Total raw terms scanned:         {rejection_counts['total_extracted']}")
-    print(f"Rejected formula-dominant junk:  {rejection_counts['formula_dominant']}")
-    print(f"Rejected equation-level math:    {rejection_counts['equation_math']}")
-    print(f"Rejected artifact regex defects: {rejection_counts['artifact_defect']}")
-    print(f"Rejected trivia stubs:           {rejection_counts['trivia_stub']}")
-    print(f"Rejected cross-branch dupes:     {rejection_counts['duplicate_cross_branch']}")
-    print(f"Rejected intra-branch dupes:     {rejection_counts['duplicate_intra_branch']}")
     print(f"Total rejected candidates:       {rejection_counts['total_rejected']}")
     print(f"Accepted candidate terms:        {total_accepted}")
     print(f"Chapters covered:                {chapters_covered} / 34")
     print(f"Curriculum branches covered:     {branches_covered} / 9")
+
+    print("\n" + "-" * 70)
+    print("REJECTION SUMMARY GROUPED BY REASON TAG")
+    print("-" * 70)
+    for tag in ("formula_dominant", "trivia_stub", "formula_artifact", "duplicate_cross_branch", "duplicate_intra_branch"):
+        cnt = rejection_counts.get(tag, 0)
+        pct = (cnt / rejection_counts["total_rejected"] * 100) if rejection_counts["total_rejected"] else 0.0
+        print(f"  {tag:30s}: {cnt:4d} ({pct:5.1f}%)")
 
     print("\n" + "-" * 70)
     print("BRANCH DISTRIBUTION (Accepted Terms Per Curriculum Branch)")
