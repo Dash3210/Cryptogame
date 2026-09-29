@@ -403,17 +403,17 @@ export function calculateCoinReward(params: {
     const { tier: lengthTier, bonus: lengthBonus } = getLengthTier(alphaCount);
 
     // Base difficulty coins
-    let difficultyBase = 50;
+    let difficultyBase = 38;
     if (mode === 'daily') {
-        difficultyBase = 60;
+        difficultyBase = 45;
     } else if (mode === 'blitz') {
-        difficultyBase = 25;
+        difficultyBase = 18;
     } else {
         switch (difficulty) {
-            case 'Easy': difficultyBase = 40; break;
-            case 'Normal': difficultyBase = 50; break;
-            case 'Hard': difficultyBase = 65; break;
-            case 'Legendary': difficultyBase = 80; break;
+            case 'Easy': difficultyBase = 30; break;
+            case 'Normal': difficultyBase = 38; break;
+            case 'Hard': difficultyBase = 48; break;
+            case 'Legendary': difficultyBase = 60; break;
         }
     }
 

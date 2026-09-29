@@ -10,13 +10,13 @@ describe('Unified Transparent Coins Economy', () => {
             accuracy: 100,
         });
 
-        expect(reward.baseCoins).toBe(50);
+        expect(reward.baseCoins).toBe(38);
         expect(reward.mistakeDeduction).toBe(0);
         expect(reward.hintDeduction).toBe(0);
         expect(reward.timeDeduction).toBe(0);
         expect(reward.keyDeduction).toBe(0);
         expect(reward.cleanBonus).toBe(5);
-        expect(reward.netCoins).toBe(55);
+        expect(reward.netCoins).toBe(43); // 38 + 5 = 43
         expect(reward.grade).toBe('S');
     });
 
@@ -29,13 +29,13 @@ describe('Unified Transparent Coins Economy', () => {
             accuracy: 85,
         });
 
-        expect(reward.baseCoins).toBe(50);
+        expect(reward.baseCoins).toBe(38);
         expect(reward.mistakeDeduction).toBe(6);
         expect(reward.hintDeduction).toBe(6);
         expect(reward.timeDeduction).toBe(0);
         expect(reward.keyDeduction).toBe(0);
         expect(reward.cleanBonus).toBe(0);
-        expect(reward.netCoins).toBe(38); // 50 - 6 - 6 = 38
+        expect(reward.netCoins).toBe(26); // 38 - 6 - 6 = 26
         expect(reward.grade).toBe('B');
     });
 
@@ -49,10 +49,10 @@ describe('Unified Transparent Coins Economy', () => {
             accuracy: 100,
         });
 
-        expect(reward.baseCoins).toBe(50);
+        expect(reward.baseCoins).toBe(38);
         expect(reward.timeDeduction).toBe(3);
         expect(reward.cleanBonus).toBe(5);
-        expect(reward.netCoins).toBe(52); // 50 - 3 + 5 = 52
+        expect(reward.netCoins).toBe(40); // 38 - 3 + 5 = 40
     });
 
     test('applies heavy penalty and forces grade D on Master Key usage', () => {
@@ -65,9 +65,9 @@ describe('Unified Transparent Coins Economy', () => {
             usedMasterKey: true,
         });
 
-        expect(reward.baseCoins).toBe(50);
+        expect(reward.baseCoins).toBe(38);
         // Ratified Key Economy (Item 2): Master-Key solve yields flat 10 coins, grade D
-        expect(reward.keyDeduction).toBe(40);
+        expect(reward.keyDeduction).toBe(28);
         expect(reward.cleanBonus).toBe(0);
         expect(reward.netCoins).toBe(10); // Flat 10 coins
         expect(reward.grade).toBe('D');
@@ -75,7 +75,7 @@ describe('Unified Transparent Coins Economy', () => {
 
     test('respects guaranteed floor of 15 coins even with catastrophic deductions (Item 3)', () => {
         const reward = calculateCoinReward({
-            difficulty: 'Easy', // 40 base
+            difficulty: 'Easy', // 30 base
             timerSeconds: 500, // overtime deduction: 10 max
             hintsUsed: 10, // hint deduction: 15 max
             mistakesCount: 20, // mistake deduction: 20 max
@@ -93,11 +93,11 @@ describe('Unified Transparent Coins Economy', () => {
         const daily = calculateCoinReward({ difficulty: 'Normal', timerSeconds: 60, hintsUsed: 0, mistakesCount: 0, accuracy: 100, mode: 'daily' });
         const blitz = calculateCoinReward({ difficulty: 'Normal', timerSeconds: 60, hintsUsed: 0, mistakesCount: 0, accuracy: 100, mode: 'blitz' });
 
-        expect(easy.baseCoins).toBe(40);
-        expect(hard.baseCoins).toBe(65);
-        expect(legendary.baseCoins).toBe(80);
-        expect(daily.baseCoins).toBe(60);
-        expect(blitz.baseCoins).toBe(25);
+        expect(easy.baseCoins).toBe(30);
+        expect(hard.baseCoins).toBe(48);
+        expect(legendary.baseCoins).toBe(60);
+        expect(daily.baseCoins).toBe(45);
+        expect(blitz.baseCoins).toBe(18);
     });
 
     test('Item 3: getLengthTier and length tier bonuses (Short +0, Medium +15, Long +30, Epic +45)', () => {
@@ -125,11 +125,11 @@ describe('Unified Transparent Coins Economy', () => {
 
         expect(longReward.lengthTier).toBe('Long');
         expect(longReward.lengthBonus).toBe(30);
-        expect(longReward.baseCoins).toBe(95);
+        expect(longReward.baseCoins).toBe(78);
         expect(longReward.baseLabel).toBe('Base Level Reward (Hard - Long)');
-        expect(longReward.netCoins).toBe(100); // 95 base + 5 cleanBonus
+        expect(longReward.netCoins).toBe(83); // 78 base + 5 cleanBonus
 
-        // Epic quote (>150 alpha) on Legendary difficulty (80 base + 45 bonus = 125 base)
+        // Epic quote (>150 alpha) on Legendary difficulty (60 base + 45 bonus = 105 base)
         const epicReward = calculateCoinReward({
             difficulty: 'Legendary',
             timerSeconds: 60,
@@ -141,7 +141,7 @@ describe('Unified Transparent Coins Economy', () => {
 
         expect(epicReward.lengthTier).toBe('Epic');
         expect(epicReward.lengthBonus).toBe(45);
-        expect(epicReward.baseCoins).toBe(125);
+        expect(epicReward.baseCoins).toBe(105);
         expect(epicReward.baseLabel).toBe('Base Level Reward (Legendary - Epic)');
 
         // Daily mode ledger label
@@ -154,7 +154,7 @@ describe('Unified Transparent Coins Economy', () => {
             alphaCount: 80,
             mode: 'daily'
         });
-        expect(dailyReward.baseCoins).toBe(75); // 60 daily base + 15 medium bonus
+        expect(dailyReward.baseCoins).toBe(60); // 45 daily base + 15 medium bonus
         expect(dailyReward.baseLabel).toBe('Base Level Reward (Daily - Medium)');
     });
 

@@ -227,7 +227,7 @@ describe('Review Fixes Verification Suite', () => {
     expect(bonusJson).toContain('TERM / ANSWER');
     expect(bonusJson).toContain('Carl Sagan');
     expect(bonusJson).not.toContain('Double your reward');
-    expect(bonusJson).toContain('Double or Nothing Bonus');
+    expect(bonusJson).toContain('Comprehension Bonus (+50%)');
 
     // 2. Standard solve without bonus won
     let rendererStandard: any;
@@ -258,7 +258,7 @@ describe('Review Fixes Verification Suite', () => {
     expect(standardJson).toContain('TERM / ANSWER');
     expect(standardJson).toContain('Carl Sagan');
     expect(standardJson).not.toContain('Double your reward');
-    expect(standardJson).not.toContain('Double or Nothing Bonus');
+    expect(standardJson).not.toContain('Comprehension Bonus');
 
     await ReactTestRenderer.act(async () => {
       rendererWithBonus.unmount();
@@ -501,8 +501,8 @@ describe('Review Fixes Verification Suite', () => {
     expect(json).toContain('Base Level Reward (Hard - Long)');
     // Ledger shows netCoins + bonusCoins
     expect(json).toContain('200 / 95 Coins Gained');
-    // Double or Nothing bonus row
-    expect(json).toContain('Double or Nothing Bonus');
+    // Comprehension bonus row
+    expect(json).toContain('Comprehension Bonus (+50%)');
     expect(json).toContain('+100');
     // Gold "Double your reward" button removed
     expect(json).not.toContain('DOUBLE YOUR REWARD');

@@ -119,6 +119,8 @@ interface GameContextType {
 
     // Solved Quotes & Progress
     solvedQuotes: Set<string>;
+    everClearedQuotes: Set<string>;
+    isEverCleared: (id: string) => boolean;
     markQuoteSolved: (id: string, category: string) => void;
     isQuoteSolved: (id: string) => boolean;
     resetCategoryProgress: (category: string) => void;
@@ -188,6 +190,8 @@ const FALLBACK_CONTEXT: GameContextType = {
     toggleTheme: () => {},
     setTheme: () => {},
     solvedQuotes: new Set(),
+    everClearedQuotes: new Set(),
+    isEverCleared: () => false,
     markQuoteSolved: () => {},
     isQuoteSolved: () => false,
     resetCategoryProgress: () => {},
@@ -224,6 +228,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     const [myExtensions, setMyExtensions] = useState<Set<string>>(new Set());
     const [unlockedThemes, setUnlockedThemes] = useState<Set<Theme>>(new Set(DEFAULT_THEMES));
     const [solvedQuotes, setSolvedQuotes] = useState<Set<string>>(new Set());
+    const [everClearedQuotes, setEverClearedQuotes] = useState<Set<string>>(new Set());
+    const everClearedQuotesRef = useRef<Set<string>>(new Set());
     const [savedGames, setSavedGames] = useState<Record<string, SavedGameState>>({});
     const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
     const [stats, setStats] = useState<PlayerStats>(INITIAL_STATS);
@@ -257,6 +263,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                     'brainCipherThemes',
                     'brainCipherSettings',
                     'brainCipherProgress',
+                    'brainCipherEverCleared',
                     'brainCipherSavedGames',
                     'brainCipherStats',
                     'brainCipherAchievements'
@@ -271,6 +278,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                 const storedThemes = data['brainCipherThemes'];
                 const storedSettings = data['brainCipherSettings'];
                 const storedProgress = data['brainCipherProgress'];
+                const storedEverCleared = data['brainCipherEverCleared'];
                 const storedSavedGames = data['brainCipherSavedGames'];
                 const storedStats = data['brainCipherStats'];
                 const storedAchievements = data['brainCipherAchievements'];
@@ -325,6 +333,30 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                         if (Array.isArray(parsed)) setSolvedQuotes(new Set(parsed));
                     } catch { }
                 }
+                const everClearedSet = new Set<string>();
+                if (storedEverCleared) {
+                    try {
+                        const parsed = JSON.parse(storedEverCleared);
+                        if (Array.isArray(parsed)) {
+                            parsed.forEach(id => {
+                                if (typeof id === 'string') everClearedSet.add(id);
+                            });
+                        }
+                    } catch { }
+                }
+                // Upgrade migration: seed already-solved puzzles into everCleared so nobody double-earns after upgrading
+                if (storedProgress) {
+                    try {
+                        const parsedProgress = JSON.parse(storedProgress);
+                        if (Array.isArray(parsedProgress)) {
+                            parsedProgress.forEach(id => {
+                                if (typeof id === 'string') everClearedSet.add(id);
+                            });
+                        }
+                    } catch { }
+                }
+                everClearedQuotesRef.current = everClearedSet;
+                setEverClearedQuotes(everClearedSet);
                 if (storedSavedGames) {
                     try {
                         const parsed = JSON.parse(storedSavedGames);
@@ -382,6 +414,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
             ['brainCipherThemes', JSON.stringify(Array.from(unlockedThemes))],
             ['brainCipherSettings', JSON.stringify(settings)],
             ['brainCipherProgress', JSON.stringify(Array.from(solvedQuotes))],
+            ['brainCipherEverCleared', JSON.stringify(Array.from(everClearedQuotes))],
             ['brainCipherSavedGames', JSON.stringify(savedGames)],
             ['brainCipherStats', JSON.stringify(stats)],
             ['brainCipherAchievements', JSON.stringify(achievements)],
@@ -389,7 +422,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         AsyncStorage.multiSet(batch)?.catch?.(err => {
             console.error('Failed to batch persist game data:', err);
         });
-    }, [totalPoints, coins, favorites, myExtensions, unlockedThemes, settings, solvedQuotes, savedGames, stats, achievements]);
+    }, [totalPoints, coins, favorites, myExtensions, unlockedThemes, settings, solvedQuotes, everClearedQuotes, savedGames, stats, achievements]);
 
     const persistRef = useRef(persist);
     persistRef.current = persist;
@@ -530,6 +563,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const isQuoteSolved = (id: string) => solvedQuotes.has(id);
+    const isEverCleared = (id: string) => everClearedQuotesRef.current.has(id);
 
     const saveGameState = (genreId: string, state: SavedGameState) => {
         setSavedGames(prev => ({ ...prev, [genreId]: state }));
@@ -604,6 +638,24 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         correctGuesses?: number;
         usedMasterKey?: boolean;
     }) => {
+        // Enforce first-clear-only rule:
+        // A replay (or re-solve after category reset) awards 0 coins and must NOT
+        // increment global solved counters, streaks, or achievement progress.
+        if (params.quoteId && everClearedQuotesRef.current.has(params.quoteId)) {
+            return;
+        }
+
+        // Record puzzle in ever-cleared ledger on first clear
+        if (params.quoteId) {
+            everClearedQuotesRef.current.add(params.quoteId);
+            setEverClearedQuotes(prev => {
+                if (prev.has(params.quoteId!)) return prev;
+                const next = new Set(prev);
+                next.add(params.quoteId!);
+                return next;
+            });
+        }
+
         const today = todayKey();
 
         // Resolve the streak once from the current snapshot so stats and the
@@ -784,6 +836,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         toggleTheme,
         setTheme,
         solvedQuotes,
+        everClearedQuotes,
+        isEverCleared,
         markQuoteSolved,
         isQuoteSolved,
         resetCategoryProgress,

@@ -12,19 +12,37 @@ class AdService {
     private onRewardCallback: (() => void) | null = null;
     public isInitialized = false;
     private unsubscribers: (() => void)[] = [];
+    private initTimeout: ReturnType<typeof setTimeout> | null = null;
+    private retryTimeout: ReturnType<typeof setTimeout> | null = null;
 
     constructor() {
         // Delay initialization to avoid issues during module load
-        setTimeout(() => this.init(), 1000);
+        this.initTimeout = setTimeout(() => this.init(), 1000);
     }
 
     private init() {
+        this.initTimeout = null;
         try {
             this.load();
             this.isInitialized = true;
         } catch (e) {
             console.error('AdService init failed:', e);
         }
+    }
+
+    dispose() {
+        if (this.initTimeout) {
+            clearTimeout(this.initTimeout);
+            this.initTimeout = null;
+        }
+        if (this.retryTimeout) {
+            clearTimeout(this.retryTimeout);
+            this.retryTimeout = null;
+        }
+        this.removeListeners();
+        this.cancelPendingReward();
+        this.isLoaded = false;
+        this.rewardedAd = null;
     }
 
     private removeListeners() {
@@ -61,14 +79,14 @@ class AdService {
             const unsubClosed = this.rewardedAd.addAdEventListener(AdEventType.CLOSED, () => {
                 this.isLoaded = false;
                 this.onRewardCallback = null;
-                setTimeout(() => this.load(), 1000); // Preload next with delay
+                this.retryTimeout = setTimeout(() => this.load(), 1000); // Preload next with delay
             });
 
             const unsubError = this.rewardedAd.addAdEventListener(AdEventType.ERROR, (error) => {
                 console.error('Ad error:', error);
                 this.isLoaded = false;
                 // Retry after a longer delay on error
-                setTimeout(() => this.load(), 5000);
+                this.retryTimeout = setTimeout(() => this.load(), 5000);
             });
 
             this.unsubscribers = [unsubLoaded, unsubEarned, unsubClosed, unsubError];
@@ -108,7 +126,7 @@ class AdService {
             [{ text: "OK" }]
         );
         if (!this.rewardedAd) {
-            setTimeout(() => this.load(), 500);
+            this.retryTimeout = setTimeout(() => this.load(), 500);
         }
     }
 

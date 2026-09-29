@@ -17,8 +17,8 @@ interface BonusGuessModalProps {
 }
 
 /**
- * Optional post-solve bonus: guess the term behind the definition from four
- * options. Correct doubles the solve reward; a wrong guess costs nothing.
+ * Optional post-solve comprehension bonus: guess the term behind the definition from four
+ * options. Correct awards a guaranteed +50% bonus; a wrong guess costs nothing.
  */
 export const BonusGuessModal: React.FC<BonusGuessModalProps> = ({
     visible,
@@ -54,17 +54,17 @@ export const BonusGuessModal: React.FC<BonusGuessModalProps> = ({
                     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
                         <View style={[styles.badge, { backgroundColor: colors.goldBg }]}>
                             <Icon name="sparkle-burst" size={18} color={colors.gold} />
-                            <Text style={[styles.badgeText, { color: colors.gold }]}>DOUBLE OR NOTHING</Text>
+                            <Text style={[styles.badgeText, { color: colors.gold }]}>COMPREHENSION BONUS</Text>
                         </View>
 
                         <Text style={[styles.title, { color: colors.text }]}>
-                            Double or Nothing
+                            Comprehension Bonus
                         </Text>
                         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
                             {picked === null
-                                ? 'Answer correctly to double your coins and points. A wrong guess costs you nothing.'
+                                ? 'Answer correctly to earn a +50% bonus on your level reward. A wrong guess costs you nothing.'
                                 : picked === correctAnswer
-                                    ? 'Correct. Your reward is doubled.'
+                                    ? 'Correct. +50% comprehension bonus awarded.'
                                     : 'Not quite. No bonus this time.'}
                         </Text>
 

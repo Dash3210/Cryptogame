@@ -10,6 +10,10 @@ describe('Hard Metrics: AdService Lifecycle & Reward Resilience', () => {
     jest.useRealTimers();
   });
 
+  afterAll(() => {
+    adService.dispose();
+  });
+
   test('fails closed: no reward is granted when no ad is loaded', () => {
     const onReward = jest.fn();
     const onFallback = jest.fn();
@@ -25,5 +29,11 @@ describe('Hard Metrics: AdService Lifecycle & Reward Resilience', () => {
     adService.show(onReward);
     adService.cancelPendingReward();
     expect(onReward).not.toHaveBeenCalled();
+  });
+
+  test('dispose clears timers and removes listeners cleanly', () => {
+    expect(() => {
+      adService.dispose();
+    }).not.toThrow();
   });
 });

@@ -63,10 +63,10 @@ describe('Post-solve bonus round', () => {
         expect(onResolved).toHaveBeenCalledWith(false);
 
         const json = JSON.stringify(tree.toJSON());
-        expect(json).toContain('Double or Nothing');
+        expect(json).toContain('Comprehension Bonus');
         expect(json).toContain('Not quite. No bonus this time.');
         // The modal must never show the correct answer as revealed if user picked wrong
-        expect(json).not.toContain('Correct. Your reward is doubled.');
+        expect(json).not.toContain('Correct. +50% comprehension bonus awarded.');
 
         ReactTestRenderer.act(() => tree.unmount());
     });
@@ -167,7 +167,7 @@ describe('Post-solve bonus round', () => {
 
         const json = JSON.stringify(renderer.toJSON());
         expect(json).toContain('+10');
-        expect(json).not.toContain('Double or Nothing Bonus');
+        expect(json).not.toContain('Comprehension Bonus');
 
         alertSpy.mockRestore();
         adSpy.mockRestore();
@@ -175,6 +175,7 @@ describe('Post-solve bonus round', () => {
         await ReactTestRenderer.act(async () => {
             renderer.unmount();
         });
+        adService.dispose();
         jest.clearAllTimers();
         jest.useRealTimers();
     });

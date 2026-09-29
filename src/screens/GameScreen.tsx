@@ -59,6 +59,7 @@ export const GameScreen = () => {
 
     const {
         solvedQuotes,
+        isEverCleared,
         settings,
         markQuoteSolved,
         savedGames,
@@ -312,8 +313,12 @@ export const GameScreen = () => {
         }
 
         const today = dateStr || todayKey();
+        const qId = getLevelId(genreId, nextQuote);
         // A daily that is already solved today can be replayed, but as practice.
-        setIsPracticeRun(mode === 'daily' && stats.dailySolvedDates.includes(today));
+        // A standard puzzle already in the ever-cleared ledger is also a practice run.
+        const isDailyPractice = mode === 'daily' && stats.dailySolvedDates.includes(today);
+        const isEverClearedReplay = mode !== 'blitz' && isEverCleared(qId);
+        setIsPracticeRun(isDailyPractice || isEverClearedReplay);
         finishedRef.current = false;
         setBonusOptions(null);
         setBonusAwarded(false);
@@ -321,7 +326,6 @@ export const GameScreen = () => {
         setBonusWon(false);
         setShowBonus(false);
 
-        const qId = getLevelId(genreId, nextQuote);
         const savedData = mode === 'standard' ? savedGames[genreId] : undefined;
 
         if (savedData && savedData.quoteId === qId) {
@@ -370,7 +374,7 @@ export const GameScreen = () => {
         const firstIdx = getNextUnsolvedIndex(nextQuote.text, newCipher, initialHints, -1);
         setSelectedCellIndex(firstIdx);
         setStatus('playing');
-    }, [genreId, mode, dateStr, settings.difficulty, savedGames, solvedQuotes, stats.dailySolvedDates]);
+    }, [genreId, mode, dateStr, settings.difficulty, savedGames, solvedQuotes, stats.dailySolvedDates, isEverCleared]);
 
     initLevelRef.current = initLevel;
 
@@ -429,13 +433,15 @@ export const GameScreen = () => {
             setShowBonus(false);
             setBonusWon(false);
         } else if (isPracticeRun) {
-            // Replaying a solved daily pays nothing and does not touch stats.
+            // Replaying a solved puzzle pays nothing and does not touch stats/achievements.
             setBonusOptions(null);
             setShowBonus(false);
             setBonusWon(false);
+            const qId = getLevelId(genreId, quoteData);
+            markQuoteSolved(qId, genreId);
             return;
         } else {
-            // Immediately show the double-or-nothing bonus for standard + real daily solves.
+            // Immediately show the comprehension bonus for standard + real daily solves.
             setBonusOptions(getAnswerOptions(genreId, quoteData.author, 4));
             setBonusAwarded(false);
             setBonusResolved(false);
@@ -674,7 +680,11 @@ export const GameScreen = () => {
                                 setBlitzSolves(prev => prev + 1);
                                 return;
                             }
-                            if (isPracticeRun) return;
+                            if (isPracticeRun) {
+                                const qId = getLevelId(genreId, quoteData);
+                                markQuoteSolved(qId, genreId);
+                                return;
+                            }
 
                             // Route the master key through the normal completion path so
                             // progress, stats and achievements are recorded (this used to
@@ -793,6 +803,9 @@ export const GameScreen = () => {
     if (status === 'won') {
         const isBlitzTimeout = mode === 'blitz' && blitzTimeLeft === 0;
         const hasActiveBonus = showBonus && !!bonusOptions;
+        const comprehensionBonusCoins = (bonusWon && !isPracticeRun)
+            ? Math.round((coinReward?.netCoins ?? coinsEarned) * 0.5)
+            : 0;
         return (
             <>
             {hasActiveBonus && <View style={[styles.container, { backgroundColor: colors.background }]} />}
@@ -800,11 +813,11 @@ export const GameScreen = () => {
                 <WinCelebrationModal
                     quoteData={quoteData}
                     genreLabel={genreLabel}
-                    score={bonusWon ? earnedScore * 2 : (mode === 'blitz' ? (isBlitzTimeout ? earnedScore : blitzScore) : earnedScore)}
+                    score={bonusWon && !isPracticeRun ? Math.round(earnedScore * 1.5) : (mode === 'blitz' ? (isBlitzTimeout ? earnedScore : blitzScore) : earnedScore)}
                     maxScore={maxScore}
-                    coinsEarned={bonusWon ? coinsEarned * 2 : coinsEarned}
+                    coinsEarned={isPracticeRun ? 0 : (bonusWon ? coinsEarned + comprehensionBonusCoins : coinsEarned)}
                     coinReward={coinReward || undefined}
-                    bonusCoins={bonusWon ? (coinReward?.netCoins ?? coinsEarned) : 0}
+                    bonusCoins={comprehensionBonusCoins}
                     timer={timer}
                     hintsUsed={hintsUsed}
                     mistakesCount={mistakes.length}
@@ -842,8 +855,10 @@ export const GameScreen = () => {
                         if (correct && !bonusAwarded) {
                             setBonusAwarded(true);
                             setBonusWon(true);
-                            addCoins(coinsEarned);
-                            addPoints(earnedScore);
+                            if (!isPracticeRun && coinsEarned > 0) {
+                                addCoins(Math.round(coinsEarned * 0.5));
+                                addPoints(Math.round(earnedScore * 0.5));
+                            }
                             triggerHaptic('success');
                         }
                     }}

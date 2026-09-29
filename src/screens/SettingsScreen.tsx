@@ -210,20 +210,20 @@ export const HowToPlayModal: React.FC<{ visible: boolean; onClose: () => void }>
                         </View>
                     </View>
 
-                    {/* Section 6: Double or Nothing Bonus */}
+                    {/* Section 6: Comprehension Bonus */}
                     <View style={htpStyles.section}>
                         <View style={htpStyles.sectionHeaderRow}>
                             <Icon name="bolt" size={20} color={colors.gold} />
-                            <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>Double or Nothing Bonus</Text>
+                            <Text style={[htpStyles.sectionTitle, { color: colors.text }]}>Comprehension Bonus (+50%)</Text>
                         </View>
                         <Text style={[htpStyles.bodyText, { color: colors.textSecondary }]}>
-                            Right after solving a puzzle, Double or Nothing appears first: identify the scientific term described by the definition from 4 options, or tap Skip. The results breakdown with the revealed term appears only after that.
+                            Right after solving a puzzle, the Comprehension Bonus appears first: identify the scientific term described by the definition from 4 options, or tap Skip. The results breakdown with the revealed term appears only after that.
                         </Text>
                         <View style={[htpStyles.bonusOutcomeCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                             <View style={htpStyles.bonusCol}>
                                 <Text style={[htpStyles.bonusBadgeTitle, { color: colors.success }]}>CORRECT GUESS</Text>
                                 <Text style={[htpStyles.bonusBadgeDesc, { color: colors.textSecondary }]}>
-                                    Doubles both your earned coins and score points.
+                                    Awards a guaranteed +50% bonus on your earned coins and score.
                                 </Text>
                             </View>
                             <View style={[htpStyles.bonusDivider, { backgroundColor: colors.border }]} />

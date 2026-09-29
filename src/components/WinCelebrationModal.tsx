@@ -30,9 +30,9 @@ interface WinCelebrationModalProps {
     isBlitzTimeout?: boolean;
     /** A replayed daily cipher: graded, but pays nothing. */
     isPractice?: boolean;
-    /** Extra coins won from Double or Nothing bonus. */
+    /** Extra coins won from Comprehension bonus (+50%). */
     bonusCoins?: number;
-    /** True when the double-or-nothing bonus is still available (deprecated). */
+    /** True when the comprehension bonus is still available (deprecated). */
     bonusAvailable?: boolean;
     onOpenBonus?: () => void;
     userMap?: Record<string, string>;
@@ -218,7 +218,9 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                     {isPractice ? (
                         <View style={styles.ledgerContainer}>
                             <Text style={[styles.ledgerRowLabel, { color: colors.textSecondary }]}>
-                                Practice run: rewards are disabled because you already solved today's cipher. Your streak is safe.
+                                {isDaily
+                                    ? "Practice run: rewards are disabled because you already solved today's cipher. Your streak is safe."
+                                    : "Practice run: rewards are disabled because this puzzle has already been solved. No coins or stats awarded."}
                             </Text>
                         </View>
                     ) : isBlitz && isBlitzTimeout ? (
@@ -322,10 +324,10 @@ export const WinCelebrationModal: React.FC<WinCelebrationModalProps> = ({
                         {bonusCoins > 0 && (
                             <View
                                 style={styles.ledgerRow}
-                                accessibilityLabel={`Double or Nothing Bonus: +${bonusCoins}`}
+                                accessibilityLabel={`Comprehension Bonus (+50%): +${bonusCoins}`}
                             >
                                 <Text style={[styles.ledgerRowLabel, { color: colors.gold }]}>
-                                    • Double or Nothing Bonus
+                                    • Comprehension Bonus (+50%)
                                 </Text>
                                 <Text style={[styles.ledgerRowValuePositive, { color: colors.gold }]}>
                                     +{bonusCoins}
