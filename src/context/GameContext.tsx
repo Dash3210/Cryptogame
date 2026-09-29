@@ -8,6 +8,9 @@ import { getCategoryQuoteIds, isTrackComplete } from '../services/quoteService';
 import { HapticType, triggerTactileHaptic } from '../utils/physics';
 import { playGamesService, PlayGamesUser, PLAY_GAMES_CONFIG } from '../services/playGamesService';
 import { daysBetweenKeys, todayKey } from '../utils/date';
+import { getShopItem, PurchaseResult } from '../data/shop';
+
+export type { PurchaseResult };
 
 export const DEFAULT_SETTINGS: AppSettings = {
     theme: 'dark',
@@ -31,7 +34,8 @@ const INITIAL_STATS: PlayerStats = {
     lastSolvedDate: null,
     blitzHighScore: 0,
     totalPlayTimeSeconds: 0,
-    dailySolvedDates: []
+    dailySolvedDates: [],
+    hasStreakFreeze: false,
 };
 
 const INITIAL_ACHIEVEMENTS: Achievement[] = [
@@ -69,8 +73,9 @@ function computeStreak(
     today: string,
     isDaily: boolean | undefined,
     usedMasterKey?: boolean
-): { newStreak: number; dailyDates: string[] } {
+): { newStreak: number; dailyDates: string[]; streakFreezeConsumed: boolean } {
     let newStreak = prev.currentStreak;
+    let streakFreezeConsumed = false;
     const dailyDates = [...prev.dailySolvedDates];
     if (isDaily && !dailyDates.includes(today)) {
         dailyDates.push(today);
@@ -79,15 +84,21 @@ function computeStreak(
                 const diffDays = daysBetweenKeys(prev.lastSolvedDate, today);
                 if (diffDays === 1) {
                     newStreak += 1;
+                } else if (diffDays === 2 && prev.hasStreakFreeze) {
+                    newStreak += 1;
+                    streakFreezeConsumed = true;
                 } else if (diffDays > 1) {
                     newStreak = 1;
+                    if (prev.hasStreakFreeze) {
+                        streakFreezeConsumed = true;
+                    }
                 }
             } else {
                 newStreak = 1;
             }
         }
     }
-    return { newStreak, dailyDates };
+    return { newStreak, dailyDates, streakFreezeConsumed };
 }
 
 interface GameContextType {
@@ -97,6 +108,9 @@ interface GameContextType {
     addPoints: (points: number) => void;
     addCoins: (amount: number) => void;
     spendCoins: (amount: number) => boolean;
+    purchase: (itemId: string) => PurchaseResult;
+    hasStreakFreeze: boolean;
+    forceFlush: () => Promise<void>;
     rank: number;
     rankTitle: string;
 
@@ -176,6 +190,9 @@ const FALLBACK_CONTEXT: GameContextType = {
     addPoints: () => {},
     addCoins: () => {},
     spendCoins: () => false,
+    purchase: () => 'INSUFFICIENT_FUNDS',
+    hasStreakFreeze: false,
+    forceFlush: async () => {},
     rank: 35,
     rankTitle: 'Novice Decryptor',
     favorites: [],
@@ -244,11 +261,20 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     const isHydratedRef = useRef(false);
     const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Synchronous mirrors so currency spends and theme unlocks cannot race the
-    // React state queue (two confirmations in the same tick used to both pass).
+    // Synchronous mirrors so currency spends, inventory, and forceFlush cannot race
+    // the React state queue.
     const coinsRef = useRef(INITIAL_COINS);
     const pointsRef = useRef(0);
     const themesRef = useRef<Set<Theme>>(new Set(DEFAULT_THEMES));
+    const extensionsRef = useRef<Set<string>>(new Set());
+    const favoritesRef = useRef<string[]>([]);
+    const settingsRef = useRef<AppSettings>(DEFAULT_SETTINGS);
+    const solvedQuotesRef = useRef<Set<string>>(new Set());
+    const savedGamesRef = useRef<Record<string, SavedGameState>>({});
+    const statsRef = useRef<PlayerStats>(INITIAL_STATS);
+    const achievementsRef = useRef<Achievement[]>(INITIAL_ACHIEVEMENTS);
+    const inFlightPurchaseRef = useRef(false);
+    const lastPurchaseTimeRef = useRef<{ id: string; timestamp: number } | null>(null);
 
 
     // Initial Data Load
@@ -300,13 +326,20 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                 if (storedFavorites) {
                     try {
                         const parsed = JSON.parse(storedFavorites);
-                        if (Array.isArray(parsed)) setFavorites(parsed);
+                        if (Array.isArray(parsed)) {
+                            favoritesRef.current = parsed;
+                            setFavorites(parsed);
+                        }
                     } catch { }
                 }
                 if (storedExtensions) {
                     try {
                         const parsed = JSON.parse(storedExtensions);
-                        if (Array.isArray(parsed)) setMyExtensions(new Set(parsed));
+                        if (Array.isArray(parsed)) {
+                            const extSet = new Set<string>(parsed);
+                            extensionsRef.current = extSet;
+                            setMyExtensions(extSet);
+                        }
                     } catch { }
                 }
                 if (storedThemes) {
@@ -323,14 +356,20 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                     try {
                         const parsed = JSON.parse(storedSettings);
                         if (parsed && typeof parsed === 'object') {
-                            setSettings(prev => ({ ...prev, ...parsed }));
+                            const merged = { ...DEFAULT_SETTINGS, ...parsed };
+                            settingsRef.current = merged;
+                            setSettings(merged);
                         }
                     } catch { }
                 }
                 if (storedProgress) {
                     try {
                         const parsed = JSON.parse(storedProgress);
-                        if (Array.isArray(parsed)) setSolvedQuotes(new Set(parsed));
+                        if (Array.isArray(parsed)) {
+                            const solvedSet = new Set<string>(parsed);
+                            solvedQuotesRef.current = solvedSet;
+                            setSolvedQuotes(solvedSet);
+                        }
                     } catch { }
                 }
                 const everClearedSet = new Set<string>();
@@ -360,14 +399,19 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                 if (storedSavedGames) {
                     try {
                         const parsed = JSON.parse(storedSavedGames);
-                        if (parsed && typeof parsed === 'object') setSavedGames(parsed);
+                        if (parsed && typeof parsed === 'object') {
+                            savedGamesRef.current = parsed;
+                            setSavedGames(parsed);
+                        }
                     } catch { }
                 }
                 if (storedStats) {
                     try {
                         const parsed = JSON.parse(storedStats);
                         if (parsed && typeof parsed === 'object') {
-                            setStats(prev => ({ ...prev, ...parsed }));
+                            const merged = { ...INITIAL_STATS, ...parsed };
+                            statsRef.current = merged;
+                            setStats(merged);
                         }
                     } catch { }
                 }
@@ -389,6 +433,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                                     claimed: found.claimed === true,
                                 };
                             });
+                            achievementsRef.current = merged;
                             setAchievements(merged);
                         }
                     } catch { }
@@ -404,28 +449,34 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         loadData();
     }, []);
 
-    // Debounced Batch Persistence Effect (prevents keystroke I/O thrashing)
-    const persist = useCallback(() => {
+    // Force-flush persistence immediately bypassing debounce
+    const forceFlush = useCallback(async (): Promise<void> => {
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+            saveTimeoutRef.current = null;
+        }
         const batch: [string, string][] = [
-            ['brainCipherPoints', totalPoints.toString()],
-            ['brainCipherCoins', coins.toString()],
-            ['brainCipherFavorites', JSON.stringify(favorites)],
-            ['brainCipherExtensions', JSON.stringify(Array.from(myExtensions))],
-            ['brainCipherThemes', JSON.stringify(Array.from(unlockedThemes))],
-            ['brainCipherSettings', JSON.stringify(settings)],
-            ['brainCipherProgress', JSON.stringify(Array.from(solvedQuotes))],
-            ['brainCipherEverCleared', JSON.stringify(Array.from(everClearedQuotes))],
-            ['brainCipherSavedGames', JSON.stringify(savedGames)],
-            ['brainCipherStats', JSON.stringify(stats)],
-            ['brainCipherAchievements', JSON.stringify(achievements)],
+            ['brainCipherPoints', pointsRef.current.toString()],
+            ['brainCipherCoins', coinsRef.current.toString()],
+            ['brainCipherFavorites', JSON.stringify(favoritesRef.current)],
+            ['brainCipherExtensions', JSON.stringify(Array.from(extensionsRef.current))],
+            ['brainCipherThemes', JSON.stringify(Array.from(themesRef.current))],
+            ['brainCipherSettings', JSON.stringify(settingsRef.current)],
+            ['brainCipherProgress', JSON.stringify(Array.from(solvedQuotesRef.current))],
+            ['brainCipherEverCleared', JSON.stringify(Array.from(everClearedQuotesRef.current))],
+            ['brainCipherSavedGames', JSON.stringify(savedGamesRef.current)],
+            ['brainCipherStats', JSON.stringify(statsRef.current)],
+            ['brainCipherAchievements', JSON.stringify(achievementsRef.current)],
         ];
-        AsyncStorage.multiSet(batch)?.catch?.(err => {
-            console.error('Failed to batch persist game data:', err);
-        });
-    }, [totalPoints, coins, favorites, myExtensions, unlockedThemes, settings, solvedQuotes, everClearedQuotes, savedGames, stats, achievements]);
+        try {
+            await AsyncStorage.multiSet(batch);
+        } catch (err) {
+            console.error('Failed to force-flush game data:', err);
+        }
+    }, []);
 
-    const persistRef = useRef(persist);
-    persistRef.current = persist;
+    const persistRef = useRef(forceFlush);
+    persistRef.current = forceFlush;
 
     useEffect(() => {
         if (!isHydratedRef.current || isLoading) return;
@@ -443,7 +494,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                 clearTimeout(saveTimeoutRef.current);
             }
         };
-    }, [persist, isLoading]);
+    }, [totalPoints, coins, favorites, myExtensions, unlockedThemes, settings, solvedQuotes, everClearedQuotes, savedGames, stats, achievements, isLoading]);
 
     // Flush immediately when Android backgrounds the process, otherwise up to
     // 500ms of progress can be lost and background JS timers may never fire.
@@ -492,10 +543,106 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         return true;
     };
 
+    const checkThemeAchievements = useCallback((paidThemeCount: number) => {
+        setAchievements(prev => {
+            const next = prev.map(ach => {
+                if (ach.id === 'theme_collector' && !ach.isUnlocked) {
+                    return {
+                        ...ach,
+                        progress: paidThemeCount,
+                        isUnlocked: paidThemeCount >= ach.target
+                    };
+                }
+                return ach;
+            });
+            achievementsRef.current = next;
+            return next;
+        });
+    }, []);
+
+    // purchase(itemId) - the single, atomic entry point for all coin spending
+    const purchase = useCallback((itemId: string): PurchaseResult => {
+        const item = getShopItem(itemId);
+        if (!item) {
+            return 'UNKNOWN_ITEM';
+        }
+
+        if (item.requiresUnlock && !item.requiresUnlock({ coins: coinsRef.current, stats: statsRef.current })) {
+            return 'NOT_UNLOCKED';
+        }
+
+        // Safe against double-tap: reject if in-flight or rapid duplicate tap on same item (<400ms)
+        const now = Date.now();
+        if (inFlightPurchaseRef.current) {
+            return 'ALREADY_OWNED';
+        }
+        if (lastPurchaseTimeRef.current?.id === item.id && (now - lastPurchaseTimeRef.current.timestamp < 400)) {
+            return 'ALREADY_OWNED';
+        }
+
+        // Already owned check for non-repeatable items
+        if (!item.repeatable) {
+            if (item.kind === 'extension') {
+                const extId = item.payload.extensionId;
+                if (extensionsRef.current.has(extId)) {
+                    return 'ALREADY_OWNED';
+                }
+            } else if (item.kind === 'theme') {
+                const th = item.payload.theme;
+                if (themesRef.current.has(th)) {
+                    return 'ALREADY_OWNED';
+                }
+            } else if (item.id === 'streak_freeze') {
+                if (statsRef.current.hasStreakFreeze) {
+                    return 'ALREADY_OWNED';
+                }
+            }
+        }
+
+        // Atomic balance check and deduction - never a negative balance
+        if (coinsRef.current < item.price) {
+            return 'INSUFFICIENT_FUNDS';
+        }
+
+        inFlightPurchaseRef.current = true;
+        lastPurchaseTimeRef.current = { id: item.id, timestamp: now };
+
+        coinsRef.current -= item.price;
+        setCoins(coinsRef.current);
+
+        // Apply effect
+        if (item.kind === 'extension') {
+            const extId = item.payload.extensionId;
+            const next = new Set(extensionsRef.current).add(extId);
+            extensionsRef.current = next;
+            setMyExtensions(next);
+        } else if (item.kind === 'theme') {
+            const th = item.payload.theme;
+            const next = new Set(themesRef.current).add(th);
+            themesRef.current = next;
+            setUnlockedThemes(next);
+            checkThemeAchievements(PAID_THEMES.filter(paid => next.has(paid)).length);
+        } else if (item.id === 'streak_freeze') {
+            const nextStats: PlayerStats = { ...statsRef.current, hasStreakFreeze: true };
+            statsRef.current = nextStats;
+            setStats(nextStats);
+        }
+
+        // Force-flush persistence immediately (bypasses 500ms debounce)
+        forceFlush().finally(() => {
+            inFlightPurchaseRef.current = false;
+        });
+
+        triggerHaptic('success');
+        return 'OK';
+    }, [forceFlush, triggerHaptic, checkThemeAchievements]);
+
     // Favorites Actions
     const toggleFavorite = (id: string) => {
         const isFav = favorites.includes(id);
-        setFavorites(isFav ? favorites.filter(fid => fid !== id) : [...favorites, id]);
+        const next = isFav ? favorites.filter(fid => fid !== id) : [...favorites, id];
+        favoritesRef.current = next;
+        setFavorites(next);
         triggerHaptic('light');
     };
 
@@ -503,8 +650,11 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
     // Extensions & Themes
     const unlockExtension = (id: string) => {
-        if (!myExtensions.has(id)) {
-            setMyExtensions(new Set(myExtensions).add(id));
+        if (!extensionsRef.current.has(id)) {
+            const next = new Set(extensionsRef.current).add(id);
+            extensionsRef.current = next;
+            setMyExtensions(next);
+            forceFlush();
         }
         triggerHaptic('success');
     };
@@ -520,35 +670,25 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         triggerHaptic('success');
     };
 
-    const checkThemeAchievements = (paidThemeCount: number) => {
-        setAchievements(prev => prev.map(ach => {
-            if (ach.id === 'theme_collector' && !ach.isUnlocked) {
-                return {
-                    ...ach,
-                    progress: paidThemeCount,
-                    isUnlocked: paidThemeCount >= ach.target
-                };
-            }
-            return ach;
-        }));
-    };
-
     // Settings
     const updateSettings = (newSettings: AppSettings) => {
+        settingsRef.current = newSettings;
         setSettings(newSettings);
         triggerHaptic('light');
     };
 
     const setTheme = (newTheme: Theme) => {
-        setSettings(prev => ({ ...prev, theme: newTheme }));
+        const next = { ...settingsRef.current, theme: newTheme };
+        settingsRef.current = next;
+        setSettings(next);
         triggerHaptic('light');
     };
 
     const toggleTheme = () => {
-        setSettings(prev => ({
-            ...prev,
-            theme: prev.theme === 'dark' ? 'light' : 'dark'
-        }));
+        const nextTheme = settingsRef.current.theme === 'dark' ? 'light' : 'dark';
+        const next = { ...settingsRef.current, theme: nextTheme as Theme };
+        settingsRef.current = next;
+        setSettings(next);
         triggerHaptic('light');
     };
 
@@ -595,31 +735,44 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const resetAllProgress = () => {
+        const freshStats: PlayerStats = { ...INITIAL_STATS, hasStreakFreeze: false };
         setSolvedQuotes(new Set());
+        solvedQuotesRef.current = new Set();
         setSavedGames({});
+        savedGamesRef.current = {};
         setTotalPoints(0);
         pointsRef.current = 0;
-        setStats(INITIAL_STATS);
+        setStats(freshStats);
+        statsRef.current = freshStats;
         setCoins(INITIAL_COINS);
         coinsRef.current = INITIAL_COINS;
         setFavorites([]);
+        favoritesRef.current = [];
         setMyExtensions(new Set());
+        extensionsRef.current = new Set();
         const themes = new Set<Theme>(DEFAULT_THEMES);
         themesRef.current = themes;
         setUnlockedThemes(themes);
-        setAchievements(INITIAL_ACHIEVEMENTS.map(achievement => ({ ...achievement })));
+        const freshAchievements = INITIAL_ACHIEVEMENTS.map(achievement => ({ ...achievement }));
+        setAchievements(freshAchievements);
+        achievementsRef.current = freshAchievements;
         // Separate feature key so the daily knowledge modal can show again.
         AsyncStorage.removeItem('brainCipherLastDailyQuoteDate').catch(() => {});
+        forceFlush();
         triggerHaptic('heavy');
     };
 
     // Stats & Live Accuracy
     const recordGuess = (isCorrect: boolean) => {
-        setStats(prev => ({
-            ...prev,
-            totalGuesses: prev.totalGuesses + 1,
-            correctGuesses: isCorrect ? prev.correctGuesses + 1 : prev.correctGuesses
-        }));
+        setStats(prev => {
+            const next = {
+                ...prev,
+                totalGuesses: prev.totalGuesses + 1,
+                correctGuesses: isCorrect ? prev.correctGuesses + 1 : prev.correctGuesses
+            };
+            statsRef.current = next;
+            return next;
+        });
     };
 
     // Full Completion Tracker
@@ -660,7 +813,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
         // Resolve the streak once from the current snapshot so stats and the
         // streak achievements use exactly the same value.
-        const { newStreak, dailyDates } = computeStreak(stats, today, params.isDaily, params.usedMasterKey);
+        const { newStreak, dailyDates, streakFreezeConsumed } = computeStreak(statsRef.current, today, params.isDaily, params.usedMasterKey);
 
         setStats(prev => {
             const bestTimes = { ...prev.bestTimes };
@@ -669,7 +822,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                 bestTimes[params.category] = params.timeSeconds;
             }
 
-            return {
+            const nextStats: PlayerStats = {
                 ...prev,
                 puzzlesSolved: prev.puzzlesSolved + 1,
                 bestTimes,
@@ -680,7 +833,10 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                 dailySolvedDates: dailyDates,
                 totalGuesses: prev.totalGuesses + (params.totalGuesses ?? 0),
                 correctGuesses: prev.correctGuesses + (params.correctGuesses ?? 0),
+                hasStreakFreeze: streakFreezeConsumed ? false : prev.hasStreakFreeze,
             };
+            statsRef.current = nextStats;
+            return nextStats;
         });
 
         // Award points & coins
@@ -822,6 +978,9 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         addPoints,
         addCoins,
         spendCoins,
+        purchase,
+        hasStreakFreeze: Boolean(stats.hasStreakFreeze),
+        forceFlush,
         rank,
         rankTitle,
         favorites,

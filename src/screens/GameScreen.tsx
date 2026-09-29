@@ -23,6 +23,7 @@ import { todayKey } from '../utils/date';
 import { adService } from '../services/adService';
 import { GameStatus, QuoteData, CellData, GameMode, SolveGrade, CoinRewardBreakdown } from '../types';
 import { useGame } from '../context/GameContext';
+import { getShopItem } from '../data/shop';
 
 type GameScreenRouteProp = RouteProp<{
     Game: {
@@ -72,6 +73,9 @@ export const GameScreen = () => {
         triggerHaptic,
         addCoins,
         addPoints,
+        coins,
+        purchase,
+        clearGameState,
     } = useGame();
 
     const branch = getBranchById(genreId);
@@ -216,6 +220,8 @@ export const GameScreen = () => {
     const blitzRecentAuthorsRef = useRef<string[]>([]);
     // One guard so a solved cipher and the timeout cannot both settle a round.
     const finishedRef = useRef(false);
+    // Remember skipped quotes in current session so they are not immediately re-served
+    const skippedQuoteIdsRef = useRef<Set<string>>(new Set());
 
     // Timer Interval
     useEffect(() => {
@@ -304,7 +310,8 @@ export const GameScreen = () => {
         } else {
             // `solvedOverride` lets "Replay Subject Puzzles" start from a clean
             // slate without waiting for the reset state to propagate.
-            nextQuote = getNextQuote(genreId, solvedOverride ?? solvedQuotes);
+            const effectiveSolved = solvedOverride ?? new Set([...solvedQuotes, ...skippedQuoteIdsRef.current]);
+            nextQuote = getNextQuote(genreId, effectiveSolved);
         }
 
         if (!nextQuote) {
@@ -615,13 +622,111 @@ export const GameScreen = () => {
         }
     }, [status, freeHints, selectedCellIndex, selectedCipherChar, cipherMap, userMap, quoteData, triggerHaptic]);
 
+    const applyMasterKeySolve = useCallback(() => {
+        if (!quoteData) return;
+        finishedRef.current = true;
+        const fullMap: Record<string, string> = {};
+        for (const [original, cipher] of Object.entries(cipherMap)) {
+            fullMap[cipher] = original;
+        }
+        setUserMap(fullMap);
+        setStatus('won');
+        setSelectedCellIndex(null);
+
+        const accuracy = calculateAccuracy(correctCount, totalCount, mistakes.length);
+        const displayAccuracy = totalCount > 0 ? accuracy : 0;
+        setAccuracyPercent(displayAccuracy);
+
+        const reward = calculateCoinReward({
+            difficulty: mode === 'blitz' ? 'Normal' : settings.difficulty,
+            timerSeconds: timer,
+            hintsUsed,
+            mistakesCount: mistakes.length,
+            accuracy: displayAccuracy,
+            usedMasterKey: true,
+            mode,
+            quoteText: quoteData.text
+        });
+        setCoinReward(reward);
+        setEarnedScore(0);
+        const scoring = calculateDynamicPoints({
+            quoteText: quoteData.text,
+            difficulty: mode === 'blitz' ? 'Normal' : settings.difficulty,
+            timerSeconds: timer,
+            hintsUsed,
+            mistakesCount: mistakes.length,
+            accuracy: displayAccuracy,
+            comboMax: 0,
+            usedMasterKey: true,
+            mode
+        });
+        setMaxScore(scoring.maxScore);
+        setCoinsEarned(isPracticeRun ? 0 : 10);
+        setSolveGrade({ grade: 'D', title: reward.gradeTitle, stars: 1 });
+        setBonusOptions(null);
+        setBonusAwarded(false);
+        setBonusResolved(true);
+        setBonusWon(false);
+        setShowBonus(false);
+
+        if (mode === 'blitz') {
+            setBlitzScore(prev => prev + 0);
+            setBlitzSolves(prev => prev + 1);
+            return;
+        }
+        if (isPracticeRun) {
+            const qId = getLevelId(genreId, quoteData);
+            markQuoteSolved(qId, genreId);
+            return;
+        }
+
+        // Route the master key through the normal completion path so
+        // progress, stats and achievements are recorded (this used to
+        // be skipped, leaving the puzzle unsolved and re-served).
+        const qId = getLevelId(genreId, quoteData);
+        markQuoteSolved(qId, genreId);
+        recordPuzzleCompletion({
+            quoteId: qId,
+            category: genreLabel,
+            timeSeconds: timer,
+            hintsUsed,
+            mistakesCount: mistakes.length,
+            isDaily: mode === 'daily',
+            difficulty: settings.difficulty,
+            score: 0,
+            coins: 10,
+            grade: 'D',
+            totalGuesses: totalCount,
+            correctGuesses: correctCount,
+            usedMasterKey: true
+        });
+    }, [
+        quoteData,
+        cipherMap,
+        correctCount,
+        totalCount,
+        mistakes.length,
+        mode,
+        settings.difficulty,
+        timer,
+        hintsUsed,
+        isPracticeRun,
+        genreId,
+        genreLabel,
+        markQuoteSolved,
+        recordPuzzleCompletion,
+    ]);
+
     const handleUseKey = useCallback(() => {
         if (status !== 'playing' || !quoteData) return;
 
+        const keyItem = getShopItem('master_key');
+        const keyPrice = keyItem?.price ?? 60;
+
         setIsAdPaused(true);
         Alert.alert(
-            "Reveal Entire Cipher?",
-            "Solve every letter instantly. You keep only a small coin reward and earn a D grade.",
+            "Use Master Key",
+            `Solve every letter instantly with the Master Key?\n\nYou keep only a small coin reward and earn a D grade.\n\nPrice: ${keyPrice} coins (Current balance: ${coins} coins) or watch a short ad.`,
             [
                 { text: "Cancel", style: "cancel", onPress: () => setIsAdPaused(false) },
                 {
@@ -630,83 +735,20 @@ export const GameScreen = () => {
                     onPress: () => {
                         adService.show(() => {
                             setIsAdPaused(false);
-                            finishedRef.current = true;
-                            const fullMap: Record<string, string> = {};
-                            for (const [original, cipher] of Object.entries(cipherMap)) {
-                                fullMap[cipher] = original;
-                            }
-                            setUserMap(fullMap);
-                            setStatus('won');
-                            setSelectedCellIndex(null);
-
-                            const accuracy = calculateAccuracy(correctCount, totalCount, mistakes.length);
-                            const displayAccuracy = totalCount > 0 ? accuracy : 0;
-                            setAccuracyPercent(displayAccuracy);
-
-                            const reward = calculateCoinReward({
-                                difficulty: mode === 'blitz' ? 'Normal' : settings.difficulty,
-                                timerSeconds: timer,
-                                hintsUsed,
-                                mistakesCount: mistakes.length,
-                                accuracy: displayAccuracy,
-                                usedMasterKey: true,
-                                mode,
-                                quoteText: quoteData.text
-                            });
-                            setCoinReward(reward);
-                            setEarnedScore(0);
-                            const scoring = calculateDynamicPoints({
-                                quoteText: quoteData.text,
-                                difficulty: mode === 'blitz' ? 'Normal' : settings.difficulty,
-                                timerSeconds: timer,
-                                hintsUsed,
-                                mistakesCount: mistakes.length,
-                                accuracy: displayAccuracy,
-                                comboMax: 0,
-                                usedMasterKey: true,
-                                mode
-                            });
-                            setMaxScore(scoring.maxScore);
-                            setCoinsEarned(isPracticeRun ? 0 : 10);
-                            setSolveGrade({ grade: 'D', title: reward.gradeTitle, stars: 1 });
-                            setBonusOptions(null);
-                            setBonusAwarded(false);
-                            setBonusResolved(true);
-                            setBonusWon(false);
-                            setShowBonus(false);
-
-                            if (mode === 'blitz') {
-                                setBlitzScore(prev => prev + 0);
-                                setBlitzSolves(prev => prev + 1);
-                                return;
-                            }
-                            if (isPracticeRun) {
-                                const qId = getLevelId(genreId, quoteData);
-                                markQuoteSolved(qId, genreId);
-                                return;
-                            }
-
-                            // Route the master key through the normal completion path so
-                            // progress, stats and achievements are recorded (this used to
-                            // be skipped, leaving the puzzle unsolved and re-served).
-                            const qId = getLevelId(genreId, quoteData);
-                            markQuoteSolved(qId, genreId);
-                            recordPuzzleCompletion({
-                                quoteId: qId,
-                                category: genreLabel,
-                                timeSeconds: timer,
-                                hintsUsed,
-                                mistakesCount: mistakes.length,
-                                isDaily: mode === 'daily',
-                                difficulty: settings.difficulty,
-                                score: 0,
-                                coins: 10,
-                                grade: 'D',
-                                totalGuesses: totalCount,
-                                correctGuesses: correctCount,
-                                usedMasterKey: true
-                            });
+                            applyMasterKeySolve();
                         }, () => setIsAdPaused(false));
+                    }
+                },
+                {
+                    text: `Spend ${keyPrice} Coins`,
+                    onPress: () => {
+                        setIsAdPaused(false);
+                        const result = purchase('master_key');
+                        if (result === 'OK') {
+                            applyMasterKeySolve();
+                        } else if (result === 'INSUFFICIENT_FUNDS') {
+                            Alert.alert("Not Enough Coins", `You need ${keyPrice} coins to use the Master Key. You currently have ${coins} coins. You can watch an ad instead.`);
+                        }
                     }
                 }
             ],
@@ -715,19 +757,84 @@ export const GameScreen = () => {
     }, [
         status,
         quoteData,
-        cipherMap,
+        coins,
+        purchase,
+        applyMasterKeySolve,
+    ]);
+
+    const handleSkipPuzzle = useCallback(() => {
+        if (status !== 'playing' || !quoteData) return;
+        const skipItem = getShopItem('skip_puzzle');
+        const skipPrice = skipItem?.price ?? 150;
+        triggerHaptic('light');
+        Alert.alert(
+            "Skip Puzzle",
+            `Spend ${skipPrice} coins to skip this puzzle?\n\nAdvances to the next puzzle without solving. Awards 0 coins and 0 points.\n\nCurrent balance: ${coins} coins`,
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: `Skip (${skipPrice} Coins)`,
+                    onPress: () => {
+                        const result = purchase('skip_puzzle');
+                        if (result === 'OK') {
+                            triggerHaptic('medium');
+                            if (mode === 'standard') {
+                                clearGameState(genreId);
+                                const currentId = getLevelId(genreId, quoteData);
+                                skippedQuoteIdsRef.current.add(currentId);
+                                initLevel();
+                            } else if (mode === 'blitz') {
+                                initLevel();
+                            }
+                        } else if (result === 'INSUFFICIENT_FUNDS') {
+                            Alert.alert("Not Enough Coins", `You need ${skipPrice} coins to skip this puzzle. You currently have ${coins} coins.`);
+                        }
+                    }
+                }
+            ]
+        );
+    }, [
+        status,
+        quoteData,
+        coins,
+        purchase,
+        triggerHaptic,
         mode,
-        settings.difficulty,
-        timer,
-        hintsUsed,
-        mistakes.length,
-        isPracticeRun,
         genreId,
-        genreLabel,
-        markQuoteSolved,
-        recordPuzzleCompletion,
-        totalCount,
-        correctCount,
+        clearGameState,
+        initLevel,
+    ]);
+
+    const handleAddBlitzTime = useCallback(() => {
+        if (status !== 'playing' || mode !== 'blitz') return;
+        const blitzTimeItem = getShopItem('blitz_time_15');
+        const blitzTimePrice = blitzTimeItem?.price ?? 40;
+        triggerHaptic('light');
+        Alert.alert(
+            "Add Blitz Time",
+            `Spend ${blitzTimePrice} coins to add +15 seconds to the Blitz timer?\n\nCurrent balance: ${coins} coins`,
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: `+15s (${blitzTimePrice} Coins)`,
+                    onPress: () => {
+                        const result = purchase('blitz_time_15');
+                        if (result === 'OK') {
+                            triggerHaptic('success');
+                            setBlitzTimeLeft(prev => prev + 15);
+                        } else if (result === 'INSUFFICIENT_FUNDS') {
+                            Alert.alert("Not Enough Coins", `You need ${blitzTimePrice} coins to add Blitz time. You currently have ${coins} coins.`);
+                        }
+                    }
+                }
+            ]
+        );
+    }, [
+        status,
+        mode,
+        coins,
+        purchase,
+        triggerHaptic,
     ]);
 
     const goBack = useCallback(() => {
@@ -738,6 +845,7 @@ export const GameScreen = () => {
     // the next quote is selected immediately, without waiting for the reset state
     // to propagate into initLevel's closure.
     const handleReplaySubject = useCallback(() => {
+        skippedQuoteIdsRef.current.clear();
         resetCategoryProgress(genreId);
         initLevel(new Set<string>());
     }, [genreId, resetCategoryProgress, initLevel]);
@@ -890,6 +998,8 @@ export const GameScreen = () => {
                 hideTimer={settings.hideTimer}
                 comboMultiplier={comboMultiplier}
                 isBlitz={mode === 'blitz'}
+                onSkip={mode !== 'daily' ? handleSkipPuzzle : undefined}
+                onAddBlitzTime={mode === 'blitz' ? handleAddBlitzTime : undefined}
             />
 
             <ScrollView

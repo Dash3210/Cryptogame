@@ -159,6 +159,7 @@ export interface PlayerStats {
     blitzHighScore: number;
     totalPlayTimeSeconds: number;
     dailySolvedDates: string[]; // List of YYYY-MM-DD
+    hasStreakFreeze?: boolean;
 }
 
 export interface Achievement {

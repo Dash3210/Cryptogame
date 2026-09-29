@@ -1,18 +1,46 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { AppText as Text } from '../components/AppText';
 import { useGame } from '../context/GameContext';
 import { Icon } from '../components/Icon';
 import { toDateKey, todayKey } from '../utils/date';
+import { getShopItem } from '../data/shop';
 
 export const DailyChallengeScreen = () => {
     const navigation = useNavigation<any>();
-    const { stats, colors, triggerHaptic } = useGame();
+    const { stats, coins, purchase, colors, triggerHaptic } = useGame();
 
     const today = todayKey();
     const isTodaySolved = stats.dailySolvedDates.includes(today);
+
+    const freezeItem = getShopItem('streak_freeze');
+    const freezePrice = freezeItem?.price ?? 200;
+
+    const handleEquipStreakFreeze = () => {
+        triggerHaptic('light');
+        Alert.alert(
+            "Equip Streak Freeze",
+            `Spend ${freezePrice} coins to equip a Streak Freeze?\n\nProtects one missed day on your daily streak.\n\nCurrent balance: ${coins} coins`,
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Equip",
+                    onPress: () => {
+                        const result = purchase('streak_freeze');
+                        if (result === 'OK') {
+                            Alert.alert("Streak Freeze Equipped!", "Your daily streak is now protected against one missed day.");
+                        } else if (result === 'INSUFFICIENT_FUNDS') {
+                            Alert.alert("Not Enough Coins", `You need ${freezePrice} coins to equip a Streak Freeze. You currently have ${coins} coins.`);
+                        } else if (result === 'ALREADY_OWNED') {
+                            Alert.alert("Already Active", "You already have an active Streak Freeze.");
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     // Generate current week calendar dates
     const getWeekDays = () => {
@@ -56,18 +84,25 @@ export const DailyChallengeScreen = () => {
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
             {/* Header */}
             <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-                <Pressable
-                    onPress={() => navigation.goBack()}
-                    style={({ pressed }) => [
-                        styles.backBtn,
-                        { backgroundColor: colors.surfaceHighlight },
-                        pressed && { opacity: 0.75, transform: [{ scale: 0.96 }] }
-                    ]}
-                    hitSlop={8}
-                >
-                    <Text style={[styles.backIcon, { color: colors.textSecondary }]}>‹</Text>
-                </Pressable>
-                <Text style={[styles.title, { color: colors.text }]}>Daily Cipher</Text>
+                <View style={styles.headerLeft}>
+                    <Pressable
+                        onPress={() => navigation.goBack()}
+                        style={({ pressed }) => [
+                            styles.backBtn,
+                            { backgroundColor: colors.surfaceHighlight },
+                            pressed && { opacity: 0.75, transform: [{ scale: 0.96 }] }
+                        ]}
+                        hitSlop={8}
+                    >
+                        <Text style={[styles.backIcon, { color: colors.textSecondary }]}>‹</Text>
+                    </Pressable>
+                    <Text style={[styles.title, { color: colors.text }]}>Daily Cipher</Text>
+                </View>
+
+                <View style={[styles.coinBadge, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}>
+                    <Icon name="coin" size={15} color={colors.gold} />
+                    <Text tabular style={[styles.coinVal, { color: colors.gold }]}>{coins}</Text>
+                </View>
             </View>
 
             <ScrollView contentContainerStyle={styles.content}>
@@ -141,6 +176,51 @@ export const DailyChallengeScreen = () => {
                             </View>
                         ))}
                     </View>
+
+                    {/* Streak Freeze Card */}
+                    <View style={[
+                        styles.freezeCard,
+                        {
+                            backgroundColor: stats.hasStreakFreeze ? colors.primaryBg : colors.surfaceHighlight,
+                            borderColor: stats.hasStreakFreeze ? colors.primary : colors.border
+                        }
+                    ]}>
+                        <View style={styles.freezeRow}>
+                            <View style={[styles.freezeIconBox, { backgroundColor: stats.hasStreakFreeze ? colors.primary : colors.surface }]}>
+                                <Icon name={stats.hasStreakFreeze ? "shield" : "flame"} size={18} color={stats.hasStreakFreeze ? "#000" : colors.textMuted} />
+                            </View>
+                            <View style={styles.freezeTextCol}>
+                                <View style={styles.freezeHeaderRow}>
+                                    <Text style={[styles.freezeTitle, { color: colors.text }]}>Streak Freeze</Text>
+                                    {stats.hasStreakFreeze && (
+                                        <View style={[styles.freezeActiveBadge, { backgroundColor: colors.primary }]}>
+                                            <Text style={styles.freezeActiveText}>ACTIVE</Text>
+                                        </View>
+                                    )}
+                                </View>
+                                <Text style={[styles.freezeDesc, { color: colors.textSecondary }]}>
+                                    {stats.hasStreakFreeze
+                                        ? 'Protected! Your next missed daily cipher will be forgiven.'
+                                        : 'Protects 1 missed day without breaking your streak chain.'}
+                                </Text>
+                            </View>
+                            {!stats.hasStreakFreeze && (
+                                <Pressable
+                                    onPress={handleEquipStreakFreeze}
+                                    style={({ pressed }) => [
+                                        styles.freezeBuyBtn,
+                                        { backgroundColor: colors.gold },
+                                        pressed && { opacity: 0.85, transform: [{ scale: 0.96 }] }
+                                    ]}
+                                    hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`Equip Streak Freeze for ${freezePrice} coins`}
+                                >
+                                    <Text tabular style={styles.freezeBuyText}>{freezePrice} coins</Text>
+                                </Pressable>
+                            )}
+                        </View>
+                    </View>
                 </View>
 
                 {/* Today's Mission Card */}
@@ -194,7 +274,26 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    headerLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
         gap: 14,
+    },
+    coinBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 12,
+        borderWidth: 1,
+    },
+    coinVal: {
+        fontSize: 13,
+        fontWeight: '800',
+        fontFamily: 'monospace',
     },
     backBtn: {
         width: 44,
@@ -269,6 +368,64 @@ const styles = StyleSheet.create({
     dayNumber: {
         fontSize: 13,
         fontWeight: '900',
+    },
+    freezeCard: {
+        marginTop: 14,
+        padding: 12,
+        borderRadius: 14,
+        borderWidth: 1,
+    },
+    freezeRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    freezeIconBox: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    freezeTextCol: {
+        flex: 1,
+        gap: 2,
+    },
+    freezeHeaderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    freezeTitle: {
+        fontSize: 14,
+        fontWeight: '800',
+    },
+    freezeActiveBadge: {
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 6,
+    },
+    freezeActiveText: {
+        fontSize: 10,
+        fontWeight: '900',
+        color: '#000',
+        letterSpacing: 0.5,
+    },
+    freezeDesc: {
+        fontSize: 11,
+        lineHeight: 15,
+    },
+    freezeBuyBtn: {
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    freezeBuyText: {
+        fontSize: 12,
+        fontWeight: '900',
+        color: '#000',
     },
     missionCard: {
         padding: 16,

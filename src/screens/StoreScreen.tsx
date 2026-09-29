@@ -8,16 +8,16 @@ import { Theme } from '../types';
 import { THEME_NAMES } from '../styles/theme';
 import { adService } from '../services/adService';
 import { Icon, IconName } from '../components/Icon';
+import { getShopItem, getExtensionPrice, getThemePrice } from '../data/shop';
 
 export const StoreScreen = () => {
     const {
         coins,
         addCoins,
-        spendCoins,
+        purchase,
         myExtensions,
         unlockExtension,
         unlockedThemes,
-        unlockTheme,
         setTheme,
         settings,
         colors,
@@ -26,8 +26,12 @@ export const StoreScreen = () => {
 
     const [activeTab, setActiveTab] = useState<'extensions' | 'themes'>('extensions');
 
-    const handleUnlockExtensionWithCoins = (id: string, label: string, price: number) => {
+    const handleUnlockExtensionWithCoins = (id: string, label: string) => {
         triggerHaptic('light');
+        const item = getShopItem('ext_' + id) || getShopItem(id);
+        const price = item?.price ?? 100;
+        const itemId = item?.id ?? ('ext_' + id);
+
         if (coins < price) {
             Alert.alert(
                 "Not Enough Coins",
@@ -45,15 +49,19 @@ export const StoreScreen = () => {
 
         Alert.alert(
             "Unlock Subject",
-            `Spend ${price} coins to unlock "${label}"?`,
+            `Spend ${price} coins to unlock "${label}"?\n\nCurrent balance: ${coins} coins`,
             [
                 { text: "Cancel", style: "cancel" },
                 {
                     text: "Unlock",
                     onPress: () => {
-                        if (spendCoins(price)) {
-                            unlockExtension(id);
+                        const result = purchase(itemId);
+                        if (result === 'OK') {
                             Alert.alert("Unlocked!", `${label} is now available in your Library!`);
+                        } else if (result === 'INSUFFICIENT_FUNDS') {
+                            Alert.alert("Not Enough Coins", `You need ${price} coins to unlock "${label}". You currently have ${coins} coins.`);
+                        } else if (result === 'ALREADY_OWNED') {
+                            Alert.alert("Already Owned", `"${label}" is already unlocked in your Library.`);
                         }
                     }
                 }
@@ -68,8 +76,12 @@ export const StoreScreen = () => {
         });
     };
 
-    const handleUnlockThemeWithCoins = (themeKey: Theme, themeName: string, price: number) => {
+    const handleUnlockThemeWithCoins = (themeKey: Theme, themeName: string) => {
         triggerHaptic('light');
+        const item = getShopItem('theme_' + themeKey) || getShopItem(themeKey);
+        const price = item?.price ?? 120;
+        const itemId = item?.id ?? ('theme_' + themeKey);
+
         if (coins < price) {
             Alert.alert(
                 "Not Enough Coins",
@@ -87,16 +99,21 @@ export const StoreScreen = () => {
 
         Alert.alert(
             "Unlock Theme",
-            `Spend ${price} coins to unlock "${themeName}"?`,
+            `Spend ${price} coins to unlock "${themeName}"?\n\nCurrent balance: ${coins} coins`,
             [
                 { text: "Cancel", style: "cancel" },
                 {
                     text: "Unlock",
                     onPress: () => {
-                        if (spendCoins(price)) {
-                            unlockTheme(themeKey);
+                        const result = purchase(itemId);
+                        if (result === 'OK') {
                             setTheme(themeKey);
                             Alert.alert("Theme Unlocked!", `The "${themeName}" theme is now active!`);
+                        } else if (result === 'INSUFFICIENT_FUNDS') {
+                            Alert.alert("Not Enough Coins", `You need ${price} coins to unlock the "${themeName}" theme. You currently have ${coins} coins.`);
+                        } else if (result === 'ALREADY_OWNED') {
+                            setTheme(themeKey);
+                            Alert.alert("Theme Applied!", `The "${themeName}" theme is now active!`);
                         }
                     }
                 }
@@ -196,7 +213,7 @@ export const StoreScreen = () => {
                     <View style={styles.list}>
                         {EXTENSIONS.map((ext) => {
                             const isOwned = myExtensions.has(ext.id);
-                            const price = ext.coinPrice || 100;
+                            const price = getExtensionPrice(ext.id);
 
                             return (
                                 <View
@@ -228,7 +245,7 @@ export const StoreScreen = () => {
                                     ) : (
                                         <View style={styles.buyBtnRow}>
                                             <Pressable
-                                                onPress={() => handleUnlockExtensionWithCoins(ext.id, ext.label, price)}
+                                                onPress={() => handleUnlockExtensionWithCoins(ext.id, ext.label)}
                                                 style={({ pressed }) => [
                                                     styles.buyCoinBtn,
                                                     { backgroundColor: colors.primary },
@@ -269,7 +286,7 @@ export const StoreScreen = () => {
                             const meta = THEME_NAMES[themeKey];
                             const isOwned = unlockedThemes.has(themeKey);
                             const isActive = settings.theme === themeKey;
-                            const themePrice = (themeKey === 'midnight' || themeKey === 'ocean') ? 150 : 120;
+                            const themePrice = getThemePrice(themeKey);
 
                             return (
                                 <View
@@ -315,7 +332,7 @@ export const StoreScreen = () => {
                                         </Pressable>
                                     ) : (
                                         <Pressable
-                                            onPress={() => handleUnlockThemeWithCoins(themeKey, meta.name, themePrice)}
+                                            onPress={() => handleUnlockThemeWithCoins(themeKey, meta.name)}
                                             style={({ pressed }) => [
                                                 styles.buyCoinBtn,
                                                 { backgroundColor: colors.gold },

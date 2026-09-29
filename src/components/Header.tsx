@@ -21,6 +21,8 @@ export interface HeaderProps {
     hideTimer?: boolean;
     comboMultiplier?: number;
     isBlitz?: boolean;
+    onSkip?: () => void;
+    onAddBlitzTime?: () => void;
 }
 
 /**
@@ -45,6 +47,8 @@ export const Header: React.FC<HeaderProps> = ({
     hideTimer,
     comboMultiplier = 1.0,
     isBlitz,
+    onSkip,
+    onAddBlitzTime,
 }) => {
     const { colors, coins, triggerHaptic } = useGame();
     const { width: windowWidth } = useWindowDimensions();
@@ -157,6 +161,48 @@ export const Header: React.FC<HeaderProps> = ({
                 >
                     <Icon name="nav-settings" size={18} color={colors.textSecondary} />
                 </Pressable>
+
+                {/* Blitz +15s Time Boost Button */}
+                {isPlaying && isBlitz && onAddBlitzTime && (
+                    <Pressable
+                        onPress={() => {
+                            triggerHaptic('light');
+                            onAddBlitzTime();
+                        }}
+                        style={({ pressed }) => [
+                            styles.actionButton,
+                            compact && styles.actionButtonCompact,
+                            { backgroundColor: colors.goldBg, borderColor: colors.gold },
+                            pressed && styles.pressed,
+                        ]}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                        accessibilityLabel="Add 15 Seconds Blitz Time"
+                        accessibilityRole="button"
+                    >
+                        <Text style={[styles.actionButtonText, { color: colors.gold }]}>+15S</Text>
+                    </Pressable>
+                )}
+
+                {/* Skip Puzzle Button */}
+                {isPlaying && onSkip && (
+                    <Pressable
+                        onPress={() => {
+                            triggerHaptic('light');
+                            onSkip();
+                        }}
+                        style={({ pressed }) => [
+                            styles.actionButton,
+                            compact && styles.actionButtonCompact,
+                            { backgroundColor: colors.surfaceHighlight, borderColor: colors.border },
+                            pressed && styles.pressed,
+                        ]}
+                        hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                        accessibilityLabel="Skip Puzzle"
+                        accessibilityRole="button"
+                    >
+                        <Text style={[styles.actionButtonText, { color: colors.textSecondary }]}>SKIP</Text>
+                    </Pressable>
+                )}
 
                 {/* Key (Solve All) Button */}
                 {isPlaying && (
