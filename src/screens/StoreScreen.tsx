@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText as Text } from '../components/AppText';
@@ -7,6 +7,8 @@ import { EXTENSIONS } from '../data/quotes';
 import { Theme } from '../types';
 import { THEME_NAMES } from '../styles/theme';
 import { adService } from '../services/adService';
+import { AD_CONFIG } from '../services/adConfig';
+import { AdBanner } from '../components/AdBanner';
 import { Icon, IconName } from '../components/Icon';
 import { getShopItem, getExtensionPrice, getThemePrice } from '../data/shop';
 
@@ -25,6 +27,20 @@ export const StoreScreen = () => {
     } = useGame();
 
     const [activeTab, setActiveTab] = useState<'extensions' | 'themes'>('extensions');
+    const [subjectAdProgress, setSubjectAdProgress] = useState<Record<string, number>>({});
+    const isDailyCapReached = adService.isRewardedDailyCapReached();
+
+    useEffect(() => {
+        let isMounted = true;
+        adService.getAllSubjectAdProgress().then((progress) => {
+            if (isMounted) {
+                setSubjectAdProgress(progress);
+            }
+        });
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const handleUnlockExtensionWithCoins = (id: string, label: string) => {
         triggerHaptic('light');
@@ -33,13 +49,23 @@ export const StoreScreen = () => {
         const itemId = item?.id ?? ('ext_' + id);
 
         if (coins < price) {
+            const watched = subjectAdProgress[id] ?? adService.getSubjectAdProgress(id);
+            const needed = AD_CONFIG.cadence.subjectUnlockRequiredAds;
+            if (isDailyCapReached) {
+                Alert.alert(
+                    "Not Enough Coins",
+                    `You need ${price} coins to unlock "${label}". You currently have ${coins} coins. Daily ad limit reached; please check back tomorrow or solve more puzzles to earn coins!`,
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             Alert.alert(
                 "Not Enough Coins",
-                `You need ${price} coins to unlock "${label}". You currently have ${coins} coins. Would you like to watch an ad to unlock it for free?`,
+                `You need ${price} coins to unlock "${label}". You currently have ${coins} coins. Would you like to watch ads (${watched} of ${needed} watched) to unlock it?`,
                 [
                     { text: "Cancel", style: "cancel" },
                     {
-                        text: "Watch Ad",
+                        text: `Watch Ad (${watched}/${needed})`,
                         onPress: () => handleUnlockExtensionWithAd(id, label)
                     }
                 ]
@@ -70,9 +96,33 @@ export const StoreScreen = () => {
     };
 
     const handleUnlockExtensionWithAd = (id: string, label: string) => {
-        adService.show(() => {
-            unlockExtension(id);
-            Alert.alert("Unlocked!", `${label} is now available in your Library!`);
+        triggerHaptic('light');
+        if (adService.isRewardedDailyCapReached()) {
+            Alert.alert(
+                "Daily Ad Limit Reached",
+                `You have reached the daily limit of ${AD_CONFIG.cadence.rewardedDailyCap} rewarded ads. Please check back tomorrow! You can still unlock "${label}" with coins.`,
+                [{ text: "OK" }]
+            );
+            return;
+        }
+
+        adService.show(async () => {
+            const nextCount = await adService.incrementSubjectAdProgress(id);
+            setSubjectAdProgress(prev => ({ ...prev, [id]: nextCount }));
+
+            if (nextCount >= AD_CONFIG.cadence.subjectUnlockRequiredAds) {
+                unlockExtension(id);
+                await adService.resetSubjectAdProgress(id);
+                triggerHaptic('success');
+                Alert.alert("Unlocked!", `${label} is now available in your Library!`);
+            } else {
+                triggerHaptic('light');
+                Alert.alert(
+                    "Ad Watched",
+                    `Watched ${nextCount} of ${AD_CONFIG.cadence.subjectUnlockRequiredAds} ads for "${label}". Watch 1 more ad to unlock!`,
+                    [{ text: "OK" }]
+                );
+            }
         });
     };
 
@@ -83,6 +133,14 @@ export const StoreScreen = () => {
         const itemId = item?.id ?? ('theme_' + themeKey);
 
         if (coins < price) {
+            if (isDailyCapReached) {
+                Alert.alert(
+                    "Not Enough Coins",
+                    `You need ${price} coins to unlock the "${themeName}" theme. You currently have ${coins} coins. Daily ad limit reached; please check back tomorrow or solve puzzles to earn coins!`,
+                    [{ text: "OK", style: "cancel" }]
+                );
+                return;
+            }
             Alert.alert(
                 "Not Enough Coins",
                 `You need ${price} coins to unlock the "${themeName}" theme. You currently have ${coins} coins.`,
@@ -123,6 +181,14 @@ export const StoreScreen = () => {
 
     const handleWatchAdForCoins = () => {
         triggerHaptic('light');
+        if (adService.isRewardedDailyCapReached()) {
+            Alert.alert(
+                "Daily Ad Limit Reached",
+                `You have reached the daily limit of ${AD_CONFIG.cadence.rewardedDailyCap} rewarded ads. Please check back tomorrow!`,
+                [{ text: "OK" }]
+            );
+            return;
+        }
         adService.show(() => {
             addCoins(50);
             Alert.alert("Coins Rewarded!", "You earned +50 Cipher Coins.");
@@ -152,13 +218,16 @@ export const StoreScreen = () => {
                             style={({ pressed }) => [
                                 styles.freeCoinBtn,
                                 { backgroundColor: colors.surfaceHighlight, borderColor: colors.border },
+                                isDailyCapReached && { opacity: 0.5 },
                                 pressed && { opacity: 0.7 }
                             ]}
                             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                             accessibilityRole="button"
-                            accessibilityLabel="Watch ad for 50 coins"
+                            accessibilityLabel={isDailyCapReached ? "Daily ad limit of 20 reached" : "Watch ad for 50 coins"}
                         >
-                            <Text style={[styles.freeCoinText, { color: colors.primary }]}>+50 Ad</Text>
+                            <Text style={[styles.freeCoinText, { color: isDailyCapReached ? colors.textMuted : colors.primary }]}>
+                                {isDailyCapReached ? "Cap" : "+50 Ad"}
+                            </Text>
                         </Pressable>
                     </View>
                 </View>
@@ -214,6 +283,9 @@ export const StoreScreen = () => {
                         {EXTENSIONS.map((ext) => {
                             const isOwned = myExtensions.has(ext.id);
                             const price = getExtensionPrice(ext.id);
+                            const watched = subjectAdProgress[ext.id] ?? adService.getSubjectAdProgress(ext.id);
+                            const required = AD_CONFIG.cadence.subjectUnlockRequiredAds;
+                            const adLabel = watched > 0 ? `Ad (${watched}/${required})` : `Ad (0/${required})`;
 
                             return (
                                 <View
@@ -263,13 +335,20 @@ export const StoreScreen = () => {
                                                 style={({ pressed }) => [
                                                     styles.buyAdBtn,
                                                     { backgroundColor: colors.surfaceHighlight, borderColor: colors.border },
+                                                    isDailyCapReached && { opacity: 0.5 },
                                                     pressed && { opacity: 0.88, transform: [{ scale: 0.96 }] }
                                                 ]}
                                                 hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
                                                 accessibilityRole="button"
-                                                accessibilityLabel={`Unlock ${ext.label} with ad`}
+                                                accessibilityLabel={
+                                                    isDailyCapReached
+                                                        ? `Daily ad limit reached for ${ext.label}`
+                                                        : `Unlock ${ext.label} with ad, ${watched} of ${required} watched`
+                                                }
                                             >
-                                                <Text style={[styles.buyAdText, { color: colors.textSecondary }]}>Ad</Text>
+                                                <Text style={[styles.buyAdText, { color: isDailyCapReached ? colors.textMuted : colors.textSecondary }]}>
+                                                    {isDailyCapReached ? 'Cap' : adLabel}
+                                                </Text>
                                             </Pressable>
                                         </View>
                                     )}
@@ -351,6 +430,9 @@ export const StoreScreen = () => {
                     </View>
                 )}
             </ScrollView>
+
+            {/* Banner Ad placed on Store screen */}
+            <AdBanner screenName="Store" />
         </SafeAreaView>
     );
 };

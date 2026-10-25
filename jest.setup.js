@@ -7,6 +7,9 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 
 // Mock Google Mobile Ads
 jest.mock('react-native-google-mobile-ads', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+
   return {
     RewardedAd: {
       createForAdRequest: jest.fn(() => ({
@@ -15,16 +18,38 @@ jest.mock('react-native-google-mobile-ads', () => {
         addAdEventListener: jest.fn(() => jest.fn()),
       })),
     },
+    InterstitialAd: {
+      createForAdRequest: jest.fn(() => ({
+        load: jest.fn(),
+        show: jest.fn(),
+        addAdEventListener: jest.fn(() => jest.fn()),
+      })),
+    },
+    BannerAd: ({ onAdLoaded, onAdFailedToLoad, testID, ...props }) => {
+      React.useEffect(() => {
+        onAdLoaded?.();
+      }, [onAdLoaded]);
+      return React.createElement(View, { testID: testID || 'admob-banner', ...props });
+    },
+    BannerAdSize: {
+      BANNER: '320x50',
+      ANCHORED_ADAPTIVE_BANNER: 'ANCHORED_ADAPTIVE_BANNER',
+      FULL_BANNER: '468x60',
+      LARGE_BANNER: '320x100',
+    },
     RewardedAdEventType: {
       LOADED: 'LOADED',
       EARNED_REWARD: 'EARNED_REWARD',
     },
     AdEventType: {
+      LOADED: 'LOADED',
       CLOSED: 'CLOSED',
       ERROR: 'ERROR',
     },
     TestIds: {
       REWARDED: 'ca-app-pub-3940256099942544/5224354917',
+      BANNER: 'ca-app-pub-3940256099942544/6300978111',
+      INTERSTITIAL: 'ca-app-pub-3940256099942544/1033173712',
     },
   };
 });

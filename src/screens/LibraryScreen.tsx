@@ -10,6 +10,7 @@ import { getTrackProgress, getBranchesForTrack, getBranchProgress } from '../ser
 import { DailyQuoteModal } from '../components/DailyQuoteModal';
 import { UnifiedOperationsStrip } from '../components/UnifiedOperationsStrip';
 import { Icon } from '../components/Icon';
+import { AdBanner } from '../components/AdBanner';
 import { RADIUS } from '../styles/theme';
 
 export const LibraryScreen = () => {
@@ -301,6 +302,9 @@ export const LibraryScreen = () => {
 
             {/* Daily Quote Modal retained at bottom */}
             <DailyQuoteModal />
+
+            {/* Banner Ad placed on Library screen */}
+            <AdBanner screenName="Library" />
         </SafeAreaView>
     );
 };

@@ -15,3 +15,4 @@ export { CipherTransition } from './CipherTransition';
 export { Icon } from './Icon';
 export type { IconName, IconProps } from './Icon';
 export { BonusGuessModal } from './BonusGuessModal';
+export { AdBanner } from './AdBanner';

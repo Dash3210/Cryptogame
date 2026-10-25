@@ -21,6 +21,7 @@ import {
 import { getNextQuote, getDailyQuote, getRandomBlitzQuote, getAnswerOptions, getLevelId, getBranchById } from '../services/quoteService';
 import { todayKey } from '../utils/date';
 import { adService } from '../services/adService';
+import { AD_CONFIG } from '../services/adConfig';
 import { GameStatus, QuoteData, CellData, GameMode, SolveGrade, CoinRewardBreakdown } from '../types';
 import { useGame } from '../context/GameContext';
 import { getShopItem } from '../data/shop';
@@ -598,6 +599,15 @@ export const GameScreen = () => {
             setSelectedCellIndex(nextIdx);
         } else {
             setIsAdPaused(true);
+            if (adService.isRewardedDailyCapReached()) {
+                setIsAdPaused(false);
+                Alert.alert(
+                    "Daily Ad Limit Reached",
+                    `You have reached the daily limit of ${AD_CONFIG.cadence.rewardedDailyCap} rewarded ads. Hints will be available again tomorrow!`,
+                    [{ text: "OK" }]
+                );
+                return;
+            }
             Alert.alert(
                 "Need a Hint?",
                 "Watch a short ad to reveal this letter.",
@@ -722,23 +732,34 @@ export const GameScreen = () => {
 
         const keyItem = getShopItem('master_key');
         const keyPrice = keyItem?.price ?? 60;
+        const isCapReached = adService.isRewardedDailyCapReached();
 
         setIsAdPaused(true);
         Alert.alert(
             "Use Master Key",
-            `Solve every letter instantly with the Master Key?\n\nYou keep only a small coin reward and earn a D grade.\n\nPrice: ${keyPrice} coins (Current balance: ${coins} coins) or watch a short ad.`,
+            `Solve every letter instantly with the Master Key?\n\nYou keep only a small coin reward and earn a D grade.\n\nPrice: ${keyPrice} coins (Current balance: ${coins} coins)${isCapReached ? '' : ' or watch a short ad.'}`,
             [
                 { text: "Cancel", style: "cancel", onPress: () => setIsAdPaused(false) },
-                {
+                ...(!isCapReached ? [{
                     text: "Solve All",
-                    style: "destructive",
+                    style: "destructive" as const,
                     onPress: () => {
                         adService.show(() => {
                             setIsAdPaused(false);
                             applyMasterKeySolve();
                         }, () => setIsAdPaused(false));
                     }
-                },
+                }] : [{
+                    text: "Solve All (Daily Limit Reached)",
+                    onPress: () => {
+                        setIsAdPaused(false);
+                        Alert.alert(
+                            "Daily Ad Limit Reached",
+                            `You have reached the daily limit of ${AD_CONFIG.cadence.rewardedDailyCap} rewarded ads. Please check back tomorrow or unlock with coins!`,
+                            [{ text: "OK" }]
+                        );
+                    }
+                }]),
                 {
                     text: `Spend ${keyPrice} Coins`,
                     onPress: () => {
@@ -747,7 +768,7 @@ export const GameScreen = () => {
                         if (result === 'OK') {
                             applyMasterKeySolve();
                         } else if (result === 'INSUFFICIENT_FUNDS') {
-                            Alert.alert("Not Enough Coins", `You need ${keyPrice} coins to use the Master Key. You currently have ${coins} coins. You can watch an ad instead.`);
+                            Alert.alert("Not Enough Coins", `You need ${keyPrice} coins to use the Master Key. You currently have ${coins} coins.`);
                         }
                     }
                 }
@@ -932,16 +953,36 @@ export const GameScreen = () => {
                     grade={solveGrade}
                     accuracy={accuracyPercent}
                     onNextPuzzle={() => {
-                        if (mode === 'daily') {
-                            goBack();
-                        } else if (mode === 'blitz' && blitzTimeLeft === 0) {
-                            setBlitzScore(0);
-                            setBlitzSolves(0);
-                            setBlitzTimeLeft(90);
-                            initLevel();
-                        } else {
-                            initLevel();
+                        const proceed = () => {
+                            if (mode === 'daily') {
+                                goBack();
+                            } else if (mode === 'blitz' && blitzTimeLeft === 0) {
+                                setBlitzScore(0);
+                                setBlitzSolves(0);
+                                setBlitzTimeLeft(90);
+                                initLevel();
+                            } else {
+                                initLevel();
+                            }
+                        };
+
+                        if (mode === 'daily' || mode === 'blitz') {
+                            proceed();
+                            return;
                         }
+
+                        adService.maybeShowInterstitial({
+                            mode,
+                            isBonusActive: showBonus,
+                            isLevelCompleted: true,
+                            onAdClosed: proceed,
+                        }).then((shown) => {
+                            if (!shown) {
+                                proceed();
+                            }
+                        }).catch(() => {
+                            proceed();
+                        });
                     }}
                     onBack={goBack}
                     isDaily={mode === 'daily'}
